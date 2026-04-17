@@ -1,0 +1,27 @@
+# === Büyük Veri Dosyaları ===
+Dataset/
+*.csv
+*.tsv
+
+# === Proje Dökümanları (ödev talimatları) ===
+Proje Dökümanları/
+
+# === Python ETL artıkları ===
+__pycache__/
+*.pyc
+
+# === IDE & Editor ===
+.vscode/
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# === OS dosyaları ===
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+
+# === Antigravity / Gemini ===
+.gemini/
