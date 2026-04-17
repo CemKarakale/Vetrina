@@ -1,1 +1,32 @@
-<p>login-page works!</p>
+<div class="login-wrapper">
+  <div class="login-box">
+    <div class="login-header">
+      <h2>Welcome Back</h2>
+      <p>Log in to your account to continue</p>
+    </div>
+    
+    <div class="input-group">
+      <input
+        type="email"
+        [(ngModel)]="email"
+        placeholder="Email Address"
+      />
+    </div>
+
+    <div class="input-group">
+      <input
+        type="password"
+        [(ngModel)]="password"
+        placeholder="Password"
+      />
+    </div>
+
+    <button class="login-btn" (click)="onLogin()">Login</button>
+
+    @if (errorMessage) {
+      <div class="error-container">
+        <p class="error-text">{{ errorMessage }}</p>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,131 @@
+:host {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: -8px; /* Offset default body margin if any */
+}
+
+.login-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 48px 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 
+              0 1px 3px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 8px;
+
+  h2 {
+    margin: 0 0 8px 0;
+    color: #102a43;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  p {
+    margin: 0;
+    color: #627d98;
+    font-size: 15px;
+  }
+}
+
+.input-group {
+  width: 100%;
+}
+
+input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 20px;
+  border: 1.5px solid #d9e2ec;
+  border-radius: 12px;
+  font-size: 16px;
+  color: #334e68;
+  background: #f0f4f8;
+  transition: all 0.25s ease;
+  outline: none;
+
+  &::placeholder {
+    color: #9fb3c8;
+  }
+
+  &:focus {
+    border-color: #3e8ed0;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(62, 142, 208, 0.15);
+  }
+}
+
+.login-btn {
+  width: 100%;
+  padding: 16px;
+  background: #3e8ed0;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+
+  &:hover {
+    background: #2b7ebf;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(62, 142, 208, 0.3);
+  }
+  
+  &:active {
+    transform: translateY(1px);
+    box-shadow: none;
+  }
+}
+
+.error-container {
+  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.error-text {
+  color: #b71c1c;
+  background: #ffebee;
+  border: 1px solid #ffcdd2;
+  padding: 14px;
+  border-radius: 10px;
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@keyframes slideDown {
+  from { 
+    opacity: 0; 
+    transform: translateY(-10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
