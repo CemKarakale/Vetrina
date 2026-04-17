@@ -1,19 +1,18 @@
 package com.cse214.project.service;
 
+import com.cse214.project.dto.order.OrderCreateRequest;
 import com.cse214.project.dto.order.OrderDetailDto;
 import com.cse214.project.dto.order.OrderItemDto;
 import com.cse214.project.dto.order.OrderListDto;
-import com.cse214.project.entity.Order;
-import com.cse214.project.entity.OrderItem;
-import com.cse214.project.entity.Store;
-import com.cse214.project.entity.User;
-import com.cse214.project.repository.OrderItemRepository;
-import com.cse214.project.repository.OrderRepository;
-import com.cse214.project.repository.StoreRepository;
-import com.cse214.project.repository.UserRepository;
+import com.cse214.project.entity.*;
+import com.cse214.project.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +24,9 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
     private final StoreRepository storeRepository;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
+
+    // ==================== READ ====================
 
     public List<OrderListDto> getAllOrders(String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
@@ -64,7 +66,6 @@ public class OrderService {
                     throw new RuntimeException("Bu siparişe erişim yetkiniz yok.");
                 }
                 break;
-            // ADMIN can access all
         }
 
         List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
@@ -80,6 +81,71 @@ public class OrderService {
                 .items(itemDtos)
                 .build();
     }
+
+    // ==================== CREATE ====================
+
+    @Transactional
+    public OrderDetailDto createOrder(OrderCreateRequest request, String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElseThrow();
+
+        Store store = storeRepository.findById(request.getStoreId())
+                .orElseThrow(() -> new RuntimeException("Mağaza bulunamadı: " + request.getStoreId()));
+
+        // Sipariş oluştur
+        Order order = Order.builder()
+                .user(user)
+                .store(store)
+                .status("PENDING")
+                .createdAt(LocalDateTime.now())
+                .grandTotal(BigDecimal.ZERO) // Aşağıda hesaplanacak
+                .build();
+
+        Order savedOrder = orderRepository.save(order);
+
+        // Sipariş kalemlerini oluştur ve toplam hesapla
+        BigDecimal grandTotal = BigDecimal.ZERO;
+        List<OrderItemDto> itemDtos = new ArrayList<>();
+
+        for (OrderCreateRequest.OrderItemCreateRequest itemReq : request.getItems()) {
+            Product product = productRepository.findById(itemReq.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + itemReq.getProductId()));
+
+            BigDecimal lineTotal = product.getUnitPrice().multiply(BigDecimal.valueOf(itemReq.getQuantity()));
+
+            OrderItem orderItem = OrderItem.builder()
+                    .order(savedOrder)
+                    .product(product)
+                    .quantity(itemReq.getQuantity())
+                    .price(lineTotal)
+                    .build();
+
+            orderItemRepository.save(orderItem);
+            grandTotal = grandTotal.add(lineTotal);
+
+            itemDtos.add(OrderItemDto.builder()
+                    .id(orderItem.getId())
+                    .productName(product.getName())
+                    .quantity(itemReq.getQuantity())
+                    .price(lineTotal)
+                    .build());
+        }
+
+        // Grand total güncelle
+        savedOrder.setGrandTotal(grandTotal);
+        orderRepository.save(savedOrder);
+
+        return OrderDetailDto.builder()
+                .id(savedOrder.getId())
+                .status(savedOrder.getStatus())
+                .grandTotal(grandTotal)
+                .createdAt(savedOrder.getCreatedAt())
+                .storeName(store.getName())
+                .userName(user.getName())
+                .items(itemDtos)
+                .build();
+    }
+
+    // ==================== MAPPERS ====================
 
     private OrderListDto toListDto(Order o) {
         return OrderListDto.builder()

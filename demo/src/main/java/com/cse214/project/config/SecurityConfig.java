@@ -26,6 +26,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .cors(cors -> cors.configurationSource(
+                    new org.springframework.web.cors.UrlBasedCorsConfigurationSource() {{
+                        registerCorsConfiguration("/**", new org.springframework.web.cors.CorsConfiguration() {{
+                            setAllowedOrigins(java.util.List.of("http://localhost:4200"));
+                            setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                            setAllowedHeaders(java.util.List.of("*"));
+                            setAllowCredentials(true);
+                        }});
+                    }}
+            ))
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
@@ -35,6 +45,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/products/**").authenticated()
                 .requestMatchers("/api/orders/**").authenticated()
                 .requestMatchers("/api/dashboard/**").authenticated()
+                .requestMatchers("/api/reviews/**").authenticated()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
