@@ -1,1 +1,24 @@
-<p>product-list-page works!</p>
+<div class="product-list-page">
+  <h2>Products</h2>
+
+  @if (isLoading) {
+    <p>Loading products...</p>
+  }
+
+  @if (!isLoading && errorMessage) {
+    <p>{{ errorMessage }}</p>
+  }
+
+  @if (!isLoading && !errorMessage) {
+    <div class="product-grid">
+      @for (product of products; track product.id) {
+        <div class="product-card">
+          <h3>{{ product.name }}</h3>
+          <p>Category: {{ product.category }}</p>
+          <p>Price: {{ product.price }}</p>
+          <button (click)="goToDetails(product.id)">Details</button>
+        </div>
+      }
+    </div>
+  }
+</div>

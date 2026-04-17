@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private http: HttpClient) { }
   login(email: string, password: string) {
     return this.http.post('/api/auth/login', {
       email: email,
@@ -17,22 +16,23 @@ export class AuthService {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('username');
-    this.router.navigate(['/LoginPage']);
+    //check login or do all that in login
+    //
   }
-  isLoggedIn(){
-    if(localStorage.getItem('token')){
+  isLoggedIn() {
+    if (localStorage.getItem('token')) {
       return true;
     }
     return false;
 
   }
-  getToken(){
+  getToken() {
     return localStorage.getItem('token');
   }
-  getRole(){
+  getRole() {
     return localStorage.getItem('role');
   }
-  getUsername(){
+  getUsername() {
     return localStorage.getItem('username');
   }
 }
