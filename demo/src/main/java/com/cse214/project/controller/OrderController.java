@@ -1,0 +1,29 @@
+package com.cse214.project.controller;
+
+import com.cse214.project.dto.order.OrderDetailDto;
+import com.cse214.project.dto.order.OrderListDto;
+import com.cse214.project.service.OrderService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/orders")
+@RequiredArgsConstructor
+public class OrderController {
+
+    private final OrderService orderService;
+
+    @GetMapping
+    public ResponseEntity<List<OrderListDto>> getAllOrders(Authentication auth) {
+        return ResponseEntity.ok(orderService.getAllOrders(auth.getName()));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderDetailDto> getOrderById(@PathVariable Integer id, Authentication auth) {
+        return ResponseEntity.ok(orderService.getOrderById(id, auth.getName()));
+    }
+}
