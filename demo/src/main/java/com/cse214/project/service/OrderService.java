@@ -58,12 +58,12 @@ public class OrderService {
             case "CORPORATE":
                 Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
                 if (!order.getStore().getId().equals(store.getId())) {
-                    throw new RuntimeException("Bu siparişe erişim yetkiniz yok.");
+                    throw new com.cse214.project.exception.ForbiddenAccessException("Bu siparişe erişim yetkiniz yok.");
                 }
                 break;
             case "INDIVIDUAL":
                 if (!order.getUser().getId().equals(user.getId())) {
-                    throw new RuntimeException("Bu siparişe erişim yetkiniz yok.");
+                    throw new com.cse214.project.exception.ForbiddenAccessException("Bu siparişe erişim yetkiniz yok.");
                 }
                 break;
         }
@@ -156,7 +156,7 @@ public class OrderService {
         if ("CORPORATE".equals(user.getRoleType())) {
             Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
             if (!order.getStore().getId().equals(store.getId())) {
-                throw new RuntimeException("Bu siparişin durumunu güncelleme yetkiniz yok.");
+                throw new com.cse214.project.exception.ForbiddenAccessException("Bu siparişin durumunu güncelleme yetkiniz yok.");
             }
         } else if ("INDIVIDUAL".equals(user.getRoleType())) {
             throw new RuntimeException("Bireysel kullanıcılar sipariş durumu güncelleyemez.");
