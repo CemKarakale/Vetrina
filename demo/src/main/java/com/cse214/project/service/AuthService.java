@@ -26,10 +26,34 @@ public class AuthService {
             throw new UnauthorizedAccessException("Erişim reddedildi: Kullanıcı bulunamadı veya şifre hatalı.");
         }
 
-        String token = jwtService.generateToken(user);
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
 
         return LoginResponse.builder()
-                .accessToken(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .role(user.getRoleType())
+                .userId(user.getId())
+                .name(user.getName())
+                .build();
+    }
+
+    public LoginResponse refresh(String refreshToken) {
+        String email = jwtService.extractEmail(refreshToken);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UnauthorizedAccessException("Geçersiz refresh token."));
+
+        if (!jwtService.validateToken(refreshToken, email)) {
+            throw new UnauthorizedAccessException("Refresh token süresi dolmuş.");
+        }
+
+        String newAccessToken = jwtService.generateToken(user);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
+
+        return LoginResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
                 .role(user.getRoleType())
                 .userId(user.getId())
                 .name(user.getName())

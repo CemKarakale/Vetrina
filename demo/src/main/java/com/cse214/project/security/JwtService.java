@@ -23,15 +23,21 @@ public class JwtService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", user.getRoleType());
         claims.put("name", user.getName());
-        return createToken(claims, user.getEmail());
+        return createToken(claims, user.getEmail(), 1000 * 60 * 60 * 10); // 10 saat
     }
 
-    private String createToken(Map<String, Object> claims, String subject) {
+    public String generateRefreshToken(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "refresh");
+        return createToken(claims, user.getEmail(), 1000L * 60 * 60 * 24 * 7); // 7 gün
+    }
+
+    private String createToken(Map<String, Object> claims, String subject, long expirationMs) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours expiration
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
