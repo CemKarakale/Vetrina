@@ -21,7 +21,7 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         // ===== 1. Admin Kullanıcı =====
-        User admin = seedUser("Admin User", "admin@test.com", "123456", "ADMIN");
+        seedUser("Admin User", "admin@test.com", "123456", "ADMIN");
 
         // ===== 2. Corporate Kullanıcı =====
         User corp = seedUser("Corporate User", "corp@test.com", "123456", "CORPORATE");
