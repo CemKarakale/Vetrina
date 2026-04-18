@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth';
@@ -13,27 +13,26 @@ import { AuthService } from '../../../../core/services/auth';
 export class LoginPage {
   email: string = '';
   password: string = '';
-  errorMessage: string = '';
+  errorMessage = signal<string>('');
 
   constructor(
     private authService: AuthService,
-    private router: Router,
-    private cdr: ChangeDetectorRef
+    private router: Router
   ) {}
 
   onLogin() {
-    this.errorMessage = '';
+    this.errorMessage.set('');
     this.authService.login(this.email, this.password).subscribe({
       next: (response: any) => {
-        localStorage.setItem('token', response.token);
+        localStorage.setItem('token', response.accessToken);
+        localStorage.setItem('refreshToken', response.refreshToken);
         localStorage.setItem('role', response.role);
-        localStorage.setItem('username', response.username);
+        localStorage.setItem('username', response.name);
 
-        this.router.navigate(['/products']);
+        this.router.navigate(['/dashboard']);
       },
       error: () => {
-        this.errorMessage = 'Login failed';
-        this.cdr.detectChanges();
+        this.errorMessage.set('Login failed');
       }
     });
   }

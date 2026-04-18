@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProductService } from '../../../../core/services/product';
 
@@ -10,9 +10,10 @@ import { ProductService } from '../../../../core/services/product';
   styleUrl: './product-list-page.scss'
 })
 export class ProductListPage implements OnInit {
-  products: any[] = [];
-  isLoading: boolean = true;
-  errorMessage: string = '';
+  products = signal<any[]>([]);
+  isLoading = signal<boolean>(true);
+  errorMessage = signal<string>('');
+  testMessage = signal<string>('PRODUCT LIST TS IS ACTIVE');
 
   constructor(
     private productService: ProductService,
@@ -24,17 +25,26 @@ export class ProductListPage implements OnInit {
   }
 
   loadProducts() {
-    this.isLoading = true;
-    this.errorMessage = '';
+    console.log('loadProducts started');
+
+    this.isLoading.set(true);
+    this.errorMessage.set('');
 
     this.productService.getProducts().subscribe({
       next: (response: any) => {
-        this.products = response;
-        this.isLoading = false;
+        console.log('Products response:', response);
+        this.products.set(response ?? []);
+        this.isLoading.set(false);
+        console.log('isLoading set to false in next');
       },
-      error: () => {
-        this.errorMessage = 'Could not load products';
-        this.isLoading = false;
+      error: (err) => {
+        console.log('Products error:', err);
+        this.errorMessage.set('Could not load products');
+        this.isLoading.set(false);
+        console.log('isLoading set to false in error');
+      },
+      complete: () => {
+        console.log('Products request complete');
       }
     });
   }

@@ -1,21 +1,26 @@
 <div class="product-list-page">
   <h2>Products</h2>
 
-  @if (isLoading) {
+  @if (isLoading()) {
     <p>Loading products...</p>
   }
 
-  @if (!isLoading && errorMessage) {
-    <p>{{ errorMessage }}</p>
+  @if (!isLoading() && errorMessage()) {
+    <p>{{ errorMessage() }}</p>
   }
 
-  @if (!isLoading && !errorMessage) {
+  @if (!isLoading() && !errorMessage() && products().length === 0) {
+    <p>No products found.</p>
+  }
+
+  @if (!isLoading() && !errorMessage() && products().length > 0) {
     <div class="product-grid">
-      @for (product of products; track product.id) {
+      @for (product of products(); track product.id) {
         <div class="product-card">
           <h3>{{ product.name }}</h3>
-          <p>Category: {{ product.category }}</p>
-          <p>Price: {{ product.price }}</p>
+          <p>Category: {{ product.categoryName }}</p>
+          <p>Price: {{ product.unitPrice }}</p>
+          <p>Store: {{ product.storeName }}</p>
           <button (click)="goToDetails(product.id)">Details</button>
         </div>
       }

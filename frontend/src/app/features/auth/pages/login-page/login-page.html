@@ -23,9 +23,9 @@
 
     <button class="login-btn" (click)="onLogin()">Login</button>
 
-    @if (errorMessage) {
+    @if (errorMessage()) {
       <div class="error-container">
-        <p class="error-text">{{ errorMessage }}</p>
+        <p class="error-text">{{ errorMessage() }}</p>
       </div>
     }
   </div>
