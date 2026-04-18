@@ -1,0 +1,25 @@
+<div class="orders-page">
+  <h2>My Orders</h2>
+
+  @if (isLoading) {
+    <p>Loading orders...</p>
+  }
+
+  @if (!isLoading && errorMessage) {
+    <p>{{ errorMessage }}</p>
+  }
+
+  @if (!isLoading && !errorMessage) {
+    <div class="orders-list">
+      @for (order of orders; track order.id) {
+        <div class="order-card">
+          <h3>Order #{{ order.id }}</h3>
+          <p>Status: {{ order.status }}</p>
+          <p>Total: {{ order.total }}</p>
+          <p>Date: {{ order.date }}</p>
+          <button (click)="goToDetails(order.id)">Details</button>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,1 +1,22 @@
-<p>product-detail-page works!</p>
+<div class="product-detail-page">
+  <h2>Product Detail</h2>
+
+  @if (isLoading) {
+    <p>Loading product...</p>
+  }
+
+  @if (!isLoading && errorMessage) {
+    <p>{{ errorMessage }}</p>
+  }
+
+  @if (!isLoading && product) {
+    <div class="product-card">
+      <h3>{{ product.name }}</h3>
+      <p>Description: {{ product.description }}</p>
+      <p>Category: {{ product.category }}</p>
+      <p>Price: {{ product.price }}</p>
+      <p>SKU: {{ product.sku }}</p>
+      <p>Rating: {{ product.rating }}</p>
+    </div>
+  }
+</div>
