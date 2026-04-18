@@ -145,6 +145,28 @@ public class OrderService {
                 .build();
     }
 
+    // ==================== UPDATE STATUS ====================
+
+    public OrderListDto updateOrderStatus(Integer id, String newStatus, String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElseThrow();
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sipariş bulunamadı: " + id));
+
+        // Sadece CORPORATE (kendi mağazası) ve ADMIN durumu güncelleyebilir
+        if ("CORPORATE".equals(user.getRoleType())) {
+            Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
+            if (!order.getStore().getId().equals(store.getId())) {
+                throw new RuntimeException("Bu siparişin durumunu güncelleme yetkiniz yok.");
+            }
+        } else if ("INDIVIDUAL".equals(user.getRoleType())) {
+            throw new RuntimeException("Bireysel kullanıcılar sipariş durumu güncelleyemez.");
+        }
+
+        order.setStatus(newStatus);
+        Order saved = orderRepository.save(order);
+        return toListDto(saved);
+    }
+
     // ==================== MAPPERS ====================
 
     private OrderListDto toListDto(Order o) {
