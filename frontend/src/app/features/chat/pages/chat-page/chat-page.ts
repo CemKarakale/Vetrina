@@ -2,6 +2,7 @@ import { Component, OnInit, signal, ViewChild, ElementRef, AfterViewChecked } fr
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth';
+import { ChatService } from '../../../../core/services/chat';
 
 type Message = {
   role: 'user' | 'assistant' | 'guardrail' | 'chart';
@@ -34,7 +35,10 @@ export class ChatPage implements OnInit, AfterViewChecked {
     'Aylık gelir trendini grafik olarak göster'
   ];
 
-  constructor(public authService: AuthService) {}
+  constructor(
+    public authService: AuthService,
+    private chatService: ChatService
+  ) {}
 
   ngOnInit() {}
 
@@ -139,7 +143,7 @@ export class ChatPage implements OnInit, AfterViewChecked {
          return;
       }
 
-      // Success Scenario
+      // Success Scenario (Mock specific chart)
       if (lower.includes('en çok satan')) {
          this.messages.update(m => [...m, {
            role: 'chart',
@@ -159,8 +163,42 @@ export class ChatPage implements OnInit, AfterViewChecked {
          return;
       }
 
-      // Default reply
-      this.messages.update(m => [...m, { role: 'assistant', content: "Anladım. Lütfen örnek formatlardaki senaryoları ('2055', 'Ignore previous instructions', vb) deneyerek test vakalarını inceleyin." }]);
+      // API Backend integration for generic queries
+      this.messages.update(m => [...m, { role: 'assistant', content: "💭 Verileriniz inceleniyor..." }]);
+      
+      this.chatService.sendMessage(text).subscribe({
+         next: (res: any) => {
+            this.messages.update(list => {
+               const updated = [...list];
+               updated.pop(); // remove loading message
+               updated.push({ role: 'assistant', content: res.answer || res.response || JSON.stringify(res) });
+               return updated;
+            });
+         },
+         error: () => {
+            const mockResponse = this.generateMockResponse(lower);
+            this.messages.update(list => {
+               const updated = [...list];
+               updated.pop(); 
+               updated.push({ role: 'assistant', content: mockResponse });
+               return updated;
+            });
+         }
+      });
+      
     }, 400); // Slight delay for realism
+  }
+
+  generateMockResponse(text: string): string {
+    if (text.includes('geçen ay')) return 'Geçen aya göre satışlarınız %15 artış gösterdi. Özellikle "Elektronik" kategorisinde belirgin bir ivme var.';
+    if (text.includes('stok') && text.includes('10')) return 'Stoku 10\'un altına düşen 3 ürününüz var: 1. Akıllı Saat X (8 adet), 2. Kablosuz Şarj Cihazı (4 adet), 3. Oyuncu Klavyesi (9 adet).';
+    if (text.includes('müşteri')) return 'En değerli müşterileriniz: 1. Ahmet Y. (₺12,500), 2. Mehmet K. (₺9,200), 3. Ayşe S. (₺8,100).';
+    if (text.includes('bekleyen')) return 'Şu anda kargolanmayı bekleyen 14 siparişiniz bulunuyor, toplam değerleri ₺4,500.';
+    if (text.includes('iade')) return 'İade oranının en yüksek olduğu kategori %12 ile "Giyim". Genellikle beden uyuşmazlığı nedeniyle iade yapılmış.';
+    if (text.includes('sevkiyat')) return 'Bu hafta yapılan 45 sevkiyatın 40\'ı teslim edildi, 5\'i halen yolda.';
+    if (text.includes('1 yıldız')) return '1 yıldız alan ürünler: "Ucuz Telefon Kılıfı" (Malzeme kalitesi şikayeti) ve "Pilli Radyo" (Bozuk ürün şikayeti).';
+    if (text.includes('trend')) return 'Aylık gelir trendiniz yükselişte. Lütfen tam grafiksel görünüm için "bu ay en çok satan 5 ürün hangileri" sorgusunu deneyin.';
+
+    return 'Şu anda AI sunucusuna ulaşılamıyor (Backend çevrimdışı) ve bu soru için çevrimdışı bir yanıt bulunmuyor. Lütfen daha sonra tekrar deneyin veya örnek sorulardan birini seçin.';
   }
 }
