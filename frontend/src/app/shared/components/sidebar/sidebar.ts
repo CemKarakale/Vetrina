@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth';
 
@@ -8,25 +8,35 @@ import { AuthService } from '../../../core/services/auth';
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
-export class Sidebar {
-  menuItems = [
-    { icon: '🏠', label: 'Dashboard', path: '/dashboard' },
-    { icon: '📉', label: 'Analytics', path: '/analytics' },
-    { icon: '🛒', label: 'Orders', path: '/orders' },
-    { icon: '📦', label: 'Products', path: '/products' },
-  ];
-
-  managementItems = [
-    { icon: '👥', label: 'Customers', path: '/customers' },
-    { icon: '🏪', label: 'Store Settings', path: '/settings' },
-    { icon: '🚚', label: 'Shipments', path: '/shipments' },
-    { icon: '⭐', label: 'Reviews', path: '/reviews' },
-  ];
+export class Sidebar implements OnInit {
+  menuItems: any[] = [];
+  managementItems: any[] = [];
 
   constructor(
     private authService: AuthService,
     private router: Router
   ) {}
+
+  ngOnInit() {
+    const role = this.authService.getRole() || 'USER';
+
+    const allMenuItems = [
+      { icon: '🏠', label: 'Dashboard', path: '/dashboard', roles: ['ADMIN', 'CORPORATE', 'USER'] },
+      { icon: '📉', label: 'Analytics', path: '/analytics', roles: ['ADMIN', 'CORPORATE'] },
+      { icon: '🛒', label: 'Orders', path: '/orders', roles: ['ADMIN', 'CORPORATE', 'USER'] },
+      { icon: '📦', label: 'Products', path: '/products', roles: ['ADMIN', 'CORPORATE', 'USER'] },
+      { icon: '🛍️', label: 'Cart', path: '/cart', roles: ['USER'] },
+    ];
+
+    const allManagementItems = [
+      { icon: '👥', label: 'Customers', path: '/customers', roles: ['ADMIN', 'CORPORATE'] },
+      { icon: '🏪', label: 'Store Settings', path: '/settings', roles: ['ADMIN', 'CORPORATE'] },
+      { icon: '⭐', label: 'Reviews', path: '/reviews', roles: ['ADMIN', 'CORPORATE', 'USER'] },
+    ];
+
+    this.menuItems = allMenuItems.filter(item => item.roles.includes(role));
+    this.managementItems = allManagementItems.filter(item => item.roles.includes(role));
+  }
 
   // Logs out and redirects to login page
   logout() {

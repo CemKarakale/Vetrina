@@ -70,6 +70,26 @@
           </table>
         </div>
 
+        @if (shipment()) {
+          <div class="shipment-section" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+            <h3>📦 Shipment Information</h3>
+            <div class="info-grid">
+              <div class="info-group">
+                <h4>Status</h4>
+                <p><span class="status-badge pending">{{ shipment()?.status || 'Pending' }}</span></p>
+              </div>
+              <div class="info-group">
+                <h4>Mode of Shipment</h4>
+                <p>{{ shipment()?.modeOfShipment || 'N/A' }}</p>
+              </div>
+              <div class="info-group">
+                <h4>Warehouse Block</h4>
+                <p>{{ shipment()?.warehouseBlock || 'N/A' }}</p>
+              </div>
+            </div>
+          </div>
+        }
+
       </div>
     </div>
   }

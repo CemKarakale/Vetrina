@@ -1,0 +1,52 @@
+<div class="cart-page">
+  <div class="header-section">
+    <h1>Your Shopping Cart</h1>
+  </div>
+
+  <div *ngIf="cartService.cartItems().length === 0 && !paymentSuccess()" class="empty-state">
+    <p>Your cart is empty.</p>
+  </div>
+
+  <div *ngIf="paymentSuccess()" class="success-state">
+    <h2>Payment Successful!</h2>
+    <p>Thank you for your order.</p>
+  </div>
+
+  <div class="cart-container" *ngIf="cartService.cartItems().length > 0 && !paymentMode()">
+    <div class="items-list">
+      <div class="cart-item" *ngFor="let item of cartService.cartItems()">
+        <div class="info">
+          <h3>{{item.name}}</h3>
+          <p>Price: ${{item.unitPrice}}</p>
+        </div>
+        <div class="actions">
+          <span>Qty: {{item.quantity}}</span>
+          <button (click)="cartService.removeFromCart(item.id)">Remove</button>
+        </div>
+      </div>
+    </div>
+    <div class="summary">
+      <h3>Total: ${{cartService.getTotal() | number:'1.2-2'}}</h3>
+      <button class="checkout-btn" (click)="checkout()">Proceed to Checkout</button>
+    </div>
+  </div>
+
+  <div class="payment-modal" *ngIf="paymentMode() && !paymentSuccess()">
+    <h2>Payment Details</h2>
+    <p>Total to Pay: ${{cartService.getTotal() | number:'1.2-2'}}</p>
+    <div class="form-group">
+      <label>Card Number</label>
+      <input type="text" placeholder="1234 5678 9101 1121">
+    </div>
+    <div class="form-group">
+      <label>Expiry</label>
+      <input type="text" placeholder="MM/YY">
+    </div>
+    <div class="form-group">
+      <label>CVV</label>
+      <input type="text" placeholder="123">
+    </div>
+    <button class="pay-btn" (click)="processPayment()">Pay Now</button>
+    <button class="cancel-btn" (click)="paymentMode.set(false)">Cancel</button>
+  </div>
+</div>

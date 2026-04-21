@@ -5,11 +5,11 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class ShipmentService {
-  apiUrl: string = 'http://localhost:8080/api/shipments';
+  apiUrl: string = 'http://localhost:8080/api/shipments/order';
 
   constructor(private http: HttpClient) {}
 
-  getShipments() {
-    return this.http.get<any[]>(this.apiUrl);
+  getShipmentByOrderId(orderId: number) {
+    return this.http.get<any>(`${this.apiUrl}/${orderId}`);
   }
 }

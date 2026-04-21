@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OrderService } from '../../../../core/services/order';
+import { ShipmentService } from '../../../../core/services/shipment';
 
 @Component({
   selector: 'app-order-detail-page',
@@ -12,13 +13,15 @@ import { OrderService } from '../../../../core/services/order';
 })
 export class OrderDetailPage implements OnInit {
   order = signal<any>(null);
+  shipment = signal<any>(null);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string>('');
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private orderService: OrderService
+    private orderService: OrderService,
+    private shipmentService: ShipmentService
   ) {}
 
   ngOnInit() {
@@ -34,7 +37,7 @@ export class OrderDetailPage implements OnInit {
     this.orderService.getOrderById(id).subscribe({
       next: (response: any) => {
         this.order.set(response);
-        this.isLoading.set(false);
+        this.loadShipment(id);
       },
       error: () => {
         this.errorMessage.set('Could not load order from API. Showing demo data.');
@@ -52,6 +55,26 @@ export class OrderDetailPage implements OnInit {
             { id: 1, name: 'Smart Fitness Watch', quantity: 2, price: 149.50 }
           ]
         });
+        this.shipment.set({
+           id: 101,
+           warehouseBlock: 'A',
+           modeOfShipment: 'Flight',
+           customerCareCalls: 2,
+           status: 'In Transit',
+           discountOffered: 10
+        });
+      }
+    });
+  }
+
+  loadShipment(id: number) {
+    this.shipmentService.getShipmentByOrderId(id).subscribe({
+      next: (response: any) => {
+        this.shipment.set(response);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.isLoading.set(false);
       }
     });
   }

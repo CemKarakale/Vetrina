@@ -8,22 +8,22 @@ import { authGuard } from './core/guards/auth-guard';
 import { OrdersPage } from './features/orders/pages/orders-page/orders-page';
 import { OrderDetailPage } from './features/orders/pages/order-detail-page/order-detail-page';
 import { CustomersPage } from './features/customers/pages/customers-page/customers-page';
-import { ShipmentsPage } from './features/shipments/pages/shipments-page/shipments-page';
 import { ReviewsPage } from './features/reviews/pages/reviews-page/reviews-page';
 import { SettingsPage } from './features/settings/pages/settings-page/settings-page';
+import { CartPage } from './features/cart/pages/cart-page/cart-page';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
     { path: 'login', component: LoginPage },
-    { path: 'products', component: ProductListPage, canActivate: [authGuard] },
-    { path: 'products/:id', component: ProductDetailPage, canActivate: [authGuard] },
-    { path: 'dashboard', component: DashboardPage, canActivate: [authGuard] },
-    { path: 'analytics', component: AnalyticsPage, canActivate: [authGuard] },
-    { path: 'orders', component: OrdersPage, canActivate: [authGuard] },
-    { path: 'orders/:id', component: OrderDetailPage, canActivate: [authGuard] },
-    { path: 'customers', component: CustomersPage, canActivate: [authGuard] },
-    { path: 'shipments', component: ShipmentsPage, canActivate: [authGuard] },
-    { path: 'reviews', component: ReviewsPage, canActivate: [authGuard] },
-    { path: 'settings', component: SettingsPage, canActivate: [authGuard] },
+    { path: 'products', component: ProductListPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
+    { path: 'products/:id', component: ProductDetailPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
+    { path: 'dashboard', component: DashboardPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
+    { path: 'analytics', component: AnalyticsPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE'] } },
+    { path: 'orders', component: OrdersPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
+    { path: 'orders/:id', component: OrderDetailPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
+    { path: 'customers', component: CustomersPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE'] } },
+    { path: 'reviews', component: ReviewsPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
+    { path: 'settings', component: SettingsPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE'] } },
+    { path: 'cart', component: CartPage, canActivate: [authGuard], data: { roles: ['USER'] } },
     { path: '**', redirectTo: 'login' }
-]
+];
