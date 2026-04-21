@@ -1,0 +1,96 @@
+<div class="order-detail-page">
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">← Back to Orders</button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading order details...</p>
+    </div>
+  }
+
+  @if (!isLoading() && errorMessage()) {
+    <div class="error-banner">
+      <span>⚠️</span>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  }
+
+  @if (!isLoading() && order()) {
+    <div class="detail-container">
+      <div class="detail-card">
+        
+        <div class="detail-header">
+          <div class="order-title">
+            <h2>Order #{{ order()?.id }}</h2>
+            <span class="status-badge" [ngClass]="order()?.status.toLowerCase()">{{ order()?.status }}</span>
+          </div>
+          <p class="order-date">Placed on {{ order()?.createdAt | date:'longDate' }}</p>
+        </div>
+        
+        <div class="info-grid">
+          <div class="info-group">
+            <h3>Customer</h3>
+            <p><strong>Name:</strong> {{ order()?.userName }}</p>
+          </div>
+
+          <div class="info-group">
+            <h3>Store</h3>
+            <p><span class="store-icon">🏪</span> {{ order()?.storeName }}</p>
+          </div>
+
+          <div class="info-group">
+            <h3>Order Total</h3>
+            <p><span class="highlight">${{ order()?.grandTotal | number:'1.2-2' }}</span></p>
+          </div>
+        </div>
+
+        <div class="items-section">
+          <h3>Order Items</h3>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th class="align-right">Price</th>
+                <th class="align-center">Qty</th>
+                <th class="align-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of order()?.items; track item.id) {
+                <tr>
+                  <td>{{ item.name }}</td>
+                  <td class="align-right">${{ item.price | number:'1.2-2' }}</td>
+                  <td class="align-center">{{ item.quantity }}</td>
+                  <td class="align-right font-bold">${{ (item.price * item.quantity) | number:'1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (shipment()) {
+          <div class="shipment-section" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+            <h3>📦 Shipment Information</h3>
+            <div class="info-grid">
+              <div class="info-group">
+                <h4>Status</h4>
+                <p><span class="status-badge pending">{{ shipment()?.status || 'Pending' }}</span></p>
+              </div>
+              <div class="info-group">
+                <h4>Mode of Shipment</h4>
+                <p>{{ shipment()?.modeOfShipment || 'N/A' }}</p>
+              </div>
+              <div class="info-group">
+                <h4>Warehouse Block</h4>
+                <p>{{ shipment()?.warehouseBlock || 'N/A' }}</p>
+              </div>
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+  }
+</div>

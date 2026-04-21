@@ -24,6 +24,17 @@ CREATE TABLE IF NOT EXISTS Stores (
     FOREIGN KEY (owner_id) REFERENCES Users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS Store_Settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    store_id INT NOT NULL UNIQUE,
+    email VARCHAR(255),
+    category VARCHAR(255),
+    description TEXT,
+    currency VARCHAR(50) DEFAULT 'USD ($)',
+    timezone VARCHAR(100) DEFAULT 'America/New_York',
+    FOREIGN KEY (store_id) REFERENCES Stores(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS Categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -190,6 +201,7 @@ INSERT INTO Stores (id, owner_id, name, status) VALUES (3, 6, 'Parker, Moore and
 INSERT INTO Stores (id, owner_id, name, status) VALUES (4, 7, 'Webb, Gonzalez and Rowe Store', 'OPEN');
 INSERT INTO Stores (id, owner_id, name, status) VALUES (5, 8, 'Ortiz-Wilson Store', 'OPEN');
 INSERT INTO Stores (id, owner_id, name, status) VALUES (6, 9, 'Moore-Fleming Store', 'OPEN');
+INSERT INTO Store_Settings (id, store_id, email, category, description, currency, timezone) VALUES (1, 1, 'admin@techhaven.example.com', 'Electronics & Gadgets', 'Premium tech gadgets and lifestyle electronics.', 'USD ($)', 'America/New_York');
 -- INSERT CATEGORIES & PRODUCTS
 INSERT INTO Categories (id, name, parent_id) VALUES (1, 'Computers&Accessories', NULL);
 INSERT INTO Products (id, store_id, category_id, sku, name, description, unit_price) VALUES (1, 4, 1, 'SKU-83912528-1', 'Xiaomi Pad 5| Qualcomm Snapdragon 860| 120Hz Refresh Rate| 6GB, 128GB| 2.5K+ Display (10.95-inch/27.81cm)|1 Billion Colours| Dolby Vision Atmos| Quad Speakers| Wi-Fi| Gray', 'Qualcomm Snapdragon 860 Octa-core processor | 6GB RAM | 128GB Internal Storage|WQHD+ (2560x1600 high resolution) 10.95" Dolby Vision display | 120Hz refresh rate | Supports DCI-P3 with over 1 billion colours|Quad Speakers with Dolby Atmos | Long lasting 8720 mAh Battery | Android 11|13MP Rear Camera with 4K recording | 8MP Front camera | Ultra Slim design', 26999.00);
