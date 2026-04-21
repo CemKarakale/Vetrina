@@ -26,31 +26,23 @@
             <h2>Order #{{ order()?.id }}</h2>
             <span class="status-badge" [ngClass]="order()?.status.toLowerCase()">{{ order()?.status }}</span>
           </div>
-          <p class="order-date">Placed on {{ order()?.date | date:'longDate' }}</p>
+          <p class="order-date">Placed on {{ order()?.createdAt | date:'longDate' }}</p>
         </div>
         
         <div class="info-grid">
           <div class="info-group">
-            <h3>Customer Details</h3>
-            <p><strong>Name:</strong> {{ order()?.customerName }}</p>
-            <p><strong>Email:</strong> {{ order()?.customerEmail }}</p>
+            <h3>Customer</h3>
+            <p><strong>Name:</strong> {{ order()?.userName }}</p>
           </div>
 
           <div class="info-group">
-            <h3>Shipping Information</h3>
-            <p><strong>Address:</strong> {{ order()?.shippingAddress }}</p>
-            <p><strong>Method:</strong> {{ order()?.shipmentInfo }}</p>
-          </div>
-
-          <div class="info-group">
-            <h3>Payment Details</h3>
-            <p><strong>Method:</strong> {{ order()?.paymentInfo }}</p>
-            <p><strong>Grand Total:</strong> <span class="highlight">${{ order()?.total | number:'1.2-2' }}</span></p>
-          </div>
-
-          <div class="info-group">
-            <h3>Fulfillment Store</h3>
+            <h3>Store</h3>
             <p><span class="store-icon">🏪</span> {{ order()?.storeName }}</p>
+          </div>
+
+          <div class="info-group">
+            <h3>Order Total</h3>
+            <p><span class="highlight">${{ order()?.grandTotal | number:'1.2-2' }}</span></p>
           </div>
         </div>
 

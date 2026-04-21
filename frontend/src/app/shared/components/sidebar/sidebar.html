@@ -8,13 +8,10 @@
     <p class="section-title">MAIN MENU</p>
     <ul>
       @for (item of menuItems; track item.label) {
-        <li [class.active]="item.label === 'Dashboard'">
-          <a [routerLink]="item.path">
+        <li>
+          <a [routerLink]="item.path" routerLinkActive="active">
             <span class="icon">{{ item.icon }}</span>
             <span class="label">{{ item.label }}</span>
-            @if (item.isNew) {
-              <span class="badge new-badge">New</span>
-            }
           </a>
         </li>
       }
@@ -26,12 +23,19 @@
     <ul>
       @for (item of managementItems; track item.label) {
         <li>
-          <a [routerLink]="item.path">
+          <a [routerLink]="item.path" routerLinkActive="active">
             <span class="icon">{{ item.icon }}</span>
             <span class="label">{{ item.label }}</span>
           </a>
         </li>
       }
     </ul>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="logout-btn" (click)="logout()">
+      <span class="icon">🚪</span>
+      <span class="label">Logout</span>
+    </button>
   </div>
 </div>

@@ -1,6 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CustomerService } from '../../../../core/services/customer';
+import { SearchService } from '../../../../core/services/search';
 
 @Component({
   selector: 'app-customers-page',
@@ -13,36 +14,25 @@ export class CustomersPage implements OnInit {
   customers = signal<any[]>([]);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string>('');
-
   totalCustomers = signal<number>(0);
-
-  isAddModalOpen = signal<boolean>(false);
   selectedCustomer = signal<any>(null);
 
-  openAddModal() {
-    this.isAddModalOpen.set(true);
-  }
+  // Filtered customers based on search term
+  filteredCustomers = computed(() => {
+    const term = this.searchService.searchTerm();
+    const list = this.customers();
+    if (!term) return list;
+    return list.filter(c =>
+      c.name?.toLowerCase().includes(term) ||
+      c.id?.toString().includes(term) ||
+      c.membership?.toLowerCase().includes(term)
+    );
+  });
 
-  saveCustomer(name: string, members: string, spend: string) {
-    if (!name) return;
-    const newCust = {
-      id: 'CUST-NEW-' + Math.floor(Math.random() * 999),
-      name: name,
-      membership: members || 'Standard',
-      totalSpend: Number(spend) || 0,
-      orderCount: 0,
-      status: 'Active'
-    };
-    this.customers.set([newCust, ...this.customers()]);
-    this.totalCustomers.update(t => t + 1);
-    this.isAddModalOpen.set(false);
-  }
-
-  viewProfile(customer: any) {
-    this.selectedCustomer.set(customer);
-  }
-
-  constructor(private customerService: CustomerService) { }
+  constructor(
+    private customerService: CustomerService,
+    private searchService: SearchService
+  ) {}
 
   ngOnInit() {
     this.loadCustomers();
@@ -72,8 +62,12 @@ export class CustomersPage implements OnInit {
         ];
 
         this.customers.set(mockData);
-        this.totalCustomers.set(12458); // Faking total count for realism
+        this.totalCustomers.set(mockData.length);
       }
     });
+  }
+
+  viewProfile(customer: any) {
+    this.selectedCustomer.set(customer);
   }
 }

@@ -103,6 +103,45 @@ input {
   }
 }
 
+.login-logo {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #9fb3c8;
+  font-size: 13px;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #d9e2ec;
+  }
+}
+
+.demo-btn {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  color: #627d98;
+  border: 1.5px solid #d9e2ec;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f0f4f8;
+    border-color: #9fb3c8;
+    color: #334e68;
+  }
+}
+
 .error-container {
   animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

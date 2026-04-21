@@ -20,25 +20,23 @@
     </div>
   }
 
-  @if (!isLoading() && products().length === 0) {
+  @if (!isLoading() && filteredProducts().length === 0) {
     <div class="empty-state">
       <p>No products found.</p>
     </div>
   }
 
-  @if (!isLoading() && products().length > 0) {
+  @if (!isLoading() && filteredProducts().length > 0) {
     <div class="product-grid">
-      @for (product of products(); track product.id) {
+      @for (product of filteredProducts(); track product.id) {
         <div class="product-card">
           <div class="card-header">
-            <span class="category-badge">{{ product.category || product.categoryName }}</span>
-            <span class="rating">⭐ {{ product.rating || 'N/A' }}</span>
+            <span class="category-badge">{{ product.categoryName }}</span>
           </div>
           
           <div class="card-body">
             <h3 class="product-title">{{ product.name }}</h3>
-            <p class="product-sku">SKU: {{ product.sku || 'N/A' }}</p>
-            <p class="product-price">${{ product.price || product.unitPrice }}</p>
+            <p class="product-price">${{ product.unitPrice }}</p>
             <p class="product-store"><span class="store-icon">🏪</span> {{ product.storeName }}</p>
           </div>
           <div class="card-footer">

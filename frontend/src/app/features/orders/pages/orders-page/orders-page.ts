@@ -1,7 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { OrderService } from '../../../../core/services/order';
+import { SearchService } from '../../../../core/services/search';
 
 @Component({
   selector: 'app-orders-page',
@@ -15,8 +16,21 @@ export class OrdersPage implements OnInit {
   isLoading = signal<boolean>(true);
   errorMessage = signal<string>('');
 
+  // Filtered list based on search term
+  filteredOrders = computed(() => {
+    const term = this.searchService.searchTerm();
+    const list = this.orders();
+    if (!term) return list;
+    return list.filter(o =>
+      o.id?.toString().includes(term) ||
+      o.status?.toLowerCase().includes(term) ||
+      o.storeName?.toLowerCase().includes(term)
+    );
+  });
+
   constructor(
     private orderService: OrderService,
+    private searchService: SearchService,
     private router: Router
   ) {}
 
@@ -37,13 +51,13 @@ export class OrdersPage implements OnInit {
         this.errorMessage.set('Could not load orders from API. Showing demo data.');
         this.isLoading.set(false);
 
-        // Fallback for demo purposes
+        // Fallback demo data matching backend DTO fields
         this.orders.set([
-          { id: 10425, status: 'Delivered', total: 120.50, date: '2025-05-01', storeName: 'Tech Haven', paymentInfo: 'Credit Card ending in 4242', shipmentInfo: 'FedEx Express (Tracking: FX123456789)' },
-          { id: 10426, status: 'Processing', total: 89.99, date: '2025-05-03', storeName: 'Comfort Seating', paymentInfo: 'PayPal', shipmentInfo: 'UPS Ground (Pending)' },
-          { id: 10427, status: 'Shipped', total: 299.00, date: '2025-05-04', storeName: 'Active Lifestyle', paymentInfo: 'Apple Pay', shipmentInfo: 'USPS Priority (Tracking: 9400111222333444)' },
-          { id: 10428, status: 'Cancelled', total: 14.50, date: '2025-05-05', storeName: 'EcoWear', paymentInfo: 'Refunded to Visa', shipmentInfo: 'N/A' },
-          { id: 10429, status: 'Pending', total: 1045.00, date: '2025-05-06', storeName: 'Home Essentials', paymentInfo: 'Bank Transfer (Pending)', shipmentInfo: 'Awaiting Fulfillment' }
+          { id: 10425, status: 'Delivered', grandTotal: 120.50, createdAt: '2025-05-01', storeName: 'Tech Haven' },
+          { id: 10426, status: 'Processing', grandTotal: 89.99, createdAt: '2025-05-03', storeName: 'Comfort Seating' },
+          { id: 10427, status: 'Shipped', grandTotal: 299.00, createdAt: '2025-05-04', storeName: 'Active Lifestyle' },
+          { id: 10428, status: 'Cancelled', grandTotal: 14.50, createdAt: '2025-05-05', storeName: 'EcoWear' },
+          { id: 10429, status: 'Pending', grandTotal: 1045.00, createdAt: '2025-05-06', storeName: 'Home Essentials' }
         ]);
       }
     });

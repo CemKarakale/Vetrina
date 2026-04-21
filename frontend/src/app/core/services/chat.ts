@@ -1,8 +1,17 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
-export class Chat {
-  
+export class ChatService {
+  private apiUrl = 'http://localhost:8080/api/chat/ask';
+
+  constructor(private http: HttpClient) {}
+
+  // Sends a natural language question to the AI chatbot backend
+  sendMessage(question: string): Observable<any> {
+    return this.http.post<any>(this.apiUrl, { question });
+  }
 }

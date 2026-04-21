@@ -20,24 +20,21 @@
     </div>
   }
 
-  @if (!isLoading() && reviews().length > 0) {
+  @if (!isLoading() && filteredReviews().length > 0) {
     <div class="reviews-list">
-      @for (review of reviews(); track review.id) {
+      @for (review of filteredReviews(); track review.id) {
         <div class="review-card">
           <div class="review-header">
             <div class="reviewer-info">
-              <div class="avatar">{{ review.reviewerName.charAt(0) }}</div>
+              <div class="avatar">{{ review.userName.charAt(0) }}</div>
               <div>
-                <h4>{{ review.reviewerName }}</h4>
+                <h4>{{ review.userName }}</h4>
                 <div class="stars">
-                  @for (star of getStarsArray(5); track star) {
-                    <span class="star" [class.filled]="star <= review.rating">★</span>
+                  @for (star of getStarsArray(); track star) {
+                    <span class="star" [class.filled]="star <= review.starRating">★</span>
                   }
                 </div>
               </div>
-            </div>
-            <div class="review-meta">
-              <span class="date">{{ review.date | date:'mediumDate' }}</span>
             </div>
           </div>
           
@@ -47,13 +44,10 @@
           </div>
 
           <div class="review-body">
-            <p>"{{ review.text }}"</p>
+            <p>"{{ review.content }}"</p>
           </div>
 
           <div class="review-footer">
-            <button class="helpful-btn" (click)="markHelpful(review.id)">
-              👍 Helpful <span class="count" *ngIf="review.helpfulVotes > 0">({{ review.helpfulVotes }})</span>
-            </button>
             <button class="reply-btn" (click)="replyToReview(review.id)">Reply to Customer</button>
           </div>
         </div>

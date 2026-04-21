@@ -2,10 +2,9 @@
   <div class="page-header">
     <div class="header-left">
       <h2>Customers</h2>
-      <span class="count-badge" *ngIf="!isLoading()">Total: {{ totalCustomers() | number }}</span>
-    </div>
-    <div class="header-actions">
-      <button class="action-btn new-btn" (click)="openAddModal()">+ Add Customer</button>
+      @if (!isLoading()) {
+        <span class="count-badge">Total: {{ totalCustomers() | number }}</span>
+      }
     </div>
   </div>
 
@@ -24,7 +23,7 @@
     </div>
   }
 
-  @if (!isLoading() && customers().length > 0) {
+  @if (!isLoading() && filteredCustomers().length > 0) {
     <div class="table-container card">
       <table class="data-table">
         <thead>
@@ -39,7 +38,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (customer of customers(); track customer.id) {
+          @for (customer of filteredCustomers(); track customer.id) {
             <tr>
               <td class="muted-text">{{ customer.id }}</td>
               <td class="font-bold">{{ customer.name }}</td>
@@ -59,40 +58,6 @@
           }
         </tbody>
       </table>
-    </div>
-  }
-
-  @if (isAddModalOpen()) {
-    <div class="modal-overlay" (click)="isAddModalOpen.set(false)">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3>Add New Customer</h3>
-          <button class="close-btn" (click)="isAddModalOpen.set(false)">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label>Customer Name</label>
-            <input #cName type="text" placeholder="John Doe">
-          </div>
-          <div class="form-group">
-            <label>Membership Tier</label>
-            <select #cMem>
-              <option value="Standard">Standard</option>
-              <option value="Silver">Silver</option>
-              <option value="Gold">Gold</option>
-              <option value="Platinum">Platinum</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Initial Spend ($)</label>
-            <input #cSpend type="number" placeholder="0.00">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="secondary-btn" (click)="isAddModalOpen.set(false)">Cancel</button>
-          <button class="primary-btn" (click)="saveCustomer(cName.value, cMem.value, cSpend.value)">Add Customer</button>
-        </div>
-      </div>
     </div>
   }
 
@@ -127,7 +92,6 @@
         </div>
         <div class="modal-footer">
           <button class="secondary-btn" (click)="selectedCustomer.set(null)">Close Profile</button>
-          <button class="primary-btn" (click)="selectedCustomer.set(null)">Message Customer</button>
         </div>
       </div>
     </div>

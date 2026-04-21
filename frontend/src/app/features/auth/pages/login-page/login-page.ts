@@ -20,6 +20,7 @@ export class LoginPage {
     private router: Router
   ) {}
 
+  // Normal login via Spring Boot backend
   onLogin() {
     this.errorMessage.set('');
     this.authService.login(this.email, this.password).subscribe({
@@ -32,8 +33,18 @@ export class LoginPage {
         this.router.navigate(['/dashboard']);
       },
       error: () => {
-        this.errorMessage.set('Login failed');
+        this.errorMessage.set('Login failed. Check your credentials or try Demo Login.');
       }
     });
+  }
+
+  // Demo login for presentations without a running backend
+  demoLogin() {
+    localStorage.setItem('token', 'demo-token');
+    localStorage.setItem('refreshToken', 'demo-refresh');
+    localStorage.setItem('role', 'CORPORATE');
+    localStorage.setItem('username', 'Demo User');
+
+    this.router.navigate(['/dashboard']);
   }
 }

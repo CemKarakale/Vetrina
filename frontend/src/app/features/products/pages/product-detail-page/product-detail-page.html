@@ -22,20 +22,16 @@
       <div class="detail-card">
         <div class="detail-header">
           <div class="badges">
-            <span class="category-badge">{{ product()?.category || product()?.categoryName }}</span>
-            <span class="stock-badge">{{ product()?.stockStatus || 'Available' }}</span>
+            <span class="category-badge">{{ product()?.categoryName }}</span>
           </div>
-          <span class="rating">⭐ {{ product()?.rating || 'N/A' }} 
-            <span class="muted">({{ product()?.reviewsCount || 0 }} reviews)</span>
-          </span>
         </div>
         
         <h2 class="title">{{ product()?.name }}</h2>
         <p class="sku">SKU: {{ product()?.sku }}</p>
         
-        <div *ngIf="!isEditing()">
+        @if (!isEditing()) {
           <div class="price-section">
-            <span class="price">${{ product()?.price || product()?.unitPrice }}</span>
+            <span class="price">${{ product()?.unitPrice }}</span>
             <p class="store"><span class="store-icon">🏪</span> Sold by: {{ product()?.storeName }}</p>
           </div>
           <div class="description-section">
@@ -48,12 +44,12 @@
             </button>
             <button class="secondary-btn" (click)="toggleEdit()">Edit Product</button>
           </div>
-        </div>
+        }
 
-        <div *ngIf="isEditing()">
+        @if (isEditing()) {
           <div class="form-group inline-edit">
             <label>Price</label>
-            <input #editPrice type="number" [value]="product()?.price || product()?.unitPrice" class="edit-input">
+            <input #editPrice type="number" [value]="product()?.unitPrice" class="edit-input">
           </div>
           <div class="form-group inline-edit full-width">
             <label>Description</label>
@@ -63,7 +59,7 @@
             <button class="secondary-btn" (click)="toggleEdit()">Cancel Edit</button>
             <button class="primary-btn" (click)="saveProduct(editDesc.value, editPrice.value)">Save Changes</button>
           </div>
-        </div>
+        }
       </div>
     </div>
   }

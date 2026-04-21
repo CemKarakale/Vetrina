@@ -21,7 +21,7 @@ export class ProductDetailPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private productService: ProductService
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.loadProduct();
@@ -42,18 +42,16 @@ export class ProductDetailPage implements OnInit {
         this.errorMessage.set('Could not load product from API. Showing demo data.');
         this.isLoading.set(false);
 
-        // Mock fallback detailed product
+        // Fallback demo data matching backend DTO
         this.product.set({
           id: id,
           name: 'Wireless Noise-Canceling Headphones',
-          category: 'Electronics',
-          price: 299.99,
+          categoryName: 'Electronics',
+          unitPrice: 299.99,
           sku: 'WH-1000XM4',
           storeName: 'Tech Haven',
-          rating: 4.8,
-          description: 'Industry-leading noise canceling with Dual Noise Sensor technology. Next-level music with Edge-AI, co-developed with Tokyo Music Studios. Up to 30-hour battery life with quick charging. Premium sound quality with High-Resolution Audio support.',
-          reviewsCount: 1240,
-          stockStatus: 'In Stock'
+          storeId: 1,
+          description: 'Industry-leading noise canceling with Dual Noise Sensor technology. Next-level music quality with High-Resolution Audio support.'
         });
       }
     });
@@ -73,11 +71,10 @@ export class ProductDetailPage implements OnInit {
   }
 
   saveProduct(descValue: string, priceValue: string) {
-    // Optimistic update of local signal payload
     this.product.update((p: any) => ({
       ...p,
       description: descValue,
-      price: Number(priceValue)
+      unitPrice: Number(priceValue)
     }));
     this.isEditing.set(false);
   }

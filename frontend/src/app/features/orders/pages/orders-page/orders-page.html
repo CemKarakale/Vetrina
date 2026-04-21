@@ -18,9 +18,7 @@
     </div>
   }
 
-
-
-  @if (!isLoading() && orders().length > 0) {
+  @if (!isLoading() && filteredOrders().length > 0) {
     <div class="table-container card">
       <table class="data-table">
         <thead>
@@ -34,12 +32,12 @@
           </tr>
         </thead>
         <tbody>
-          @for (order of orders(); track order.id) {
+          @for (order of filteredOrders(); track order.id) {
             <tr>
               <td class="font-bold">#{{ order.id }}</td>
-              <td>{{ order.date | date:'mediumDate' }}</td>
+              <td>{{ order.createdAt | date:'mediumDate' }}</td>
               <td>{{ order.storeName }}</td>
-              <td class="font-bold">${{ order.total | number:'1.2-2' }}</td>
+              <td class="font-bold">${{ order.grandTotal | number:'1.2-2' }}</td>
               <td>
                 <span class="status-badge" [ngClass]="order.status.toLowerCase()">{{ order.status }}</span>
               </td>

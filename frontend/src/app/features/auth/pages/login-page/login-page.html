@@ -1,6 +1,7 @@
 <div class="login-wrapper">
   <div class="login-box">
     <div class="login-header">
+      <div class="login-logo">📊</div>
       <h2>Welcome Back</h2>
       <p>Log in to your account to continue</p>
     </div>
@@ -22,6 +23,12 @@
     </div>
 
     <button class="login-btn" (click)="onLogin()">Login</button>
+
+    <div class="divider">
+      <span>or</span>
+    </div>
+
+    <button class="demo-btn" (click)="demoLogin()">Demo Login (No Backend)</button>
 
     @if (errorMessage()) {
       <div class="error-container">

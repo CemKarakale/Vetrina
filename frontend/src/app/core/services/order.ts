@@ -17,38 +17,3 @@ export class OrderService {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 }
-
-// import { Injectable } from '@angular/core';
-// import { of } from 'rxjs';
-
-// @Injectable({
-//   providedIn: 'root'
-// })
-// export class OrderService {
-//   getOrders() {
-//     return of([
-//       {
-//         id: 1,
-//         status: 'Delivered',
-//         total: 120.50,
-//         date: '2025-05-01'
-//       },
-//       {
-//         id: 2,
-//         status: 'Pending',
-//         total: 89.99,
-//         date: '2025-05-03'
-//       }
-//     ]);
-//   }
-
-//   getOrderById(id: number) {
-//     return of({
-//       id: id,
-//       status: 'Delivered',
-//       total: 120.50,
-//       date: '2025-05-01',
-//       items: 3
-//     });
-//   }
-// }

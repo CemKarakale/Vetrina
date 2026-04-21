@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-sidebar',
@@ -9,11 +10,10 @@ import { RouterModule } from '@angular/router';
 })
 export class Sidebar {
   menuItems = [
-    { icon: '🏠', label: 'Dashboard', path: '/dashboard', isNew: false },
-    { icon: '🤖', label: 'AI Assistant', path: '/ai-assistant', isNew: true },
-    { icon: '📉', label: 'Analytics', path: '/analytics', isNew: false },
-    { icon: '🛒', label: 'Orders', path: '/orders', isNew: false },
-    { icon: '📦', label: 'Products', path: '/products', isNew: false },
+    { icon: '🏠', label: 'Dashboard', path: '/dashboard' },
+    { icon: '📉', label: 'Analytics', path: '/analytics' },
+    { icon: '🛒', label: 'Orders', path: '/orders' },
+    { icon: '📦', label: 'Products', path: '/products' },
   ];
 
   managementItems = [
@@ -22,4 +22,15 @@ export class Sidebar {
     { icon: '🚚', label: 'Shipments', path: '/shipments' },
     { icon: '⭐', label: 'Reviews', path: '/reviews' },
   ];
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  // Logs out and redirects to login page
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 }

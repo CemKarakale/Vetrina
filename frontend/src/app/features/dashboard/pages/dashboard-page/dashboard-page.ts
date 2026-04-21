@@ -30,15 +30,15 @@ export class DashboardPage implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Could not load dashboard data');
+        this.errorMessage.set('Could not load dashboard data. Showing demo data.');
         this.isLoading.set(false);
-        
-        // Setup fallback mockup data for demonstration if backend fails
+
+        // Fallback demo data matching backend DTO fields
         this.summary.set({
-           totalRevenue: 48294,
-           totalOrders: 1842,
-           totalCustomers: 3421,
-           avgRating: 4.8
+          totalProducts: 156,
+          totalOrders: 1842,
+          totalRevenue: 48294,
+          totalReviews: 432
         });
       }
     });

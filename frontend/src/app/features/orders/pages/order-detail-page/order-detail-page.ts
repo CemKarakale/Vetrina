@@ -39,19 +39,15 @@ export class OrderDetailPage implements OnInit {
       error: () => {
         this.errorMessage.set('Could not load order from API. Showing demo data.');
         this.isLoading.set(false);
-        
-        // Mock fallback detailed order to match required fields
+
+        // Fallback demo data matching backend DTO fields
         this.order.set({
           id: id,
           status: 'Shipped',
-          total: 299.00,
-          date: '2025-05-04T14:30:00Z',
+          grandTotal: 299.00,
+          createdAt: '2025-05-04T14:30:00Z',
           storeName: 'Active Lifestyle',
-          paymentInfo: 'Apple Pay',
-          shipmentInfo: 'USPS Priority (Tracking: 9400111222333444)',
-          customerName: 'John Doe',
-          customerEmail: 'john.doe@example.com',
-          shippingAddress: '123 E-Commerce St, Suite 400, Tech City, CA 90210',
+          userName: 'John Doe',
           items: [
             { id: 1, name: 'Smart Fitness Watch', quantity: 2, price: 149.50 }
           ]
