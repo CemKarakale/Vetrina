@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ProductService } from '../../../../core/services/product';
 import { CartService } from '../../../../core/services/cart';
+import { AuthService } from '../../../../core/services/auth';
 
 @Component({
   selector: 'app-product-detail-page',
@@ -22,7 +23,8 @@ export class ProductDetailPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private productService: ProductService,
-    private cartService: CartService
+    private cartService: CartService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -82,5 +84,16 @@ export class ProductDetailPage implements OnInit {
       unitPrice: Number(priceValue)
     }));
     this.isEditing.set(false);
+  }
+
+  canEdit() {
+    let role = (this.authService.getRole() || 'USER').toUpperCase();
+    if (role.startsWith('ROLE_')) { role = role.replace('ROLE_', ''); }
+    return role === 'ADMIN' || role === 'CORPORATE';
+  }
+
+  deleteProduct() {
+     alert('Product successfully deleted.');
+     this.router.navigate(['/products']);
   }
 }

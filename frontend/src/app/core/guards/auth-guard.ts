@@ -5,21 +5,25 @@ export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   const token = localStorage.getItem('token'); // read JWT from localStorage
-  const role = (localStorage.getItem('role') || 'USER').toUpperCase(); // Normalize role to uppercase
+  let role = (localStorage.getItem('role') || 'USER').toUpperCase();
+  
+  // Normalize Spring Boot / Extended Roles
+  if (role.startsWith('ROLE_')) { role = role.replace('ROLE_', ''); }
+  if (role === 'INDIVIDUAL' || role === 'INDIVIDUAL_USER') { role = 'USER'; }
 
   if (token) {
     const requiredRoles = route.data?.['roles'] as string[];
     if (requiredRoles && !requiredRoles.includes(role)) {
-      if (state.url !== '/dashboard') {
+      if (state.url !== '/dashboard' && state.url !== '/login') {
         router.navigate(['/dashboard']);
       } else {
-        router.navigate(['/login']); // Fallback if even dashboard is forbidden
+        router.navigate(['/login']); 
       }
       return false;
     }
-    return true; // allows route
+    return true; 
   } else {
-    router.navigate(['/login']);// goes back to login
-    return false; // blocks route
+    router.navigate(['/login']);
+    return false;
   }
 };

@@ -18,7 +18,10 @@ export class Sidebar implements OnInit {
   ) {}
 
   ngOnInit() {
-    const role = (this.authService.getRole() || 'USER').toUpperCase();
+    let role = (this.authService.getRole() || 'USER').toUpperCase();
+
+    if (role.startsWith('ROLE_')) { role = role.replace('ROLE_', ''); }
+    if (role === 'INDIVIDUAL' || role === 'INDIVIDUAL_USER') { role = 'USER'; }
 
     const allMenuItems = [
       { icon: '🏠', label: 'Dashboard', path: '/dashboard', roles: ['ADMIN', 'CORPORATE', 'USER'] },

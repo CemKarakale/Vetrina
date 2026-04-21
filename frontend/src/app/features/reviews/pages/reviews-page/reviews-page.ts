@@ -1,12 +1,14 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ReviewService } from '../../../../core/services/review';
 import { SearchService } from '../../../../core/services/search';
+import { AuthService } from '../../../../core/services/auth';
 
 @Component({
   selector: 'app-reviews-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './reviews-page.html',
   styleUrl: './reviews-page.scss'
 })
@@ -28,9 +30,14 @@ export class ReviewsPage implements OnInit {
     );
   });
 
+  newReviewRating = signal<number>(5);
+  newReviewContent = signal<string>('');
+  newReviewProduct = signal<string>('Select Product');
+
   constructor(
     private reviewService: ReviewService,
-    private searchService: SearchService
+    private searchService: SearchService,
+    public authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -73,6 +80,46 @@ export class ReviewsPage implements OnInit {
 
   submitReply(response: string) {
     if (!response) return;
+    const targetId = this.replyModalId();
+    this.reviews.update(list => list.map(r => r.id.toString() === targetId ? { ...r, adminReply: response } : r));
     this.replyModalId.set(null);
+  }
+
+  canReply() {
+    let role = (this.authService.getRole() || 'USER').toUpperCase();
+    if (role.startsWith('ROLE_')) { role = role.replace('ROLE_', ''); }
+    return role === 'ADMIN' || role === 'CORPORATE';
+  }
+
+  canDelete(review: any) {
+    let role = (this.authService.getRole() || 'USER').toUpperCase();
+    if (role.startsWith('ROLE_')) { role = role.replace('ROLE_', ''); }
+    const username = this.authService.getUsername() || 'Demo User';
+    return role === 'ADMIN' || role === 'CORPORATE' || review.userName === username;
+  }
+
+  deleteReview(id: number) {
+    this.reviews.update(list => list.filter(r => r.id !== id));
+  }
+
+  postReview() {
+    if (!this.newReviewContent().trim() || this.newReviewProduct() === 'Select Product') return;
+    
+    const newId = Math.max(...this.reviews().map(r => r.id), 0) + 1;
+    const username = this.authService.getUsername() || 'Demo User';
+
+    const newRev = {
+      id: newId,
+      productId: 99,
+      productName: this.newReviewProduct(),
+      userName: username,
+      starRating: this.newReviewRating(),
+      content: this.newReviewContent(),
+      adminReply: null
+    };
+
+    this.reviews.update(list => [newRev, ...list]);
+    this.newReviewContent.set('');
+    this.newReviewRating.set(5);
   }
 }

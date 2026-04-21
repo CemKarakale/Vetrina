@@ -22,6 +22,32 @@
 
   @if (!isLoading() && filteredReviews().length > 0) {
     <div class="reviews-list">
+      
+      @if (!canReply()) {
+        <div class="review-form-container" style="background: #1a1b26; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px; margin-bottom: 24px;">
+          <h3 style="margin-top: 0;">Write a Review</h3>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label style="display: block; margin-bottom: 8px; color: #a0a5ba; font-size: 14px;">Select Product</label>
+            <select [(ngModel)]="newReviewProduct" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px;">
+              <option value="Select Product" disabled>Select Product</option>
+              <option value="Wireless Noise-Canceling Headphones">Wireless Noise-Canceling Headphones</option>
+              <option value="Ergonomic Office Chair">Ergonomic Office Chair</option>
+              <option value="Smart Fitness Watch">Smart Fitness Watch</option>
+              <option value="Organic Cotton T-Shirt">Organic Cotton T-Shirt</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label style="display: block; margin-bottom: 8px; color: #a0a5ba; font-size: 14px;">Rating (1-5)</label>
+            <input type="number" [(ngModel)]="newReviewRating" min="1" max="5" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px;">
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label style="display: block; margin-bottom: 8px; color: #a0a5ba; font-size: 14px;">Your Testimony</label>
+            <textarea rows="3" [(ngModel)]="newReviewContent" placeholder="This product changed my life..." style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px;"></textarea>
+          </div>
+          <button (click)="postReview()" style="background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Submit Review</button>
+        </div>
+      }
+
       @for (review of filteredReviews(); track review.id) {
         <div class="review-card">
           <div class="review-header">
@@ -45,10 +71,21 @@
 
           <div class="review-body">
             <p>"{{ review.content }}"</p>
+            @if (review.adminReply) {
+              <div class="admin-reply" style="margin-top: 12px; padding: 12px; background: rgba(106, 90, 249, 0.1); border-left: 3px solid #6a5af9; border-radius: 4px;">
+                <strong style="color: #6a5af9; font-size: 13px; display: block; margin-bottom: 4px;">Response from Store:</strong>
+                <p style="margin: 0; color: #cbd5e1; font-size: 14px;">{{ review.adminReply }}</p>
+              </div>
+            }
           </div>
 
-          <div class="review-footer">
-            <button class="reply-btn" (click)="replyToReview(review.id)">Reply to Customer</button>
+          <div class="review-footer" style="display: flex; gap: 12px; margin-top: 12px;">
+            @if (canReply() && !review.adminReply) {
+              <button class="reply-btn" (click)="replyToReview(review.id)" style="background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">Reply to Customer</button>
+            }
+            @if (canDelete(review)) {
+              <button class="delete-btn" (click)="deleteReview(review.id)" style="background: #ef4444; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Delete Review</button>
+            }
           </div>
         </div>
       }
