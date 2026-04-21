@@ -24,6 +24,6 @@ export const routes: Routes = [
     { path: 'customers', component: CustomersPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE'] } },
     { path: 'reviews', component: ReviewsPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
     { path: 'settings', component: SettingsPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE'] } },
-    { path: 'cart', component: CartPage, canActivate: [authGuard], data: { roles: ['USER'] } },
+    { path: 'cart', component: CartPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'USER'] } },
     { path: '**', redirectTo: 'login' }
 ];

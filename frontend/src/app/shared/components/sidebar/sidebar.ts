@@ -18,14 +18,14 @@ export class Sidebar implements OnInit {
   ) {}
 
   ngOnInit() {
-    const role = this.authService.getRole() || 'USER';
+    const role = (this.authService.getRole() || 'USER').toUpperCase();
 
     const allMenuItems = [
       { icon: '🏠', label: 'Dashboard', path: '/dashboard', roles: ['ADMIN', 'CORPORATE', 'USER'] },
       { icon: '📉', label: 'Analytics', path: '/analytics', roles: ['ADMIN', 'CORPORATE'] },
       { icon: '🛒', label: 'Orders', path: '/orders', roles: ['ADMIN', 'CORPORATE', 'USER'] },
       { icon: '📦', label: 'Products', path: '/products', roles: ['ADMIN', 'CORPORATE', 'USER'] },
-      { icon: '🛍️', label: 'Cart', path: '/cart', roles: ['USER'] },
+      { icon: '🛍️', label: 'Cart', path: '/cart', roles: ['ADMIN', 'USER'] },
     ];
 
     const allManagementItems = [

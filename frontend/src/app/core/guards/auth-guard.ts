@@ -5,12 +5,16 @@ export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   const token = localStorage.getItem('token'); // read JWT from localStorage
-  const role = localStorage.getItem('role') || 'USER';
+  const role = (localStorage.getItem('role') || 'USER').toUpperCase(); // Normalize role to uppercase
 
   if (token) {
     const requiredRoles = route.data?.['roles'] as string[];
     if (requiredRoles && !requiredRoles.includes(role)) {
-      router.navigate(['/dashboard']);
+      if (state.url !== '/dashboard') {
+        router.navigate(['/dashboard']);
+      } else {
+        router.navigate(['/login']); // Fallback if even dashboard is forbidden
+      }
       return false;
     }
     return true; // allows route
