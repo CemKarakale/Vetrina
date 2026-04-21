@@ -1,1 +1,100 @@
-<p>dashboard-page works!</p>
+<div class="dashboard-page">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your dashboard...</p>
+    </div>
+  } @else {
+    @if (errorMessage()) {
+      <div class="error-banner">
+        <span>⚠️</span>
+        <p>{{ errorMessage() }}</p>
+        <span class="muted-text">Showing local demonstration data</span>
+      </div>
+    }
+
+    <div class="summary-cards">
+      <div class="card">
+        <div class="card-icon revenue-icon">💰</div>
+        <div class="card-info">
+          <h3>${{ summary()?.totalRevenue | number:'1.0-0' }}</h3>
+          <p>Total Revenue</p>
+        </div>
+        <div class="trend positive">+12.5%</div>
+      </div>
+      
+      <div class="card">
+        <div class="card-icon orders-icon">📦</div>
+        <div class="card-info">
+          <h3>{{ summary()?.totalOrders | number }}</h3>
+          <p>Total Orders</p>
+        </div>
+        <div class="trend positive">+8.2%</div>
+      </div>
+      
+      <div class="card">
+        <div class="card-icon customers-icon">👥</div>
+        <div class="card-info">
+          <h3>{{ summary()?.totalCustomers | number }}</h3>
+          <p>Customers</p>
+        </div>
+        <div class="trend positive">+24.3%</div>
+      </div>
+      
+      <div class="card">
+        <div class="card-icon rating-icon">⭐</div>
+        <div class="card-info">
+          <h3>{{ summary()?.avgRating | number:'1.1-1' }}</h3>
+          <p>Avg Rating</p>
+        </div>
+        <div class="trend negative">-2.1%</div>
+      </div>
+    </div>
+
+    <div class="chart-section card">
+      <div class="chart-header">
+        <h3>Revenue Overview</h3>
+      </div>
+      <div class="chart-container">
+        <!-- Pure SVG Line Chart matching styling requests without external library -->
+        <svg viewBox="0 0 800 300" preserveAspectRatio="none">
+          <!-- Grid lines -->
+          <line x1="0" y1="50" x2="800" y2="50" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="100" x2="800" y2="100" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="150" x2="800" y2="150" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="200" x2="800" y2="200" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="250" x2="800" y2="250" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          
+          <!-- Area fill -->
+          <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="rgba(106, 90, 249, 0.4)" />
+            <stop offset="100%" stop-color="rgba(106, 90, 249, 0.0)" />
+          </linearGradient>
+          <polygon points="0,250 0,200 133,120 266,160 400,60 533,120 666,20 800,80 800,250" fill="url(#areaGradient)"/>
+          
+          <!-- Line -->
+          <polyline fill="none" stroke="#6a5af9" stroke-width="3" points="0,200 133,120 266,160 400,60 533,120 666,20 800,80"/>
+          
+          <!-- Points -->
+          <circle cx="0" cy="200" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
+          <circle cx="133" cy="120" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
+          <circle cx="266" cy="160" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
+          <circle cx="400" cy="60" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
+          <circle cx="533" cy="120" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
+          <circle cx="666" cy="20" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
+          <circle cx="800" cy="80" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
+        </svg>
+        
+        <div class="x-axis">
+          <span>Mon</span>
+          <span>Tue</span>
+          <span>Wed</span>
+          <span>Thu</span>
+          <span>Fri</span>
+          <span>Sat</span>
+          <span>Sun</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>

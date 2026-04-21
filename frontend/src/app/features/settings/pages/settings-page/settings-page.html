@@ -1,0 +1,88 @@
+<div class="settings-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h2>Store Settings</h2>
+    </div>
+    <div class="header-actions">
+      <button class="action-btn" [class.btn-loading]="isSaving()" (click)="saveSettings()">
+        {{ isSaving() ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading settings...</p>
+    </div>
+  }
+
+  @if (!isLoading() && errorMessage()) {
+    <div class="error-banner">
+      <span>⚠️</span>
+      <p>{{ errorMessage() }}</p>
+      <span class="muted-text">Showing local demonstration data</span>
+    </div>
+  }
+
+  @if (!isLoading() && settings()) {
+    <div class="settings-container">
+      <div class="settings-card">
+        <h3>General Information</h3>
+        <p class="card-desc">Update your store's basic profile details.</p>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Store Name</label>
+            <input type="text" [value]="settings()?.storeName" placeholder="Enter store name">
+          </div>
+          
+          <div class="form-group">
+            <label>Contact Email</label>
+            <input type="email" [value]="settings()?.email" placeholder="store@example.com">
+          </div>
+          
+          <div class="form-group">
+            <label>Store Category</label>
+            <input type="text" [value]="settings()?.category" placeholder="E.g. Electronics, Apparel">
+          </div>
+          
+          <div class="form-group">
+            <label>Store Status</label>
+            <select [value]="settings()?.status">
+              <option value="Open">Open (Accepting Orders)</option>
+              <option value="Closed">Closed (Maintenance)</option>
+              <option value="Vacation">Vacation Mode</option>
+            </select>
+          </div>
+          
+          <div class="form-group full-width">
+            <label>Store Description</label>
+            <textarea rows="3" placeholder="Briefly describe your store...">{{ settings()?.description }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>Localization</h3>
+        <p class="card-desc">Configure your store's locale formatting.</p>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Currency</label>
+            <select [value]="settings()?.currency">
+              <option value="USD ($)">USD ($)</option>
+              <option value="EUR (€)">EUR (€)</option>
+              <option value="GBP (£)">GBP (£)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Timezone</label>
+            <input type="text" [value]="settings()?.timezone" placeholder="America/New_York">
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

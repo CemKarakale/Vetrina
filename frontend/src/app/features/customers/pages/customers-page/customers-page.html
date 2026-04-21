@@ -1,0 +1,135 @@
+<div class="customers-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h2>Customers</h2>
+      <span class="count-badge" *ngIf="!isLoading()">Total: {{ totalCustomers() | number }}</span>
+    </div>
+    <div class="header-actions">
+      <button class="action-btn new-btn" (click)="openAddModal()">+ Add Customer</button>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading customers...</p>
+    </div>
+  }
+
+  @if (!isLoading() && errorMessage()) {
+    <div class="error-banner">
+      <span>⚠️</span>
+      <p>{{ errorMessage() }}</p>
+      <span class="muted-text">Showing local demonstration data</span>
+    </div>
+  }
+
+  @if (!isLoading() && customers().length > 0) {
+    <div class="table-container card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Membership</th>
+            <th>Orders</th>
+            <th>Total Spend</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (customer of customers(); track customer.id) {
+            <tr>
+              <td class="muted-text">{{ customer.id }}</td>
+              <td class="font-bold">{{ customer.name }}</td>
+              <td>
+                <span class="membership-badge" [ngClass]="customer.membership.toLowerCase()">{{ customer.membership }}</span>
+              </td>
+              <td>{{ customer.orderCount }}</td>
+              <td class="font-bold text-success">${{ customer.totalSpend | number:'1.2-2' }}</td>
+              <td>
+                <span class="status-dot" [ngClass]="customer.status.toLowerCase()"></span>
+                {{ customer.status }}
+              </td>
+              <td>
+                <button class="action-btn" (click)="viewProfile(customer)">View Profile</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (isAddModalOpen()) {
+    <div class="modal-overlay" (click)="isAddModalOpen.set(false)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Add New Customer</h3>
+          <button class="close-btn" (click)="isAddModalOpen.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Customer Name</label>
+            <input #cName type="text" placeholder="John Doe">
+          </div>
+          <div class="form-group">
+            <label>Membership Tier</label>
+            <select #cMem>
+              <option value="Standard">Standard</option>
+              <option value="Silver">Silver</option>
+              <option value="Gold">Gold</option>
+              <option value="Platinum">Platinum</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Initial Spend ($)</label>
+            <input #cSpend type="number" placeholder="0.00">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="secondary-btn" (click)="isAddModalOpen.set(false)">Cancel</button>
+          <button class="primary-btn" (click)="saveCustomer(cName.value, cMem.value, cSpend.value)">Add Customer</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (selectedCustomer()) {
+    <div class="modal-overlay" (click)="selectedCustomer.set(null)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Customer Profile</h3>
+          <button class="close-btn" (click)="selectedCustomer.set(null)">×</button>
+        </div>
+        <div class="modal-body">
+          <div style="display:flex; flex-direction:column; gap:15px;">
+            <div>
+              <label style="color:#6c7293; font-size:12px;">NAME</label>
+              <div style="font-size:18px; color:#fff; font-weight:600;">{{ selectedCustomer().name }}</div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+              <div>
+                <label style="color:#6c7293; font-size:12px;">LIFETIME SPEND</label>
+                <div style="font-size:16px; color:#00e396;">${{ selectedCustomer().totalSpend | number:'1.2-2' }}</div>
+              </div>
+              <div>
+                <label style="color:#6c7293; font-size:12px;">TOTAL ORDERS</label>
+                <div style="font-size:16px; color:#fff;">{{ selectedCustomer().orderCount }} orders</div>
+              </div>
+            </div>
+            <div>
+              <label style="color:#6c7293; font-size:12px;">MEMBERSHIP</label><br>
+              <span class="membership-badge" [ngClass]="selectedCustomer().membership.toLowerCase()">{{ selectedCustomer().membership }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="secondary-btn" (click)="selectedCustomer.set(null)">Close Profile</button>
+          <button class="primary-btn" (click)="selectedCustomer.set(null)">Message Customer</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

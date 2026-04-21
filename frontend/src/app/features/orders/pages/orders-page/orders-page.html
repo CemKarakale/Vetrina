@@ -1,25 +1,55 @@
 <div class="orders-page">
-  <h2>My Orders</h2>
+  <div class="page-header">
+    <h2>Order History</h2>
+  </div>
 
-  @if (isLoading) {
-    <p>Loading orders...</p>
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your orders...</p>
+    </div>
   }
 
-  @if (!isLoading && errorMessage) {
-    <p>{{ errorMessage }}</p>
+  @if (!isLoading() && errorMessage()) {
+    <div class="error-banner">
+      <span>⚠️</span>
+      <p>{{ errorMessage() }}</p>
+      <span class="muted-text">Showing local demonstration data</span>
+    </div>
   }
 
-  @if (!isLoading && !errorMessage) {
-    <div class="orders-list">
-      @for (order of orders; track order.id) {
-        <div class="order-card">
-          <h3>Order #{{ order.id }}</h3>
-          <p>Status: {{ order.status }}</p>
-          <p>Total: {{ order.total }}</p>
-          <p>Date: {{ order.date }}</p>
-          <button (click)="goToDetails(order.id)">Details</button>
-        </div>
-      }
+
+
+  @if (!isLoading() && orders().length > 0) {
+    <div class="table-container card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Store</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of orders(); track order.id) {
+            <tr>
+              <td class="font-bold">#{{ order.id }}</td>
+              <td>{{ order.date | date:'mediumDate' }}</td>
+              <td>{{ order.storeName }}</td>
+              <td class="font-bold">${{ order.total | number:'1.2-2' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="order.status.toLowerCase()">{{ order.status }}</span>
+              </td>
+              <td>
+                <button class="action-btn" (click)="goToDetails(order.id)">View Details</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
   }
 </div>

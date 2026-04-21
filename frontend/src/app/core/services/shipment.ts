@@ -4,12 +4,12 @@ import { HttpClient } from '@angular/common/http';
 @Injectable({
   providedIn: 'root'
 })
-export class DashboardService {
-  apiUrl: string = 'http://localhost:8080/api/dashboard/summary';
+export class ShipmentService {
+  apiUrl: string = 'http://localhost:8080/api/shipments';
 
   constructor(private http: HttpClient) {}
 
-  getSummary() {
-    return this.http.get<any>(this.apiUrl);
+  getShipments() {
+    return this.http.get<any[]>(this.apiUrl);
   }
 }

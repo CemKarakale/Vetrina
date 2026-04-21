@@ -1,29 +1,80 @@
 <div class="product-list-page">
-  <h2>Products</h2>
+  <div class="page-header">
+    <h2>Products</h2>
+    <div class="header-actions">
+      <button class="action-btn new-btn" (click)="openAddModal()">+ Add Product</button>
+    </div>
+  </div>
 
   @if (isLoading()) {
-    <p>Loading products...</p>
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading products...</p>
+    </div>
   }
 
   @if (!isLoading() && errorMessage()) {
-    <p>{{ errorMessage() }}</p>
+    <div class="error-banner">
+      <span>⚠️</span>
+      <p>{{ errorMessage() }}</p>
+    </div>
   }
 
-  @if (!isLoading() && !errorMessage() && products().length === 0) {
-    <p>No products found.</p>
+  @if (!isLoading() && products().length === 0) {
+    <div class="empty-state">
+      <p>No products found.</p>
+    </div>
   }
 
-  @if (!isLoading() && !errorMessage() && products().length > 0) {
+  @if (!isLoading() && products().length > 0) {
     <div class="product-grid">
       @for (product of products(); track product.id) {
         <div class="product-card">
-          <h3>{{ product.name }}</h3>
-          <p>Category: {{ product.categoryName }}</p>
-          <p>Price: {{ product.unitPrice }}</p>
-          <p>Store: {{ product.storeName }}</p>
-          <button (click)="goToDetails(product.id)">Details</button>
+          <div class="card-header">
+            <span class="category-badge">{{ product.category || product.categoryName }}</span>
+            <span class="rating">⭐ {{ product.rating || 'N/A' }}</span>
+          </div>
+          
+          <div class="card-body">
+            <h3 class="product-title">{{ product.name }}</h3>
+            <p class="product-sku">SKU: {{ product.sku || 'N/A' }}</p>
+            <p class="product-price">${{ product.price || product.unitPrice }}</p>
+            <p class="product-store"><span class="store-icon">🏪</span> {{ product.storeName }}</p>
+          </div>
+          <div class="card-footer">
+            <button class="details-btn" (click)="goToDetails(product.id)">View Details</button>
+          </div>
         </div>
       }
     </div>
   }
 </div>
+
+@if (isAddModalOpen()) {
+  <div class="modal-overlay" (click)="closeAddModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add New Product</h3>
+        <button class="close-btn" (click)="closeAddModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Product Name</label>
+          <input #nameInput type="text" placeholder="E.g. Smart Watch">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <input #categoryInput type="text" placeholder="E.g. Electronics">
+        </div>
+        <div class="form-group">
+          <label>Price ($)</label>
+          <input #priceInput type="number" placeholder="0.00">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="secondary-btn" (click)="closeAddModal()">Cancel</button>
+        <button class="primary-btn" (click)="saveProduct(nameInput.value, categoryInput.value, priceInput.value)">Add Product</button>
+      </div>
+    </div>
+  </div>
+}

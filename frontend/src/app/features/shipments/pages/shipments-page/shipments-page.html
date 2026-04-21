@@ -1,0 +1,121 @@
+<div class="shipments-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h2>Shipments</h2>
+    </div>
+    <div class="header-actions">
+      <button class="action-btn secondary-btn" (click)="trackCustom()">Track Custom Package</button>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Tracking shipments...</p>
+    </div>
+  }
+
+  @if (!isLoading() && errorMessage()) {
+    <div class="error-banner">
+      <span>⚠️</span>
+      <p>{{ errorMessage() }}</p>
+      <span class="muted-text">Showing local demonstration data</span>
+    </div>
+  }
+
+  @if (!isLoading() && shipments().length > 0) {
+    <div class="table-container card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Tracking Number</th>
+            <th>Order Ref</th>
+            <th>Carrier</th>
+            <th>Destination</th>
+            <th>Status</th>
+            <th>ETA</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (shipment of shipments(); track shipment.trackingId) {
+            <tr>
+              <td class="font-bold text-highlight">{{ shipment.trackingId }}</td>
+              <td class="muted-text">#{{ shipment.orderId }}</td>
+              <td>{{ shipment.carrier }}</td>
+              <td>{{ shipment.destination }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="shipment.status.replace(' ', '-').toLowerCase()">{{ shipment.status }}</span>
+                <div class="update-time">{{ shipment.updateTime }}</div>
+              </td>
+              <td class="font-bold">{{ shipment.eta | date:'mediumDate' }}</td>
+              <td>
+                <button class="action-btn" (click)="trackShipment(shipment)">Track</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (isCustomTrackOpen()) {
+    <div class="modal-overlay" (click)="isCustomTrackOpen.set(false)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Track Custom Package</h3>
+          <button class="close-btn" (click)="isCustomTrackOpen.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Tracking Number</label>
+            <input #trackInput type="text" placeholder="e.g. TRK-987123">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="secondary-btn" (click)="isCustomTrackOpen.set(false)">Cancel</button>
+          <button class="primary-btn" (click)="submitCustomTrack(trackInput.value)">Locate Package</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (selectedShipment()) {
+    <div class="modal-overlay" (click)="selectedShipment.set(null)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Transit Timeline</h3>
+          <button class="close-btn" (click)="selectedShipment.set(null)">×</button>
+        </div>
+        <div class="modal-body">
+          <div style="margin-bottom:20px;">
+            <div style="font-size:18px; color:#6a5af9; font-weight:700;">{{ selectedShipment().trackingId }}</div>
+            <div style="color:#a0a5ba; font-size:14px;">Via {{ selectedShipment().carrier }}</div>
+          </div>
+          
+          <div style="border-left: 2px solid rgba(106, 90, 249, 0.5); padding-left: 20px; display:flex; flex-direction:column; gap:20px; position:relative;">
+            
+            <div style="position:relative;">
+              <div style="position:absolute; width:12px; height:12px; background:#6a5af9; border-radius:50%; left:-27px; top:4px;"></div>
+              <div style="color:#fff; font-weight:600;">{{ selectedShipment().status }}</div>
+              <div style="color:#a0a5ba; font-size:13px;">{{ selectedShipment().updateTime }} (Current)</div>
+            </div>
+
+            <div style="position:relative; opacity:0.6;">
+              <div style="position:absolute; width:12px; height:12px; background:rgba(255,255,255,0.2); border-radius:50%; left:-27px; top:4px;"></div>
+              <div style="color:#fff; font-weight:600;">Package Picked Up</div>
+              <div style="color:#a0a5ba; font-size:13px;">Origin Facility</div>
+            </div>
+
+            <div style="position:relative; opacity:0.6;">
+              <div style="position:absolute; width:12px; height:12px; background:rgba(255,255,255,0.2); border-radius:50%; left:-27px; top:4px;"></div>
+              <div style="color:#fff; font-weight:600;">Label Created</div>
+              <div style="color:#a0a5ba; font-size:13px;">Shipper notified</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

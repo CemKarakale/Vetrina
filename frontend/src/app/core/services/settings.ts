@@ -4,12 +4,16 @@ import { HttpClient } from '@angular/common/http';
 @Injectable({
   providedIn: 'root'
 })
-export class DashboardService {
-  apiUrl: string = 'http://localhost:8080/api/dashboard/summary';
+export class StoreSettingsService {
+  apiUrl: string = 'http://localhost:8080/api/store-settings';
 
   constructor(private http: HttpClient) {}
 
-  getSummary() {
+  getSettings() {
     return this.http.get<any>(this.apiUrl);
+  }
+
+  updateSettings(payload: any) {
+    return this.http.put<any>(this.apiUrl, payload);
   }
 }

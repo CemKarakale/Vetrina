@@ -1,0 +1,84 @@
+<div class="reviews-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h2>Product Reviews</h2>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading recent reviews...</p>
+    </div>
+  }
+
+  @if (!isLoading() && errorMessage()) {
+    <div class="error-banner">
+      <span>⚠️</span>
+      <p>{{ errorMessage() }}</p>
+      <span class="muted-text">Showing local demonstration data</span>
+    </div>
+  }
+
+  @if (!isLoading() && reviews().length > 0) {
+    <div class="reviews-list">
+      @for (review of reviews(); track review.id) {
+        <div class="review-card">
+          <div class="review-header">
+            <div class="reviewer-info">
+              <div class="avatar">{{ review.reviewerName.charAt(0) }}</div>
+              <div>
+                <h4>{{ review.reviewerName }}</h4>
+                <div class="stars">
+                  @for (star of getStarsArray(5); track star) {
+                    <span class="star" [class.filled]="star <= review.rating">★</span>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="review-meta">
+              <span class="date">{{ review.date | date:'mediumDate' }}</span>
+            </div>
+          </div>
+          
+          <div class="review-product">
+            <span class="badge">Purchased Item</span>
+            <span class="product-name">{{ review.productName }}</span>
+          </div>
+
+          <div class="review-body">
+            <p>"{{ review.text }}"</p>
+          </div>
+
+          <div class="review-footer">
+            <button class="helpful-btn" (click)="markHelpful(review.id)">
+              👍 Helpful <span class="count" *ngIf="review.helpfulVotes > 0">({{ review.helpfulVotes }})</span>
+            </button>
+            <button class="reply-btn" (click)="replyToReview(review.id)">Reply to Customer</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (replyModalId()) {
+    <div class="modal-overlay" (click)="replyModalId.set(null)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Reply to Reviewer</h3>
+          <button class="close-btn" (click)="replyModalId.set(null)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Public Response</label>
+            <textarea #replyInput rows="4" placeholder="Write your professional response..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="secondary-btn" (click)="replyModalId.set(null)">Cancel</button>
+          <button class="primary-btn" (click)="submitReply(replyInput.value)">Post Reply</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

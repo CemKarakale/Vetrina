@@ -1,22 +1,70 @@
 <div class="product-detail-page">
-  <h2>Product Detail</h2>
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">← Back to Products</button>
+  </div>
 
-  @if (isLoading) {
-    <p>Loading product...</p>
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading product details...</p>
+    </div>
   }
 
-  @if (!isLoading && errorMessage) {
-    <p>{{ errorMessage }}</p>
+  @if (!isLoading() && errorMessage()) {
+    <div class="error-banner">
+      <span>⚠️</span>
+      <p>{{ errorMessage() }}</p>
+    </div>
   }
 
-  @if (!isLoading && product) {
-    <div class="product-card">
-      <h3>{{ product.name }}</h3>
-      <p>Description: {{ product.description }}</p>
-      <p>Category: {{ product.category }}</p>
-      <p>Price: {{ product.price }}</p>
-      <p>SKU: {{ product.sku }}</p>
-      <p>Rating: {{ product.rating }}</p>
+  @if (!isLoading() && product()) {
+    <div class="detail-container">
+      <div class="detail-card">
+        <div class="detail-header">
+          <div class="badges">
+            <span class="category-badge">{{ product()?.category || product()?.categoryName }}</span>
+            <span class="stock-badge">{{ product()?.stockStatus || 'Available' }}</span>
+          </div>
+          <span class="rating">⭐ {{ product()?.rating || 'N/A' }} 
+            <span class="muted">({{ product()?.reviewsCount || 0 }} reviews)</span>
+          </span>
+        </div>
+        
+        <h2 class="title">{{ product()?.name }}</h2>
+        <p class="sku">SKU: {{ product()?.sku }}</p>
+        
+        <div *ngIf="!isEditing()">
+          <div class="price-section">
+            <span class="price">${{ product()?.price || product()?.unitPrice }}</span>
+            <p class="store"><span class="store-icon">🏪</span> Sold by: {{ product()?.storeName }}</p>
+          </div>
+          <div class="description-section">
+            <h3>Description</h3>
+            <p>{{ product()?.description || 'No description available for this product.' }}</p>
+          </div>
+          <div class="action-section">
+            <button class="primary-btn" [class.success-btn]="isAddedToCart()" (click)="addToCart()">
+              {{ isAddedToCart() ? '✓ Added to Cart' : 'Add to Cart' }}
+            </button>
+            <button class="secondary-btn" (click)="toggleEdit()">Edit Product</button>
+          </div>
+        </div>
+
+        <div *ngIf="isEditing()">
+          <div class="form-group inline-edit">
+            <label>Price</label>
+            <input #editPrice type="number" [value]="product()?.price || product()?.unitPrice" class="edit-input">
+          </div>
+          <div class="form-group inline-edit full-width">
+            <label>Description</label>
+            <textarea #editDesc rows="4" class="edit-input">{{ product()?.description }}</textarea>
+          </div>
+          <div class="action-section">
+            <button class="secondary-btn" (click)="toggleEdit()">Cancel Edit</button>
+            <button class="primary-btn" (click)="saveProduct(editDesc.value, editPrice.value)">Save Changes</button>
+          </div>
+        </div>
+      </div>
     </div>
   }
 </div>

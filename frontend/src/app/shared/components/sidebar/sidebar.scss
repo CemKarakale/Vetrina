@@ -1,0 +1,107 @@
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background-color: #111119;
+  color: #fff;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+
+  .logo {
+    display: flex;
+    align-items: center;
+    padding: 0 20px 30px;
+    
+    .logo-icon {
+      background: linear-gradient(135deg, #6a5af9, #d661ff);
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      margin-right: 12px;
+    }
+    
+    h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .menu-section {
+    margin-bottom: 25px;
+    
+    .section-title {
+      font-size: 11px;
+      color: #6c7293;
+      padding: 0 20px;
+      margin-bottom: 10px;
+      margin-top: 0;
+      letter-spacing: 1.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      
+      li {
+        margin-bottom: 5px;
+        padding: 0 10px;
+        
+        a {
+          display: flex;
+          align-items: center;
+          padding: 10px 15px;
+          color: #a0a5ba;
+          text-decoration: none;
+          border-radius: 8px;
+          transition: all 0.2s ease-in-out;
+          font-weight: 500;
+          
+          .icon {
+            font-size: 18px;
+            margin-right: 15px;
+          }
+          
+          .badge {
+            margin-left: auto;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            
+            &.new-badge {
+              background-color: #ff477e;
+              color: white;
+            }
+          }
+          
+          &:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #fff;
+          }
+        }
+        
+        &.active a {
+          background-color: rgba(106, 90, 249, 0.15);
+          color: #fff;
+          border-left: 3px solid #6a5af9;
+          border-radius: 0 8px 8px 0;
+          margin-left: -10px;
+          padding-left: 22px;
+        }
+      }
+    }
+  }
+}

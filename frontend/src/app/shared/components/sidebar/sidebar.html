@@ -1,0 +1,37 @@
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">📊</div>
+    <h2>DataPulse</h2>
+  </div>
+
+  <div class="menu-section">
+    <p class="section-title">MAIN MENU</p>
+    <ul>
+      @for (item of menuItems; track item.label) {
+        <li [class.active]="item.label === 'Dashboard'">
+          <a [routerLink]="item.path">
+            <span class="icon">{{ item.icon }}</span>
+            <span class="label">{{ item.label }}</span>
+            @if (item.isNew) {
+              <span class="badge new-badge">New</span>
+            }
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <div class="menu-section">
+    <p class="section-title">MANAGEMENT</p>
+    <ul>
+      @for (item of managementItems; track item.label) {
+        <li>
+          <a [routerLink]="item.path">
+            <span class="icon">{{ item.icon }}</span>
+            <span class="label">{{ item.label }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+</div>
