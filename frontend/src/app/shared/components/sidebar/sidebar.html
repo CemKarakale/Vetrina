@@ -9,9 +9,12 @@
     <ul>
       @for (item of menuItems; track item.label) {
         <li>
-          <a [routerLink]="item.path" routerLinkActive="active">
+          <a [routerLink]="item.path" routerLinkActive="active" style="display: flex; align-items: center; width: 100%;">
             <span class="icon">{{ item.icon }}</span>
             <span class="label">{{ item.label }}</span>
+            @if (item.badge) {
+              <span class="badge" style="background:#5744cb; color:white; font-size:10px; font-weight:700; padding:2px 8px; border-radius:12px; margin-left:auto;">{{ item.badge }}</span>
+            }
           </a>
         </li>
       }

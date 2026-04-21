@@ -25,6 +25,7 @@ export class Sidebar implements OnInit {
 
     const allMenuItems = [
       { icon: '🏠', label: 'Dashboard', path: '/dashboard', roles: ['ADMIN', 'CORPORATE', 'USER'] },
+      { icon: '🤖', label: 'AI Asistan', path: '/ai-assistant', roles: ['ADMIN', 'CORPORATE', 'USER'], badge: 'Yeni' },
       { icon: '📉', label: 'Analytics', path: '/analytics', roles: ['ADMIN', 'CORPORATE'] },
       { icon: '🛒', label: 'Orders', path: '/orders', roles: ['ADMIN', 'CORPORATE', 'USER'] },
       { icon: '📦', label: 'Products', path: '/products', roles: ['ADMIN', 'CORPORATE', 'USER'] },
