@@ -3,6 +3,26 @@
     <h2>Order History</h2>
   </div>
 
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Status</label>
+      <select [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)">
+        <option value="">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Cancelled">Cancelled</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>From Date</label>
+      <input type="date" [ngModel]="filterDateFrom()" (ngModelChange)="setDateFrom($any($event))">
+    </div>
+    <div class="filter-group">
+      <label>To Date</label>
+      <input type="date" [ngModel]="filterDateTo()" (ngModelChange)="setDateTo($any($event))">
+    </div>
+    <button class="clear-btn" (click)="clearFilters()">Clear</button>
+  </div>
+
   @if (isLoading()) {
     <div class="loading-state">
       <div class="spinner"></div>
@@ -19,35 +39,57 @@
   }
 
   @if (!isLoading() && filteredOrders().length > 0) {
-    <div class="table-container card">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Date</th>
-            <th>Store</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (order of filteredOrders(); track order.id) {
-            <tr>
-              <td class="font-bold">#{{ order.id }}</td>
-              <td>{{ order.createdAt | date:'mediumDate' }}</td>
-              <td>{{ order.storeName }}</td>
-              <td class="font-bold">${{ order.grandTotal | number:'1.2-2' }}</td>
-              <td>
-                <span class="status-badge" [ngClass]="order.status.toLowerCase()">{{ order.status }}</span>
-              </td>
-              <td>
-                <button class="action-btn" (click)="goToDetails(order.id)">View Details</button>
-              </td>
-            </tr>
+    <div class="orders-list">
+      @for (order of filteredOrders(); track order.id) {
+        <div class="order-card" [class.expanded]="expandedOrderId() === order.id">
+          <div class="order-header" (click)="toggleOrderDetails(order.id)">
+            <div class="order-info">
+              <span class="order-id">#{{ order.id }}</span>
+              <span class="order-date">{{ order.createdAt | date:'mediumDate' }}</span>
+            </div>
+            <div class="order-meta">
+              <span class="store">{{ order.storeName }}</span>
+              <span class="status-badge" [ngClass]="order.status.toLowerCase()">{{ order.status }}</span>
+              <span class="total">${{ order.grandTotal | number:'1.2-2' }}</span>
+            </div>
+            <span class="expand-icon">{{ expandedOrderId() === order.id ? '▲' : '▼' }}</span>
+          </div>
+
+          @if (expandedOrderId() === order.id) {
+            <div class="order-details">
+              @if (getOrderItems(order.id).length > 0) {
+                <div class="items-preview">
+                  <h4>Items</h4>
+                  @for (item of getOrderItems(order.id); track item.id) {
+                    <div class="item-row">
+                      <span>{{ item.displayName }}</span>
+                      <span>x{{ item.quantity }}</span>
+                      <span>${{ (item.price * item.quantity) | number:'1.2-2' }}</span>
+                    </div>
+                  }
+                </div>
+              }
+              <div class="shipment-info">
+                <h4>📦 Shipment Tracking</h4>
+                @if (getShipment(order.id); as shipment) {
+                  <p><strong>Tracking #:</strong> {{ shipment.trackingNumber || shipment.id }}</p>
+                  <p><strong>Status:</strong> {{ shipment.status || 'Pending' }}</p>
+                  <p><strong>Mode:</strong> {{ shipment.modeOfShipment || 'Standard' }}</p>
+                } @else {
+                  <p class="no-shipment">No shipment information available</p>
+                }
+              </div>
+              <button class="details-btn" (click)="goToDetails(order.id)">View Full Details</button>
+            </div>
           }
-        </tbody>
-      </table>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!isLoading() && filteredOrders().length === 0) {
+    <div class="empty-state">
+      <p>No orders found.</p>
     </div>
   }
 </div>

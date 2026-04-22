@@ -6,6 +6,39 @@
     </div>
   </div>
 
+  <!-- Filter Section -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Category</label>
+      <select [value]="selectedCategory()" (change)="selectedCategory.set($any($event.target).value)">
+        <option value="">All Categories</option>
+        @for (cat of categories(); track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Min Price</label>
+      <input type="number" min="0" placeholder="0" [value]="minPrice()" (input)="minPrice.set($any($event.target).value)">
+    </div>
+    <div class="filter-group">
+      <label>Max Price</label>
+      <input type="number" min="0" placeholder="Any" [value]="maxPrice()" (input)="maxPrice.set($any($event.target).value)">
+    </div>
+    <div class="filter-group">
+      <label>Sort By</label>
+      <select [value]="sortBy()" (change)="sortBy.set($any($event.target).value)">
+        <option value="name">Name</option>
+        <option value="price">Price</option>
+      </select>
+    </div>
+    <div class="sort-buttons">
+      <button [class.active]="sortOrder() === 'asc'" (click)="sortOrder.set('asc')">↑</button>
+      <button [class.active]="sortOrder() === 'desc'" (click)="sortOrder.set('desc')">↓</button>
+    </div>
+    <button class="clear-btn" (click)="clearFilters()">Clear</button>
+  </div>
+
   @if (isLoading()) {
     <div class="loading-state">
       <div class="spinner"></div>

@@ -1,11 +1,22 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, effect } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CartService {
-  cartItems = signal<any[]>([]);
-  
+  cartItems = signal<any[]>(this.loadFromStorage());
+
+  constructor() {
+    effect(() => {
+      localStorage.setItem('cart', JSON.stringify(this.cartItems()));
+    });
+  }
+
+  private loadFromStorage(): any[] {
+    const stored = localStorage.getItem('cart');
+    return stored ? JSON.parse(stored) : [];
+  }
+
   addToCart(product: any) {
     this.cartItems.update(items => {
       const existing = items.find(i => i.id === product.id);
@@ -18,6 +29,16 @@ export class CartService {
 
   removeFromCart(productId: number) {
     this.cartItems.update(items => items.filter(i => i.id !== productId));
+  }
+
+  updateQuantity(productId: number, quantity: number) {
+    if (quantity <= 0) {
+      this.removeFromCart(productId);
+      return;
+    }
+    this.cartItems.update(items =>
+      items.map(i => i.id === productId ? { ...i, quantity } : i)
+    );
   }
 
   clearCart() {

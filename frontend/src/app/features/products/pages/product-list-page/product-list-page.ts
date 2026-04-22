@@ -16,16 +16,47 @@ export class ProductListPage implements OnInit {
   errorMessage = signal<string>('');
   isAddModalOpen = signal<boolean>(false);
 
-  // Filtered list based on search term
+  // Filter values
+  selectedCategory = signal<string>('');
+  minPrice = signal<string>('');
+  maxPrice = signal<string>('');
+  sortBy = signal<'name' | 'price'>('name');
+  sortOrder = signal<'asc' | 'desc'>('asc');
+
+  // Dynamic categories derived from products
+  categories = computed(() => {
+    const cats = this.products().map(p => p.categoryName).filter(c => c);
+    return [...new Set(cats)] as string[];
+  });
+
+  // Filtered and sorted products
   filteredProducts = computed(() => {
-    const term = this.searchService.searchTerm();
-    const list = this.products();
-    if (!term) return list;
-    return list.filter(p =>
-      p.name?.toLowerCase().includes(term) ||
-      p.categoryName?.toLowerCase().includes(term) ||
-      p.storeName?.toLowerCase().includes(term)
-    );
+    const term = this.searchService.searchTerm().toLowerCase();
+    const category = this.selectedCategory();
+    const min = this.minPrice() ? Number(this.minPrice()) : 0;
+    const max = this.maxPrice() ? Number(this.maxPrice()) : Infinity;
+    const sort = this.sortBy();
+    const order = this.sortOrder();
+    let list = this.products();
+
+    list = list.filter(p => {
+      const matchesSearch = !term ||
+        p.name?.toLowerCase().includes(term) ||
+        p.categoryName?.toLowerCase().includes(term) ||
+        p.storeName?.toLowerCase().includes(term);
+      const matchesCategory = !category || p.categoryName.toLowerCase() === category.toLowerCase();
+      const matchesPrice = p.unitPrice >= min && p.unitPrice <= max;
+      return matchesSearch && matchesCategory && matchesPrice;
+    });
+
+    list = [...list].sort((a, b) => {
+      let cmp = 0;
+      if (sort === 'name') cmp = a.name.localeCompare(b.name);
+      else if (sort === 'price') cmp = a.unitPrice - b.unitPrice;
+      return order === 'asc' ? cmp : -cmp;
+    });
+
+    return list;
   });
 
   constructor(
@@ -89,5 +120,13 @@ export class ProductListPage implements OnInit {
 
     this.products.set([newProduct, ...this.products()]);
     this.closeAddModal();
+  }
+
+  clearFilters() {
+    this.selectedCategory.set('');
+    this.minPrice.set('');
+    this.maxPrice.set('');
+    this.sortBy.set('name');
+    this.sortOrder.set('asc');
   }
 }

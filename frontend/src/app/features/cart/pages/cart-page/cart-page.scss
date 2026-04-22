@@ -11,10 +11,16 @@
     .cart-item {
       display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #1a1b26; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;
       .info h3 { margin: 0 0 4px 0; font-size: 16px; }
-      .info p { margin: 0; color: #a0a5ba; }
-      .actions {
-        display: flex; align-items: center; gap: 16px;
-        button { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: background 0.2s; &:hover { background: #dc2626; } }
+      .info .price { margin: 0; color: #a0a5ba; font-size: 14px; }
+      .quantity-controls {
+        display: flex; align-items: center; gap: 8px;
+        button { background: #6a5af9; color: white; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 16px; &:hover { background: #5548c8; } }
+        span { color: #fff; font-weight: 600; min-width: 30px; text-align: center; }
+      }
+      .subtotal {
+        text-align: right; min-width: 120px;
+        p { margin: 0 0 8px 0; color: #00e396; font-weight: 600; }
+        .remove-btn { background: transparent; color: #ff477e; border: 1px solid rgba(255, 71, 126, 0.3); padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; &:hover { background: rgba(255, 71, 126, 0.1); } }
       }
     }
     .summary {
@@ -24,16 +30,27 @@
     }
   }
   .payment-modal {
-    background: #1a1b26; padding: 32px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; max-width: 400px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    background: #1a1b26; padding: 32px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; max-width: 450px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     h2 { margin: 0 0 8px 0; color: #fff; }
-    p { margin: 0 0 24px 0; color: #a0a5ba; font-weight: 500; }
-    .form-group {
-      margin-bottom: 16px;
-      label { display: block; margin-bottom: 8px; font-weight: 500; color: #a0a5ba; }
-      input { width: 100%; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; outline: none; background: rgba(255, 255, 255, 0.05); color: #fff; &:focus { border-color: #6a5af9; box-shadow: 0 0 0 2px rgba(106, 90, 249, 0.2); } }
+    .total { margin: 0 0 20px 0; color: #00e396; font-weight: 600; font-size: 18px; }
+    .payment-methods {
+      display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;
+      .payment-option {
+        display: flex; align-items: center; gap: 12px; padding: 14px; background: #16161e; border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+        &:hover { border-color: rgba(106, 90, 249, 0.3); }
+        &.selected { border-color: #6a5af9; background: rgba(106, 90, 249, 0.1); }
+        .icon { font-size: 20px; }
+        .name { color: #fff; font-weight: 500; }
+      }
     }
-    button { padding: 12px 24px; border-radius: 6px; border: none; cursor: pointer; font-size: 16px; font-weight: 500; margin-top: 16px; }
-    .pay-btn { background: #10b981; color: white; margin-right: 12px; width: calc(50% - 6px); &:hover { background: #059669; } }
-    .cancel-btn { background: rgba(255, 255, 255, 0.05); color: #fff; width: calc(50% - 6px); border: 1px solid rgba(255, 255, 255, 0.1); &:hover { background: rgba(255, 255, 255, 0.1); } }
+    .card-fields, .paypal-fields, .cod-fields { margin-bottom: 20px; }
+    .card-fields {
+      input { width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; outline: none; background: rgba(255, 255, 255, 0.05); color: #fff; margin-bottom: 10px; &:focus { border-color: #6a5af9; } }
+      .row { display: flex; gap: 10px; input { flex: 1; } }
+    }
+    .mock-note { color: #a0a5ba; font-size: 14px; padding: 16px; background: #16161e; border-radius: 8px; text-align: center; margin: 0; }
+    .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+    .pay-btn { background: #10b981; color: white; border: none; flex: 1; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; &:hover { background: #059669; } &.disabled { background: #4a5568; cursor: not-allowed; opacity: 0.6; } }
+    .cancel-btn { background: transparent; color: #a0a5ba; border: 1px solid rgba(255, 255, 255, 0.1); flex: 1; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 14px; &:hover { background: rgba(255, 255, 255, 0.05); } }
   }
 }
