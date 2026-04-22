@@ -22,6 +22,12 @@ public class ReviewService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
 
+    public List<ReviewDto> getAllReviews() {
+        return reviewRepository.findAll().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
     public List<ReviewDto> getReviewsByProduct(Integer productId) {
         return reviewRepository.findByProductId(productId).stream()
                 .map(this::toDto)

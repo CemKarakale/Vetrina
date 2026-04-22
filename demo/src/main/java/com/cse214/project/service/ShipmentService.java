@@ -12,6 +12,9 @@ import com.cse214.project.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ShipmentService {
@@ -20,6 +23,28 @@ public class ShipmentService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final StoreRepository storeRepository;
+
+    public List<ShipmentDto> getAllShipments(String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElseThrow();
+
+        List<Shipment> shipments;
+        switch (user.getRoleType()) {
+            case "ADMIN":
+                shipments = shipmentRepository.findAll();
+                break;
+            case "CORPORATE":
+                Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
+                shipments = shipmentRepository.findByOrderStoreId(store.getId());
+                break;
+            case "INDIVIDUAL":
+                shipments = shipmentRepository.findByOrderUserId(user.getId());
+                break;
+            default:
+                shipments = List.of();
+        }
+
+        return shipments.stream().map(this::toDto).collect(Collectors.toList());
+    }
 
     public ShipmentDto getShipmentByOrderId(Integer orderId, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();

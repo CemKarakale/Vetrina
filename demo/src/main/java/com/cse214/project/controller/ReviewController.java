@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +19,12 @@ import java.util.List;
 public class ReviewController {
 
     private final ReviewService reviewService;
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CORPORATE')")
+    public ResponseEntity<List<ReviewDto>> getAllReviews() {
+        return ResponseEntity.ok(reviewService.getAllReviews());
+    }
 
     @GetMapping("/product/{productId}")
     public ResponseEntity<List<ReviewDto>> getReviewsByProduct(@PathVariable Integer productId) {
