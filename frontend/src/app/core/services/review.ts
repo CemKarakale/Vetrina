@@ -5,11 +5,12 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class ReviewService {
-  apiUrl: string = 'http://localhost:8080/api/reviews/my';
+  private baseUrl: string = '/api/reviews';
 
   constructor(private http: HttpClient) {}
 
-  getReviews() {
-    return this.http.get<any[]>(this.apiUrl);
+  getReviews(all: boolean = false) {
+    const url = all ? this.baseUrl : `${this.baseUrl}/my`;
+    return this.http.get<any[]>(url);
   }
 }

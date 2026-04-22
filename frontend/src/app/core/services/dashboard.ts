@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class DashboardService {
-  apiUrl: string = 'http://localhost:8080/api/dashboard/summary';
+  apiUrl: string = '/api/dashboard/summary';
 
   constructor(private http: HttpClient) {}
 

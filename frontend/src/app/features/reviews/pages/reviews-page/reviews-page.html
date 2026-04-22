@@ -1,8 +1,59 @@
 <div class="reviews-page">
   <div class="page-header">
     <div class="header-left">
-      <h2>Product Reviews</h2>
+      <h2>Reviews</h2>
     </div>
+    @if (canReply()) {
+      <div class="filters-bar">
+        <div class="filter-group">
+          <label>Rating</label>
+          <select [ngModel]="selectedStars()" (ngModelChange)="selectedStars.set($event ? +$event : null)" class="filter-control">
+            <option [value]="null">All Stars</option>
+            @for (s of [5,4,3,2,1]; track s) {
+              <option [value]="s">{{ s }} Stars</option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Product</label>
+          <input 
+            type="text" 
+            [ngModel]="selectedProduct()" 
+            (ngModelChange)="selectedProduct.set($event || null)" 
+            list="productSuggestions" 
+            placeholder="Search Product..."
+            class="filter-control"
+          >
+          <datalist id="productSuggestions">
+            @for (p of availableProducts(); track p) {
+              <option [value]="p"></option>
+            }
+          </datalist>
+        </div>
+
+        <div class="filter-group">
+          <label>Customer</label>
+          <input 
+            type="text" 
+            [ngModel]="selectedUser()" 
+            (ngModelChange)="selectedUser.set($event || null)" 
+            list="userSuggestions" 
+            placeholder="Search User..."
+            class="filter-control"
+          >
+          <datalist id="userSuggestions">
+            @for (u of availableUsers(); track u) {
+              <option [value]="u"></option>
+            }
+          </datalist>
+        </div>
+
+        <button class="clear-filters" (click)="clearFilters()" *ngIf="selectedStars() || selectedProduct() || selectedUser()">
+          Clear
+        </button>
+      </div>
+    }
   </div>
 
   @if (isLoading()) {

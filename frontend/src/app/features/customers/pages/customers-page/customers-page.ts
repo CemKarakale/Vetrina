@@ -44,8 +44,14 @@ export class CustomersPage implements OnInit {
 
     this.customerService.getCustomers().subscribe({
       next: (response: any) => {
-        this.customers.set(response ?? []);
-        this.totalCustomers.set(response?.length || 0);
+        // Map backend DTO fields to frontend names and ensure safe data
+        const mapped = (response ?? []).map((c: any) => ({
+          ...c,
+          membership: c.membershipType || c.membership || 'Standard',
+          status: c.status || 'Active'
+        }));
+        this.customers.set(mapped);
+        this.totalCustomers.set(mapped.length);
         this.isLoading.set(false);
       },
       error: () => {

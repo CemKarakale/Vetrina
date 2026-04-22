@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class StoreSettingsService {
-  apiUrl: string = 'http://localhost:8080/api/store-settings';
+  apiUrl: string = '/api/store-settings';
 
   constructor(private http: HttpClient) {}
 

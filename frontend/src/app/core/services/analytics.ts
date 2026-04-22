@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class AnalyticsService {
-  apiUrl: string = 'http://localhost:8080/api/analytics/overview';
+  apiUrl: string = '/api/analytics/overview';
 
   constructor(private http: HttpClient) {}
 

@@ -18,17 +18,44 @@ export class ReviewsPage implements OnInit {
   errorMessage = signal<string>('');
   replyModalId = signal<string | null>(null);
 
-  // Filtered reviews based on search term
+  selectedStars = signal<number | null>(null);
+  selectedProduct = signal<string | null>(null);
+  selectedUser = signal<string | null>(null);
+
+  // Filtered reviews based on search term and dropdown filters
   filteredReviews = computed(() => {
-    const term = this.searchService.searchTerm();
-    const list = this.reviews();
-    if (!term) return list;
-    return list.filter(r =>
-      r.productName?.toLowerCase().includes(term) ||
-      r.userName?.toLowerCase().includes(term) ||
-      r.content?.toLowerCase().includes(term)
-    );
+    const term = this.searchService.searchTerm().toLowerCase();
+    const stars = this.selectedStars();
+    const product = this.selectedProduct();
+    const user = this.selectedUser();
+    let list = this.reviews();
+
+    if (term) {
+      list = list.filter(r =>
+        r.productName?.toLowerCase().includes(term) ||
+        r.userName?.toLowerCase().includes(term) ||
+        r.content?.toLowerCase().includes(term)
+      );
+    }
+
+    if (stars !== null) {
+      list = list.filter(r => r.starRating === stars);
+    }
+
+    if (product) {
+      list = list.filter(r => r.productName === product);
+    }
+
+    if (user) {
+      list = list.filter(r => r.userName === user);
+    }
+
+    return list;
   });
+
+  // Unique values for filters
+  availableProducts = computed(() => [...new Set(this.reviews().map(r => r.productName))].sort());
+  availableUsers = computed(() => [...new Set(this.reviews().map(r => r.userName))].sort());
 
   newReviewRating = signal<number>(5);
   newReviewContent = signal<string>('');
@@ -48,7 +75,9 @@ export class ReviewsPage implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    this.reviewService.getReviews().subscribe({
+    const isAdmin = this.canReply(); // Simple check for admin/corporate
+
+    this.reviewService.getReviews(isAdmin).subscribe({
       next: (data) => {
         this.reviews.set(data ?? []);
         this.isLoading.set(false);
@@ -121,5 +150,11 @@ export class ReviewsPage implements OnInit {
     this.reviews.update(list => [newRev, ...list]);
     this.newReviewContent.set('');
     this.newReviewRating.set(5);
+  }
+
+  clearFilters() {
+    this.selectedStars.set(null);
+    this.selectedProduct.set(null);
+    this.selectedUser.set(null);
   }
 }

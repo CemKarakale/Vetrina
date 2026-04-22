@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth';
 import { ChatService } from '../../../../core/services/chat';
-import { PlotlyModule } from 'angular-plotly.js';
 
 type Message = {
   role: 'user' | 'assistant' | 'guardrail' | 'chart';
@@ -14,7 +13,7 @@ type Message = {
 @Component({
   selector: 'app-chat-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, PlotlyModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './chat-page.html',
   styleUrl: './chat-page.scss'
 })
@@ -150,12 +149,13 @@ export class ChatPage implements OnInit, AfterViewChecked {
            role: 'chart',
            metadata: {
              title: 'Nisan 2026 için mağazanızın en çok satan 5 ürünü:',
-             plotlyData: [{
-               x: [284, 217, 196, 178, 143],
-               y: ['Kablosuz Kulaklık', 'Akıllı Saat X', 'Deri Çanta', 'Koşu Ayakkabısı Pro', 'Güneş Gözlüğü'],
-               type: 'bar',
-               orientation: 'h'
-             }],
+             bars: [
+               { label: 'Kablosuz Kulaklık', width: '85%', val: '284 ad.' },
+               { label: 'Akıllı Saat X', width: '65%', val: '217 ad.' },
+               { label: 'Deri Çanta', width: '55%', val: '196 ad.' },
+               { label: 'Koşu Ayakkabısı Pro', width: '45%', val: '178 ad.' },
+               { label: 'Güneş Gözlüğü', width: '35%', val: '143 ad.' }
+             ],
              sql: "SELECT p.name, SUM(oi.quantity) AS total\nFROM order_items oi JOIN products p ON p.id = oi.product_id\nJOIN orders o ON o.id = oi.order_id\nWHERE o.store_id=1042 AND MONTH(o.created_at)=4\nGROUP BY p.id ORDER BY total DESC LIMIT 5;",
              stats: "5 satır döndü • 0.03s"
            }

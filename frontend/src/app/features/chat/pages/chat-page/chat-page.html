@@ -106,11 +106,15 @@
               <h4 class="chart-title">{{ msg.metadata.title }}</h4>
               
               <div class="chart-bars-container">
-                <plotly-plot 
-                  [data]="msg.metadata.plotlyData" 
-                  [useResizeHandler]="true"
-                  [style]="{position: 'relative', width: '100%', height: '200px'}">
-                </plotly-plot>
+                @for (bar of msg.metadata.bars; track $index) {
+                  <div class="bar-row">
+                    <span class="bar-label">{{ bar.label }}</span>
+                    <div class="bar-track">
+                      <div class="bar-fill" [style.width]="bar.width"></div>
+                    </div>
+                    <span class="bar-val">{{ bar.val }}</span>
+                  </div>
+                }
               </div>
 
               <div class="sql-box">
