@@ -7,93 +7,83 @@
   } @else {
     @if (errorMessage()) {
       <div class="error-banner">
-        <span>⚠️</span>
+        <span class="warning-icon">⚠️</span>
         <p>{{ errorMessage() }}</p>
-        <span class="muted-text">Showing local demonstration data</span>
+        <span class="muted-text">Showing demonstration data</span>
       </div>
     }
 
-    <div class="summary-cards">
-      <div class="card">
-        <div class="card-icon revenue-icon">💰</div>
-        <div class="card-info">
-          <h3>${{ summary()?.totalRevenue | number:'1.0-0' }}</h3>
-          <p>Total Revenue</p>
-        </div>
-        <div class="trend positive">+12.5%</div>
-      </div>
-      
-      <div class="card">
-        <div class="card-icon orders-icon">📦</div>
-        <div class="card-info">
-          <h3>{{ summary()?.totalOrders | number }}</h3>
-          <p>Total Orders</p>
-        </div>
-        <div class="trend positive">+8.2%</div>
-      </div>
-      
-      <div class="card">
-        <div class="card-icon products-icon">🏷️</div>
-        <div class="card-info">
-          <h3>{{ summary()?.totalProducts | number }}</h3>
-          <p>Total Products</p>
-        </div>
-        <div class="trend positive">+5.1%</div>
-      </div>
-      
-      <div class="card">
-        <div class="card-icon reviews-icon">⭐</div>
-        <div class="card-info">
-          <h3>{{ summary()?.totalReviews | number }}</h3>
-          <p>Total Reviews</p>
-        </div>
-        <div class="trend positive">+15.3%</div>
-      </div>
+    <div class="dashboard-header">
+      <h1>{{ getWelcomeMessage() }}</h1>
+      <p class="role-badge" [class]="userRole().toLowerCase()">{{ userRole() }}</p>
     </div>
 
-    <div class="chart-section card">
-      <div class="chart-header">
-        <h3>Revenue Overview</h3>
-      </div>
-      <div class="chart-container">
-        <svg viewBox="0 0 800 300" preserveAspectRatio="none">
-          <!-- Grid lines -->
-          <line x1="0" y1="50" x2="800" y2="50" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-          <line x1="0" y1="100" x2="800" y2="100" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-          <line x1="0" y1="150" x2="800" y2="150" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-          <line x1="0" y1="200" x2="800" y2="200" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-          <line x1="0" y1="250" x2="800" y2="250" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-          
-          <!-- Area fill -->
-          <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stop-color="rgba(106, 90, 249, 0.4)" />
-            <stop offset="100%" stop-color="rgba(106, 90, 249, 0.0)" />
-          </linearGradient>
-          <polygon points="0,250 0,200 133,120 266,160 400,60 533,120 666,20 800,80 800,250" fill="url(#areaGradient)"/>
-          
-          <!-- Line -->
-          <polyline fill="none" stroke="#6a5af9" stroke-width="3" points="0,200 133,120 266,160 400,60 533,120 666,20 800,80"/>
-          
-          <!-- Points -->
-          <circle cx="0" cy="200" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
-          <circle cx="133" cy="120" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
-          <circle cx="266" cy="160" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
-          <circle cx="400" cy="60" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
-          <circle cx="533" cy="120" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
-          <circle cx="666" cy="20" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
-          <circle cx="800" cy="80" r="4" fill="#111119" stroke="#6a5af9" stroke-width="3"/>
-        </svg>
-        
-        <div class="x-axis">
-          <span>Mon</span>
-          <span>Tue</span>
-          <span>Wed</span>
-          <span>Thu</span>
-          <span>Fri</span>
-          <span>Sat</span>
-          <span>Sun</span>
+    @if (isUser()) {
+      <div class="dashboard-grid user-dashboard">
+        <div class="stats-row">
+          @for (stat of userDashboard()?.stats; track stat.title) {
+            <app-stat-card [data]="stat" class="stat-widget"></app-stat-card>
+          }
+        </div>
+
+        <div class="chart-section">
+          <app-chart-widget [data]="userDashboard()!.spendingTrend"></app-chart-widget>
+        </div>
+
+        <div class="spending-section">
+          <app-spending-widget [data]="userDashboard()!.spending"></app-spending-widget>
+        </div>
+
+        <div class="activity-section">
+          <app-recent-activity-widget [data]="{ title: 'Recent Orders', orders: userDashboard()!.recentOrders }"></app-recent-activity-widget>
         </div>
       </div>
-    </div>
+    }
+
+    @if (isCorporate()) {
+      <div class="dashboard-grid corporate-dashboard">
+        <div class="stats-row four-cols">
+          <app-stat-card [data]="corporateDashboard()!.revenue" class="stat-widget"></app-stat-card>
+          <app-stat-card [data]="corporateDashboard()!.orders" class="stat-widget"></app-stat-card>
+          <app-stat-card [data]="corporateDashboard()!.products" class="stat-widget"></app-stat-card>
+          <app-stat-card [data]="corporateDashboard()!.conversionRate" class="stat-widget"></app-stat-card>
+        </div>
+
+        <div class="chart-main">
+          <app-chart-widget [data]="corporateDashboard()!.revenueChart"></app-chart-widget>
+        </div>
+
+        <div class="top-products-section">
+          <app-top-products-widget [data]="corporateDashboard()!.topProducts"></app-top-products-widget>
+        </div>
+
+        <div class="category-section">
+          <app-chart-widget [data]="corporateDashboard()!.categoryDistribution"></app-chart-widget>
+        </div>
+      </div>
+    }
+
+    @if (isAdmin()) {
+      <div class="dashboard-grid admin-dashboard">
+        <div class="stats-row four-cols">
+          <app-stat-card [data]="adminDashboard()!.totalRevenue" class="stat-widget"></app-stat-card>
+          <app-stat-card [data]="adminDashboard()!.totalOrders" class="stat-widget"></app-stat-card>
+          <app-stat-card [data]="adminDashboard()!.totalUsers" class="stat-widget"></app-stat-card>
+          <app-stat-card [data]="adminDashboard()!.totalStores" class="stat-widget"></app-stat-card>
+        </div>
+
+        <div class="chart-main">
+          <app-chart-widget [data]="adminDashboard()!.platformRevenueChart"></app-chart-widget>
+        </div>
+
+        <div class="chart-secondary">
+          <app-chart-widget [data]="adminDashboard()!.userGrowthChart"></app-chart-widget>
+        </div>
+
+        <div class="category-section">
+          <app-chart-widget [data]="adminDashboard()!.categoryDistribution"></app-chart-widget>
+        </div>
+      </div>
+    }
   }
 </div>

@@ -33,6 +33,7 @@ export class Sidebar implements OnInit {
     ];
 
     const allManagementItems = [
+      { icon: '👤', label: 'My Profile', path: '/profile', roles: ['ADMIN', 'CORPORATE', 'USER'] },
       { icon: '👥', label: 'Customers', path: '/customers', roles: ['ADMIN', 'CORPORATE'] },
       { icon: '🏪', label: 'Store Settings', path: '/settings', roles: ['ADMIN', 'CORPORATE'] },
       { icon: '⭐', label: 'Reviews', path: '/reviews', roles: ['ADMIN', 'CORPORATE', 'USER'] },

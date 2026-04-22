@@ -10,6 +10,7 @@ import { OrderDetailPage } from './features/orders/pages/order-detail-page/order
 import { CustomersPage } from './features/customers/pages/customers-page/customers-page';
 import { ReviewsPage } from './features/reviews/pages/reviews-page/reviews-page';
 import { SettingsPage } from './features/settings/pages/settings-page/settings-page';
+import { ProfilePage } from './features/settings/pages/profile-page/profile-page';
 import { CartPage } from './features/cart/pages/cart-page/cart-page';
 import { ChatPage } from './features/chat/pages/chat-page/chat-page';
 
@@ -25,6 +26,7 @@ export const routes: Routes = [
     { path: 'customers', component: CustomersPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE'] } },
     { path: 'reviews', component: ReviewsPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
     { path: 'settings', component: SettingsPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE'] } },
+    { path: 'profile', component: ProfilePage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
     { path: 'cart', component: CartPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'USER'] } },
     { path: 'ai-assistant', component: ChatPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
     { path: '**', redirectTo: 'login' }

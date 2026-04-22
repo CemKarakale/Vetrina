@@ -1,0 +1,116 @@
+<div class="profile-page">
+  <div class="page-header">
+    <h2>My Profile</h2>
+    <span class="user-role">{{ role() }}</span>
+  </div>
+
+  @if (profileService.isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading profile...</p>
+    </div>
+  }
+
+  @if (!profileService.isLoading() && profileService.profile()) {
+    <div class="tabs">
+      <button [class.active]="activeTab() === 'info'" (click)="setTab('info')">Personal Info</button>
+      <button [class.active]="activeTab() === 'address'" (click)="setTab('address')">Address</button>
+      <button [class.active]="activeTab() === 'preferences'" (click)="setTab('preferences')">Preferences</button>
+    </div>
+
+    @if (activeTab() === 'info') {
+      <div class="tab-content">
+        <div class="card">
+          <h3>Personal Information</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>First Name</label>
+              <input type="text" [(ngModel)]="profileService.profile().firstName">
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <input type="text" [(ngModel)]="profileService.profile().lastName">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" [(ngModel)]="profileService.profile().email">
+            </div>
+            <div class="form-group">
+              <label>Phone</label>
+              <input type="tel" [(ngModel)]="profileService.profile().phone">
+            </div>
+          </div>
+          <button class="save-btn" (click)="updateInfo()">Save Changes</button>
+        </div>
+      </div>
+    }
+
+    @if (activeTab() === 'address') {
+      <div class="tab-content">
+        <div class="card">
+          <h3>Shipping Address</h3>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Street</label>
+              <input type="text" [(ngModel)]="profileService.profile().address.street">
+            </div>
+            <div class="form-group">
+              <label>City</label>
+              <input type="text" [(ngModel)]="profileService.profile().address.city">
+            </div>
+            <div class="form-group">
+              <label>State</label>
+              <input type="text" [(ngModel)]="profileService.profile().address.state">
+            </div>
+            <div class="form-group">
+              <label>ZIP Code</label>
+              <input type="text" [(ngModel)]="profileService.profile().address.zipCode">
+            </div>
+            <div class="form-group">
+              <label>Country</label>
+              <input type="text" [(ngModel)]="profileService.profile().address.country">
+            </div>
+          </div>
+          <button class="save-btn" (click)="updateAddress()">Save Address</button>
+        </div>
+      </div>
+    }
+
+    @if (activeTab() === 'preferences') {
+      <div class="tab-content">
+        <div class="card">
+          <h3>Preferences</h3>
+          <div class="preference-item">
+            <div>
+              <p class="pref-label">Dark Theme</p>
+              <p class="pref-desc">Use dark mode for the interface</p>
+            </div>
+            <button class="toggle-btn" [class.active]="profileService.profile().preferences.theme === 'dark'" (click)="setTheme('dark')">Dark</button>
+          </div>
+          <div class="preference-item">
+            <div>
+              <p class="pref-label">Light Theme</p>
+              <p class="pref-desc">Use light mode for the interface</p>
+            </div>
+            <button class="toggle-btn" [class.active]="profileService.profile().preferences.theme === 'light'" (click)="setTheme('light')">Light</button>
+          </div>
+          <div class="preference-item">
+            <div>
+              <p class="pref-label">Notifications</p>
+              <p class="pref-desc">Receive order and promo updates</p>
+            </div>
+            <button class="toggle-btn" [class.active]="profileService.profile().preferences.notifications" (click)="toggleNotification()">
+              {{ profileService.profile().preferences.notifications ? 'On' : 'Off' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+
+  @if (!profileService.isLoading() && !profileService.profile()) {
+    <div class="empty-state">
+      <p>Could not load profile.</p>
+    </div>
+  }
+</div>

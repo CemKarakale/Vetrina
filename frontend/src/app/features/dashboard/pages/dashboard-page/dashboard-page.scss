@@ -2,15 +2,15 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 1200px;
-  
+  max-width: 1400px;
+
   .loading-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 60px 0;
-    
+
     .spinner {
       border: 3px solid rgba(255, 255, 255, 0.1);
       border-top-color: #6a5af9;
@@ -31,113 +31,186 @@
     align-items: center;
     gap: 15px;
     color: #fff;
-    
+
     p { margin: 0; flex: 1; }
-    
+
+    .warning-icon { font-size: 18px; }
+
     .muted-text {
       font-size: 12px;
       color: #a0a5ba;
     }
   }
 
-  .summary-cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    
-    .card {
-      background-color: #1a1b26;
-      border-radius: 16px;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      border: 1px solid rgba(255, 255, 255, 0.03);
-      position: relative;
-      
-      .card-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 24px;
-        margin-right: 15px;
-        
-        &.revenue-icon { background: rgba(106, 90, 249, 0.15); color: #6a5af9; }
-        &.orders-icon { background: rgba(255, 171, 0, 0.15); color: #ffab00; }
-        &.products-icon { background: rgba(0, 227, 150, 0.15); color: #00e396; }
-        &.reviews-icon { background: rgba(255, 71, 126, 0.15); color: #ff477e; }
-      }
-      
-      .card-info {
-        h3 {
-          margin: 0 0 5px 0;
-          font-size: 24px;
-          font-weight: 600;
-        }
-        p {
-          margin: 0;
-          font-size: 13px;
-          color: #a0a5ba;
-        }
-      }
-      
-      .trend {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        padding: 4px 8px;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.05);
+  .dashboard-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
 
-        &.positive { color: #00e396; }
-        &.negative { color: #ff477e; }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .role-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &.user {
+        background: rgba(106, 90, 249, 0.15);
+        color: #6a5af9;
+      }
+      &.corporate {
+        background: rgba(255, 171, 0, 0.15);
+        color: #ffab00;
+      }
+      &.admin {
+        background: rgba(0, 227, 150, 0.15);
+        color: #00e396;
       }
     }
   }
 
-  .chart-section {
-    background-color: #1a1b26;
-    border-radius: 16px;
-    padding: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    
-    .chart-header {
-      margin-bottom: 20px;
-      h3 { margin: 0; font-size: 18px; font-weight: 600; }
+  .dashboard-grid {
+    display: grid;
+    gap: 20px;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+
+    &.four-cols {
+      grid-template-columns: repeat(4, 1fr);
     }
-    
-    .chart-container {
-      width: 100%;
-      height: 300px;
-      position: relative;
-      
-      svg {
-        width: 100%;
-        height: 100%;
-        overflow: visible;
-        
-        circle {
-          transition: all 0.2s ease;
-          &:hover { r: 6; cursor: pointer; }
-        }
-      }
-      
-      .x-axis {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 15px;
-        padding: 0 5px;
-        font-size: 12px;
-        color: #a0a5ba;
-      }
+
+    .stat-widget {
+      min-width: 0;
+    }
+  }
+
+  .user-dashboard {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "stats stats"
+      "chart spending"
+      "activity activity";
+
+    .stats-row {
+      grid-area: stats;
+    }
+    .chart-section {
+      grid-area: chart;
+    }
+    .spending-section {
+      grid-area: spending;
+    }
+    .activity-section {
+      grid-area: activity;
+    }
+  }
+
+  .corporate-dashboard {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "stats stats"
+      "chart-main top-products"
+      "category top-products";
+
+    .stats-row {
+      grid-area: stats;
+    }
+    .chart-main {
+      grid-area: chart-main;
+    }
+    .top-products-section {
+      grid-area: top-products;
+    }
+    .category-section {
+      grid-area: category;
+    }
+  }
+
+  .admin-dashboard {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "stats stats"
+      "chart-main chart-secondary"
+      "category category";
+
+    .stats-row {
+      grid-area: stats;
+    }
+    .chart-main {
+      grid-area: chart-main;
+    }
+    .chart-secondary {
+      grid-area: chart-secondary;
+    }
+    .category-section {
+      grid-area: category;
     }
   }
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1200px) {
+  .dashboard-page {
+    .stats-row {
+      grid-template-columns: repeat(2, 1fr);
+      &.four-cols {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .user-dashboard,
+    .corporate-dashboard,
+    .admin-dashboard {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "stats"
+        "chart"
+        "spending"
+        "activity";
+    }
+
+    .corporate-dashboard,
+    .admin-dashboard {
+      grid-template-areas:
+        "stats"
+        "chart-main"
+        "chart-secondary"
+        "category"
+        "top-products";
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-page {
+    .stats-row {
+      grid-template-columns: 1fr;
+      &.four-cols {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .dashboard-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+
+      h1 { font-size: 22px; }
+    }
+  }
 }

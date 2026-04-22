@@ -177,4 +177,20 @@ export class OrdersPage implements OnInit {
   goToDetails(id: number) {
     this.router.navigate(['/orders', id]);
   }
+
+  exportOrders() {
+    const orders = this.filteredOrders();
+    const csv = [
+      ['Order ID', 'Date', 'Store', 'Status', 'Total'].join(','),
+      ...orders.map(o => [o.id, o.createdAt, o.storeName, o.status, o.grandTotal].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'orders-export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 }
