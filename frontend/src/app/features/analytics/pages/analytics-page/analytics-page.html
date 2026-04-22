@@ -41,37 +41,11 @@
           <h3>Revenue Trends (Last 6 Months)</h3>
         </div>
         <div class="chart-container">
-          <svg viewBox="0 0 800 300" preserveAspectRatio="none">
-            <!-- Grid lines -->
-            <line x1="0" y1="50" x2="800" y2="50" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <line x1="0" y1="100" x2="800" y2="100" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <line x1="0" y1="150" x2="800" y2="150" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <line x1="0" y1="200" x2="800" y2="200" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            <line x1="0" y1="250" x2="800" y2="250" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-            
-            <!-- Area fill -->
-            <linearGradient id="analyticsGradient" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stop-color="rgba(0, 227, 150, 0.4)" />
-              <stop offset="100%" stop-color="rgba(0, 227, 150, 0.0)" />
-            </linearGradient>
-            <polygon points="0,250 0,220 160,180 320,130 480,160 640,80 800,20 800,250" fill="url(#analyticsGradient)"/>
-            
-            <!-- Line -->
-            <polyline fill="none" stroke="#00e396" stroke-width="3" points="0,220 160,180 320,130 480,160 640,80 800,20"/>
-            
-            <!-- Points -->
-            <circle cx="0" cy="220" r="5" fill="#1a1b26" stroke="#00e396" stroke-width="3"/>
-            <circle cx="160" cy="180" r="5" fill="#1a1b26" stroke="#00e396" stroke-width="3"/>
-            <circle cx="320" cy="130" r="5" fill="#1a1b26" stroke="#00e396" stroke-width="3"/>
-            <circle cx="480" cy="160" r="5" fill="#1a1b26" stroke="#00e396" stroke-width="3"/>
-            <circle cx="640" cy="80" r="5" fill="#1a1b26" stroke="#00e396" stroke-width="3"/>
-            <circle cx="800" cy="20" r="5" fill="#1a1b26" stroke="#00e396" stroke-width="3"/>
-          </svg>
-          <div class="x-axis">
-            @for (item of analyticsData()?.revenueTrend; track item.month) {
-              <span>{{ item.month }}</span>
-            }
-          </div>
+          <plotly-plot 
+            [data]="revenueData()" 
+            [useResizeHandler]="true"
+            [style]="{position: 'relative', width: '100%', height: '100%'}">
+          </plotly-plot>
         </div>
       </div>
 
@@ -80,27 +54,11 @@
           <h3>Category Distribution</h3>
         </div>
         <div class="donut-container">
-          <!-- Simplified Donut SVG -->
-          <svg viewBox="0 0 36 36" class="donut">
-            <circle class="donut-ring" cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="rgba(255,255,255,0.05)" stroke-width="3"></circle>
-            <!-- Segment 1: Electronics (45%) -->
-            <circle class="donut-segment segment-1" cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="#6a5af9" stroke-width="3" stroke-dasharray="45 55" stroke-dashoffset="25"></circle>
-            <!-- Segment 2: Furniture (25%) -->
-            <circle class="donut-segment segment-2" cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="#00e396" stroke-width="3" stroke-dasharray="25 75" stroke-dashoffset="-20"></circle>
-            <!-- Segment 3: Apparel (20%) -->
-            <circle class="donut-segment segment-3" cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="#ffab00" stroke-width="3" stroke-dasharray="20 80" stroke-dashoffset="-45"></circle>
-            <!-- Segment 4: Kitchen (10%) -->
-            <circle class="donut-segment segment-4" cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="#ff477e" stroke-width="3" stroke-dasharray="10 90" stroke-dashoffset="-65"></circle>
-            
-            <g class="donut-text">
-              <text y="50%" transform="translate(0, 2)">
-                <tspan x="50%" text-anchor="middle" class="donut-total">{{ analyticsData()?.categoryDistribution.length }}</tspan>   
-              </text>
-              <text y="60%" transform="translate(0, 2)">
-                <tspan x="50%" text-anchor="middle" class="donut-label">Categories</tspan>   
-              </text>
-            </g>
-          </svg>
+          <plotly-plot 
+            [data]="categoryData()" 
+            [useResizeHandler]="true"
+            [style]="{position: 'relative', width: '100%', height: '100%'}">
+          </plotly-plot>
           
           <div class="donut-legend">
             @for (cat of analyticsData()?.categoryDistribution; track cat.label; let i = $index) {
