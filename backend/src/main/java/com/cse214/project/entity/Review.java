@@ -1,0 +1,31 @@
+package com.cse214.project.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "Reviews")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Review {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @Column(name = "star_rating", nullable = false)
+    private Integer starRating;
+
+    @Column(columnDefinition = "TEXT")
+    private String content;
+}
