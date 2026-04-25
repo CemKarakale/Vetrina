@@ -149,8 +149,8 @@
 </div>
 
 @if (isAddModalOpen()) {
-  <div class="modal-overlay" (click)="closeAddModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+  <div class="modal-overlay product-modal" (click)="closeAddModal()">
+    <div class="modal-content product-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingProduct() ? 'Edit Product' : 'Add New Product' }}</h3>
         <button class="close-btn" (click)="closeAddModal()">x</button>
