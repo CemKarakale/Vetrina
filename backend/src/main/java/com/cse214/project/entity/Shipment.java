@@ -2,6 +2,7 @@ package com.cse214.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "Shipments")
@@ -24,4 +25,8 @@ public class Shipment {
     private String mode;
 
     private String status;
+
+    private String trackingNumber;
+
+    private LocalDate estimatedDeliveryDate;
 }

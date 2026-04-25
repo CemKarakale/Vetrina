@@ -2,6 +2,7 @@ package com.cse214.project.controller;
 
 import com.cse214.project.dto.category.CategoryCreateRequest;
 import com.cse214.project.dto.category.CategoryDto;
+import com.cse214.project.dto.category.CategoryUpdateRequest;
 import com.cse214.project.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,13 @@ public class CategoryController {
     @PostMapping
     public ResponseEntity<CategoryDto> createCategory(@Valid @RequestBody CategoryCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(request));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryDto> updateCategory(
+            @PathVariable Integer id,
+            @Valid @RequestBody CategoryUpdateRequest request) {
+        return ResponseEntity.ok(categoryService.updateCategory(id, request));
     }
 
     @DeleteMapping("/{id}")

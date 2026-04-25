@@ -2,9 +2,7 @@ package com.cse214.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Users")
@@ -49,4 +47,13 @@ public class User {
 
     @Column(name = "preferences", columnDefinition = "TEXT")
     private String preferences;
+
+    @Column(nullable = false)
+    private String status = "ACTIVE";
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
 }

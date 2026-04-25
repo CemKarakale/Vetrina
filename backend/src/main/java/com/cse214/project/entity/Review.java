@@ -2,6 +2,7 @@ package com.cse214.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Reviews")
@@ -28,4 +29,10 @@ public class Review {
 
     @Column(columnDefinition = "TEXT")
     private String content;
+
+    @Column(name = "admin_reply", columnDefinition = "TEXT")
+    private String adminReply;
+
+    @Column(name = "reply_created_at")
+    private LocalDateTime replyCreatedAt;
 }

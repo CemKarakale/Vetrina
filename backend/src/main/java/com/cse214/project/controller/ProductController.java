@@ -46,4 +46,13 @@ public class ProductController {
         productService.deleteProduct(id, auth.getName());
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/stock")
+    public ResponseEntity<ProductDetailDto> updateStock(
+            @PathVariable Integer id,
+            @RequestBody java.util.Map<String, Integer> body,
+            Authentication auth) {
+        Integer stockQuantity = body.get("stockQuantity");
+        return ResponseEntity.ok(productService.updateStock(id, stockQuantity, auth.getName()));
+    }
 }

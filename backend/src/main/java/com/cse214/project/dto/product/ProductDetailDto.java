@@ -13,7 +13,9 @@ public class ProductDetailDto {
     private String name;
     private String description;
     private BigDecimal unitPrice;
+    private Integer categoryId;
     private String categoryName;
-    private String storeName;
     private Integer storeId;
+    private String storeName;
+    private Integer stockQuantity;
 }

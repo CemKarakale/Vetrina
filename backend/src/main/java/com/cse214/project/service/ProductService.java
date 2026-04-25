@@ -92,6 +92,7 @@ public class ProductService {
                 .sku(request.getSku())
                 .description(request.getDescription())
                 .unitPrice(request.getUnitPrice())
+                .stockQuantity(request.getStockQuantity())
                 .store(store)
                 .category(category)
                 .build();
@@ -126,6 +127,9 @@ public class ProductService {
                     .orElseThrow(() -> new RuntimeException("Kategori bulunamadı."));
             product.setCategory(category);
         }
+        if (request.getStockQuantity() != null) {
+            product.setStockQuantity(request.getStockQuantity());
+        }
 
         Product saved = productRepository.save(product);
         return toDetailDto(saved);
@@ -150,15 +154,44 @@ public class ProductService {
         productRepository.delete(product);
     }
 
+    // ==================== STOCK UPDATE ====================
+
+    public ProductDetailDto updateStock(Integer id, Integer stockQuantity, String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElseThrow();
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + id));
+
+        if ("CORPORATE".equals(user.getRoleType())) {
+            Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
+            if (!product.getStore().getId().equals(store.getId())) {
+                throw new RuntimeException("Bu ürünün stoğunu güncelleme yetkiniz yok.");
+            }
+        } else if ("INDIVIDUAL".equals(user.getRoleType())) {
+            throw new RuntimeException("Bireysel kullanıcılar ürün stoğu güncelleyemez.");
+        }
+
+        if (stockQuantity == null || stockQuantity < 0) {
+            throw new RuntimeException("Stok miktarı geçersiz.");
+        }
+
+        product.setStockQuantity(stockQuantity);
+        Product saved = productRepository.save(product);
+        return toDetailDto(saved);
+    }
+
     // ==================== MAPPERS ====================
 
     private ProductListDto toListDto(Product p) {
         return ProductListDto.builder()
                 .id(p.getId())
                 .name(p.getName())
+                .sku(p.getSku())
                 .unitPrice(p.getUnitPrice())
+                .categoryId(p.getCategory().getId())
                 .categoryName(p.getCategory().getName())
+                .storeId(p.getStore().getId())
                 .storeName(p.getStore().getName())
+                .stockQuantity(p.getStockQuantity())
                 .build();
     }
 
@@ -169,9 +202,11 @@ public class ProductService {
                 .name(p.getName())
                 .description(p.getDescription())
                 .unitPrice(p.getUnitPrice())
+                .categoryId(p.getCategory().getId())
                 .categoryName(p.getCategory().getName())
-                .storeName(p.getStore().getName())
                 .storeId(p.getStore().getId())
+                .storeName(p.getStore().getName())
+                .stockQuantity(p.getStockQuantity())
                 .build();
     }
 }

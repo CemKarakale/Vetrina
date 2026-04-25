@@ -1,6 +1,7 @@
 package com.cse214.project.controller;
 
 import com.cse214.project.dto.shipment.ShipmentDto;
+import com.cse214.project.dto.shipment.UpdateShipmentRequest;
 import com.cse214.project.service.ShipmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,5 +25,13 @@ public class ShipmentController {
     @GetMapping("/order/{orderId}")
     public ResponseEntity<ShipmentDto> getShipmentByOrderId(@PathVariable Integer orderId, Authentication auth) {
         return ResponseEntity.ok(shipmentService.getShipmentByOrderId(orderId, auth.getName()));
+    }
+
+    @PutMapping("/order/{orderId}")
+    public ResponseEntity<ShipmentDto> updateShipment(
+            @PathVariable Integer orderId,
+            @RequestBody UpdateShipmentRequest request,
+            Authentication auth) {
+        return ResponseEntity.ok(shipmentService.updateShipment(orderId, request, auth.getName()));
     }
 }

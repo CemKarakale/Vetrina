@@ -10,4 +10,6 @@ public class CategoryCreateRequest {
     private String name;
 
     private Integer parentId;
+
+    private String description;
 }

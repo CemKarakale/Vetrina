@@ -16,4 +16,5 @@ public class ProductUpdateRequest {
     private BigDecimal unitPrice;
 
     private Integer categoryId;
+    private Integer stockQuantity;
 }

@@ -1,6 +1,7 @@
 package com.cse214.project.service;
 
 import com.cse214.project.dto.shipment.ShipmentDto;
+import com.cse214.project.dto.shipment.UpdateShipmentRequest;
 import com.cse214.project.entity.Order;
 import com.cse214.project.entity.Shipment;
 import com.cse214.project.entity.Store;
@@ -79,6 +80,45 @@ public class ShipmentService {
                 .warehouse(s.getWarehouse())
                 .mode(s.getMode())
                 .status(s.getStatus())
+                .trackingNumber(s.getTrackingNumber())
+                .estimatedDeliveryDate(s.getEstimatedDeliveryDate())
                 .build();
+    }
+
+    public ShipmentDto updateShipment(Integer orderId, UpdateShipmentRequest request, String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElseThrow();
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Sipariş bulunamadı: " + orderId));
+
+        // Ownership check
+        switch (user.getRoleType()) {
+            case "CORPORATE":
+                Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
+                if (!order.getStore().getId().equals(store.getId())) {
+                    throw new RuntimeException("Bu kargoyu güncelleme yetkiniz yok.");
+                }
+                break;
+            case "INDIVIDUAL":
+                throw new RuntimeException("Bireysel kullanıcılar kargo bilgisi güncelleyemez.");
+        }
+
+        Shipment shipment = shipmentRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new RuntimeException("Bu sipariş için kargo bilgisi bulunamadı."));
+
+        if (request.getTrackingNumber() != null) {
+            shipment.setTrackingNumber(request.getTrackingNumber());
+        }
+        if (request.getMode() != null) {
+            shipment.setMode(request.getMode());
+        }
+        if (request.getStatus() != null) {
+            shipment.setStatus(request.getStatus());
+        }
+        if (request.getEstimatedDeliveryDate() != null) {
+            shipment.setEstimatedDeliveryDate(request.getEstimatedDeliveryDate());
+        }
+
+        Shipment saved = shipmentRepository.save(shipment);
+        return toDto(saved);
     }
 }

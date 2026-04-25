@@ -11,4 +11,6 @@ public class StoreDto {
     private String status;
     private String ownerName;
     private String ownerEmail;
+    private Integer productCount;
+    private Long orderCount;
 }

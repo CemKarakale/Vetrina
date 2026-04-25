@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -34,13 +35,30 @@ public class AnalyticsService {
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
 
-    public AnalyticsOverviewDto getOverview() {
+    public AnalyticsOverviewDto getOverview(LocalDate from, LocalDate to) {
         log.info("Fetching analytics overview from database");
         List<Order> allOrders = orderRepository.findAll();
         List<Review> allReviews = reviewRepository.findAll();
         List<OrderItem> allOrderItems = orderItemRepository.findAll();
 
         log.info("Found {} orders, {} reviews, {} order items", allOrders.size(), allReviews.size(), allOrderItems.size());
+
+        // Filter by date range if provided
+        if (from != null || to != null) {
+            allOrders = allOrders.stream()
+                    .filter(o -> {
+                        if (o.getCreatedAt() == null) return false;
+                        if (from != null && o.getCreatedAt().toLocalDate().isBefore(from)) return false;
+                        if (to != null && o.getCreatedAt().toLocalDate().isAfter(to)) return false;
+                        return true;
+                    })
+                    .collect(Collectors.toList());
+
+            final List<Order> finalOrders = allOrders;
+            allOrderItems = allOrderItems.stream()
+                    .filter(oi -> finalOrders.stream().anyMatch(o -> o.getId().equals(oi.getOrder().getId())))
+                    .collect(Collectors.toList());
+        }
 
         long totalOrders = allOrders.size();
         BigDecimal totalRevenue = allOrders.stream()

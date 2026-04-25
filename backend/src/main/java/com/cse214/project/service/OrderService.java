@@ -13,7 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -162,9 +166,32 @@ public class OrderService {
             throw new RuntimeException("Bireysel kullanıcılar sipariş durumu güncelleyemez.");
         }
 
+        // Status transition validation
+        String currentStatus = order.getStatus();
+        validateStatusTransition(currentStatus, newStatus);
+
         order.setStatus(newStatus);
         Order saved = orderRepository.save(order);
         return toListDto(saved);
+    }
+
+    private void validateStatusTransition(String current, String next) {
+        // Valid transitions map
+        java.util.Map<String, java.util.Set<String>> validTransitions = new java.util.HashMap<>();
+        validTransitions.put("PENDING", java.util.Set.of("CONFIRMED", "CANCELLED"));
+        validTransitions.put("CONFIRMED", java.util.Set.of("PROCESSING", "CANCELLED"));
+        validTransitions.put("PROCESSING", java.util.Set.of("SHIPPED", "CANCELLED"));
+        validTransitions.put("SHIPPED", java.util.Set.of("DELIVERED"));
+        validTransitions.put("DELIVERED", java.util.Set.of());
+        validTransitions.put("CANCELLED", java.util.Set.of());
+
+        java.util.Set<String> allowed = validTransitions.getOrDefault(current, java.util.Set.of());
+        if (!allowed.contains(next)) {
+            throw new RuntimeException(
+                    "Geçersiz durum geçişi: " + current + " -> " + next +
+                    ". İzin verilen geçişler: " + (allowed.isEmpty() ? "yok" : String.join(", ", allowed))
+            );
+        }
     }
 
     // ==================== MAPPERS ====================

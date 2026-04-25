@@ -24,4 +24,7 @@ public class ProductCreateRequest {
 
     @NotNull(message = "Kategori ID boş olamaz")
     private Integer categoryId;
+
+    @NotNull(message = "Stok miktarı boş olamaz")
+    private Integer stockQuantity;
 }

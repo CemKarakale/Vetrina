@@ -4,13 +4,16 @@ import com.cse214.project.dto.review.ReviewCreateRequest;
 import com.cse214.project.dto.review.ReviewDto;
 import com.cse214.project.entity.Product;
 import com.cse214.project.entity.Review;
+import com.cse214.project.entity.Store;
 import com.cse214.project.entity.User;
 import com.cse214.project.repository.ProductRepository;
 import com.cse214.project.repository.ReviewRepository;
+import com.cse214.project.repository.StoreRepository;
 import com.cse214.project.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +24,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final StoreRepository storeRepository;
 
     public List<ReviewDto> getAllReviews() {
         return reviewRepository.findAll().stream()
@@ -71,14 +75,38 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
+    public ReviewDto replyToReview(Integer id, String reply, String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElseThrow();
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Yorum bulunamadı: " + id));
+
+        // CORPORATE sadece kendi mağazasının ürünlerine yanıt verebilir
+        if ("CORPORATE".equals(user.getRoleType())) {
+            Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
+            if (!review.getProduct().getStore().getId().equals(store.getId())) {
+                throw new RuntimeException("Bu yoruma yanıt verme yetkiniz yok.");
+            }
+        } else if (!"ADMIN".equals(user.getRoleType())) {
+            throw new RuntimeException("Bu yoruma yanıt verme yetkiniz yok.");
+        }
+
+        review.setAdminReply(reply);
+        review.setReplyCreatedAt(LocalDateTime.now());
+        Review saved = reviewRepository.save(review);
+        return toDto(saved);
+    }
+
     private ReviewDto toDto(Review r) {
         return ReviewDto.builder()
                 .id(r.getId())
                 .productId(r.getProduct().getId())
                 .productName(r.getProduct().getName())
+                .userId(r.getUser().getId())
                 .userName(r.getUser().getName())
                 .starRating(r.getStarRating())
                 .content(r.getContent())
+                .adminReply(r.getAdminReply())
+                .replyCreatedAt(r.getReplyCreatedAt())
                 .build();
     }
 }

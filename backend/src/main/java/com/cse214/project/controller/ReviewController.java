@@ -2,6 +2,7 @@ package com.cse214.project.controller;
 
 import com.cse214.project.dto.review.ReviewCreateRequest;
 import com.cse214.project.dto.review.ReviewDto;
+import com.cse214.project.dto.review.ReviewReplyRequest;
 import com.cse214.project.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,15 @@ public class ReviewController {
     @PostMapping
     public ResponseEntity<ReviewDto> createReview(@Valid @RequestBody ReviewCreateRequest request, Authentication auth) {
         return ResponseEntity.status(HttpStatus.CREATED).body(reviewService.createReview(request, auth.getName()));
+    }
+
+    @PutMapping("/{id}/reply")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CORPORATE')")
+    public ResponseEntity<ReviewDto> replyToReview(
+            @PathVariable Integer id,
+            @Valid @RequestBody ReviewReplyRequest request,
+            Authentication auth) {
+        return ResponseEntity.ok(reviewService.replyToReview(id, request.getReply(), auth.getName()));
     }
 
     @DeleteMapping("/{id}")
