@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth';
 import { AiChatResponse, ChatService } from '../../../../core/services/chat';
 
-type Message = {
+export type Message = {
   role: 'user' | 'assistant' | 'guardrail' | 'chart';
   content?: string;
   metadata?: any;
@@ -63,6 +63,10 @@ export class ChatPage implements OnInit, AfterViewChecked {
     return 'User';
   }
 
+  get isBusy() {
+    return this.isSending();
+  }
+
   scrollToBottom(): void {
     try {
       this.chatScroll.nativeElement.scrollTop = this.chatScroll.nativeElement.scrollHeight;
@@ -78,7 +82,7 @@ export class ChatPage implements OnInit, AfterViewChecked {
 
   sendMessage() {
     const text = this.userInput.trim();
-    if (!text || this.isSending()) return;
+    if (!text || this.isBusy) return;
 
     this.messages.update(messages => [...messages, { role: 'user', content: text }]);
     this.userInput = '';
@@ -99,6 +103,14 @@ export class ChatPage implements OnInit, AfterViewChecked {
         this.isSending.set(false);
       }
     });
+  }
+
+  sqlQueryFor(message: Message): string | null | undefined {
+    return message.sqlQuery;
+  }
+
+  visualizationCodeFor(message: Message): string | null | undefined {
+    return message.visualizationCode;
   }
 
   private toMessage(response: AiChatResponse): Message {

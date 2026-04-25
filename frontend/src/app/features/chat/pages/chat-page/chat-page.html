@@ -19,7 +19,7 @@
             <p class="suggestions-title">Ornek sorular - tiklayarak dene:</p>
             <div class="suggestions-grid">
               @for (suggestion of suggestions; track $index) {
-                <button class="suggestion-btn" (click)="sendSuggestion(suggestion)" [disabled]="isSending()">{{ suggestion }}</button>
+                <button class="suggestion-btn" (click)="sendSuggestion(suggestion)" [disabled]="isBusy">{{ suggestion }}</button>
               }
             </div>
           </div>
@@ -67,14 +67,14 @@
             <div class="avatar ai-avatar">AI</div>
             <div class="assistant-bubble">
               <div>{{ msg.content }}</div>
-              @if (msg.sqlQuery) {
+              @if (sqlQueryFor(msg); as sqlQuery) {
                 <div class="sql-box compact">
-                  <pre>{{ msg.sqlQuery }}</pre>
+                  <pre>{{ sqlQuery }}</pre>
                 </div>
               }
-              @if (msg.visualizationCode) {
+              @if (visualizationCodeFor(msg); as visualizationCode) {
                 <div class="sql-box compact">
-                  <pre>{{ msg.visualizationCode }}</pre>
+                  <pre>{{ visualizationCode }}</pre>
                 </div>
               }
             </div>
@@ -119,11 +119,11 @@
         type="text"
         [(ngModel)]="userInput"
         (keyup.enter)="sendMessage()"
-        [disabled]="isSending()"
+        [disabled]="isBusy"
         placeholder="Sorunuzu yazin..."
       />
-      <button (click)="sendMessage()" [disabled]="isSending() || !userInput.trim()">
-        {{ isSending() ? 'Bekleyin' : 'Gonder' }}
+      <button (click)="sendMessage()" [disabled]="isBusy || !userInput.trim()">
+        {{ isBusy ? 'Bekleyin' : 'Gonder' }}
       </button>
     </div>
   </div>
