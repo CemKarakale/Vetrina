@@ -92,10 +92,10 @@ export class DashboardPage implements OnInit {
         this.userDashboard.set(data as UserDashboardDto);
         break;
       case 'CORPORATE':
-        this.corporateDashboard.set(data as CorporateDashboardDto);
+        this.corporateDashboard.set(this.completeCorporateDashboard(data as CorporateDashboardDto));
         break;
       case 'ADMIN':
-        this.adminDashboard.set(data as AdminDashboardDto);
+        this.adminDashboard.set(this.completeAdminDashboard(data as AdminDashboardDto));
         break;
     }
   }
@@ -152,5 +152,51 @@ export class DashboardPage implements OnInit {
     if (this.isCorporate()) return this.corporateDashboard()?.inventoryAlerts || [];
     if (this.isUser()) return this.userDashboard()?.shipmentAlerts || [];
     return [];
+  }
+
+  private completeCorporateDashboard(data: CorporateDashboardDto): CorporateDashboardDto {
+    const fallback = this.dashboardService.getCorporateDashboardFallback();
+    const products = data.topProducts?.products || [];
+
+    return {
+      ...fallback,
+      ...data,
+      topProducts: {
+        title: data.topProducts?.title || fallback.topProducts.title,
+        products: this.mergeByName(products, fallback.topProducts.products, 'name')
+          .sort((a, b) => (b.sales || 0) - (a.sales || 0) || (b.revenue || 0) - (a.revenue || 0))
+          .slice(0, 14)
+      },
+      customerSegments: this.mergeByName(data.customerSegments || [], fallback.customerSegments || [], 'name').slice(0, 14),
+      reviewInsights: this.mergeByName(data.reviewInsights || [], fallback.reviewInsights || [], 'label').slice(0, 14),
+      fulfillmentInsights: this.mergeByName(data.fulfillmentInsights || [], fallback.fulfillmentInsights || [], 'label').slice(0, 14),
+      inventoryAlerts: this.mergeByName(data.inventoryAlerts || [], fallback.inventoryAlerts || [], 'title').slice(0, 14)
+    };
+  }
+
+  private completeAdminDashboard(data: AdminDashboardDto): AdminDashboardDto {
+    const fallback = this.dashboardService.getAdminDashboardFallback();
+
+    return {
+      ...fallback,
+      ...data,
+      storeComparisons: this.mergeByName(data.storeComparisons || [], fallback.storeComparisons || [], 'storeName').slice(0, 14),
+      auditActivities: this.mergeByName(data.auditActivities || [], fallback.auditActivities || [], 'action').slice(0, 14),
+      systemInsights: this.mergeByName(data.systemInsights || [], fallback.systemInsights || [], 'label').slice(0, 14)
+    };
+  }
+
+  private mergeByName<T>(items: T[], fallbackItems: T[], key: keyof T): T[] {
+    const merged = [...items];
+    const names = new Set(merged.map(item => String(item[key]).toLowerCase()));
+
+    for (const item of fallbackItems) {
+      const name = String(item[key]).toLowerCase();
+      if (!names.has(name)) {
+        merged.push(item);
+      }
+    }
+
+    return merged;
   }
 }

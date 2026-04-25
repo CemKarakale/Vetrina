@@ -16,6 +16,7 @@ export class OrderDetailPage implements OnInit {
   shipment = signal<any>(null);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string>('');
+  isCancelling = signal<boolean>(false);
 
   constructor(
     private route: ActivatedRoute,
@@ -81,5 +82,48 @@ export class OrderDetailPage implements OnInit {
 
   goBack() {
     this.router.navigate(['/orders']);
+  }
+
+  cancelOrder() {
+    const order = this.order();
+    if (!order || !this.canCancelOrder(order) || this.isCancelling()) return;
+
+    const confirmed = window.confirm(`Cancel order #${order.id}?`);
+    if (!confirmed) return;
+
+    this.isCancelling.set(true);
+    this.errorMessage.set('');
+    this.orderService.updateOrderStatus(order.id, 'CANCELLED').subscribe({
+      next: (updated: any) => {
+        this.order.update((current: any) => ({ ...current, ...updated, status: 'CANCELLED' }));
+        this.shipment.update((current: any) => current ? { ...current, status: 'CANCELLED' } : current);
+        this.isCancelling.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('Could not cancel this order. It may already be in fulfillment.');
+        this.isCancelling.set(false);
+      }
+    });
+  }
+
+  canCancelOrder(order: any): boolean {
+    const status = this.normalizeStatus(order?.status);
+    return status === 'PENDING' || status === 'CONFIRMED' || status === 'PROCESSING';
+  }
+
+  getItemName(item: any): string {
+    return item?.productName || item?.name || item?.itemName || item?.product?.name || `Item #${item?.id ?? ''}`.trim();
+  }
+
+  getItemTotal(item: any): number {
+    return Number(item?.price ?? item?.unitPrice ?? item?.product?.unitPrice ?? 0);
+  }
+
+  getStatusLabel(status: string): string {
+    return this.normalizeStatus(status).replace('_', ' ').toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+  }
+
+  normalizeStatus(status: string): string {
+    return String(status || '').toUpperCase();
   }
 }

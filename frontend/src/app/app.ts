@@ -2,12 +2,11 @@ import { Component } from '@angular/core';
 import { RouterOutlet, Router, Event, NavigationEnd } from '@angular/router';
 import { Sidebar } from './shared/components/sidebar/sidebar';
 import { Header } from './shared/components/header/header';
-import { ChatBox } from './features/chat/components/chat-box/chat-box';
 import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Sidebar, Header, ChatBox],
+  imports: [RouterOutlet, Sidebar, Header],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

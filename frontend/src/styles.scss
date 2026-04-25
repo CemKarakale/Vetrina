@@ -6,12 +6,48 @@ html, body {
   padding: 0;
   box-sizing: border-box;
   font-family: 'Inter', sans-serif;
-  background-color: #0f1015; /* Dark background matching the image */
-  color: #ffffff;
+  background-color: #edf6f4;
+  color: #22312f;
 }
 
 *, *::before, *::after {
   box-sizing: inherit;
+}
+
+.dashboard-page app-stat-card .stat-card,
+.dashboard-page app-chart-widget .chart-widget,
+.dashboard-page app-spending-widget .spending-widget,
+.dashboard-page app-recent-activity-widget .recent-activity-widget,
+.dashboard-page app-top-products-widget .top-products-widget,
+.analytics-page app-chart-widget .chart-widget {
+  border: 1px solid #c8dcda !important;
+  border-radius: 10px !important;
+  background: #f6fbfa !important;
+  color: #22312f !important;
+  box-shadow: 0 12px 28px rgba(35, 79, 79, 0.08) !important;
+}
+
+.dashboard-page .stat-info p,
+.dashboard-page .change-label,
+.dashboard-page .period,
+.dashboard-page .activity-date,
+.dashboard-page .product-sales,
+.dashboard-page .category-amount,
+.analytics-page .chart-widget canvas {
+  color: #74807c !important;
+}
+
+.dashboard-page .chart-header h3,
+.dashboard-page .widget-header h3,
+.dashboard-page .category-name,
+.dashboard-page .activity-product,
+.analytics-page .chart-header h3 {
+  color: #22312f !important;
+}
+
+.dashboard-page .period,
+.dashboard-page .category-bar {
+  background: #dfeeea !important;
 }
 
 /* Global Modal Styles */

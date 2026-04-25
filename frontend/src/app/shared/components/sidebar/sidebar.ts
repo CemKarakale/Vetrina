@@ -24,19 +24,19 @@ export class Sidebar implements OnInit {
     if (role === 'INDIVIDUAL' || role === 'INDIVIDUAL_USER') { role = 'USER'; }
 
     const allMenuItems = [
-      { icon: '🏠', label: 'Dashboard', path: '/dashboard', roles: ['ADMIN', 'CORPORATE', 'USER'] },
-      { icon: '🤖', label: 'AI Asistan', path: '/ai-assistant', roles: ['ADMIN', 'CORPORATE', 'USER'], badge: 'Yeni' },
-      { icon: '📉', label: 'Analytics', path: '/analytics', roles: ['ADMIN', 'CORPORATE'] },
-      { icon: '🛒', label: 'Orders', path: '/orders', roles: ['ADMIN', 'CORPORATE', 'USER'] },
-      { icon: '📦', label: 'Products', path: '/products', roles: ['ADMIN', 'CORPORATE', 'USER'] },
-      { icon: '🛍️', label: 'Cart', path: '/cart', roles: ['ADMIN', 'USER'] },
+      { icon: 'DB', label: 'Dashboard', path: '/dashboard', roles: ['ADMIN', 'CORPORATE', 'USER'] },
+      { icon: 'AI', label: 'AI Asistan', path: '/ai-assistant', roles: ['ADMIN', 'CORPORATE', 'USER'], badge: 'Yeni' },
+      { icon: 'AN', label: 'Analytics', path: '/analytics', roles: ['ADMIN', 'CORPORATE'] },
+      { icon: 'OR', label: 'Orders', path: '/orders', roles: ['ADMIN', 'CORPORATE', 'USER'] },
+      { icon: 'PR', label: 'Products', path: '/products', roles: ['ADMIN', 'CORPORATE', 'USER'] },
+      { icon: 'CA', label: 'Cart', path: '/cart', roles: ['ADMIN', 'USER'] },
     ];
 
     const allManagementItems = [
-      { icon: '👤', label: 'My Profile', path: '/profile', roles: ['ADMIN', 'CORPORATE', 'USER'] },
-      { icon: '👥', label: 'Customers', path: '/customers', roles: ['ADMIN', 'CORPORATE'] },
-      { icon: '🏪', label: 'Store Settings', path: '/settings', roles: ['ADMIN', 'CORPORATE'] },
-      { icon: '⭐', label: 'Reviews', path: '/reviews', roles: ['ADMIN', 'CORPORATE', 'USER'] },
+      { icon: 'ME', label: 'My Profile', path: '/profile', roles: ['ADMIN', 'CORPORATE', 'USER'] },
+      { icon: 'CU', label: 'Customers', path: '/customers', roles: ['ADMIN', 'CORPORATE'] },
+      { icon: 'ST', label: 'Store Settings', path: '/settings', roles: ['ADMIN', 'CORPORATE'] },
+      { icon: 'RV', label: 'Reviews', path: '/reviews', roles: ['ADMIN', 'CORPORATE', 'USER'] },
     ];
 
     this.menuItems = allMenuItems.filter(item => item.roles.includes(role));

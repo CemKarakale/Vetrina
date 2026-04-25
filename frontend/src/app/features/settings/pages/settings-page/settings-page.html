@@ -1,14 +1,14 @@
 <div class="settings-page">
-  <div class="page-header">
-    <div class="header-left">
-      <h2>Store Settings</h2>
-    </div>
-    <div class="header-actions">
+  <header class="page-header">
+    <p class="eyebrow">Store Configuration</p>
+    <div class="title-row">
+      <h1>Store Settings</h1>
       <button class="action-btn" [class.btn-loading]="isSaving()" (click)="saveSettings()">
         {{ isSaving() ? 'Saving...' : 'Save Changes' }}
       </button>
     </div>
-  </div>
+    <p>Configure your store's general information, contact details, and localization settings.</p>
+  </header>
 
   @if (isLoading()) {
     <div class="loading-state">

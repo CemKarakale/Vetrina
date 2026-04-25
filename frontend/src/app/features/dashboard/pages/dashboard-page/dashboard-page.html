@@ -100,15 +100,15 @@
         <section class="table-panel customer-panel">
           <div class="panel-header">
             <h2>Customer Segments</h2>
-            <span>Behavior and satisfaction</span>
+            <span>Members, spend, and satisfaction</span>
           </div>
           <div class="data-table">
             @for (segment of corporateDashboard()?.customerSegments; track segment.name) {
               <div class="table-row">
                 <strong>{{ segment.name }}</strong>
-                <span>{{ segment.customers | number }} customers</span>
-                <span>{{ segment.averageSpend | currency:'USD':'symbol':'1.0-0' }} avg spend</span>
-                <span>{{ segment.satisfaction }}% satisfied</span>
+                <span><b>{{ segment.customers | number }}</b> customers</span>
+                <span><b>{{ segment.averageSpend | currency:'USD':'symbol':'1.0-0' }}</b> avg spend</span>
+                <span><b>{{ segment.satisfaction }}%</b> satisfied</span>
               </div>
             }
           </div>

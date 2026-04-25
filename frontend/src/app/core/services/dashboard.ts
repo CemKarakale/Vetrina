@@ -33,17 +33,17 @@ export class DashboardService {
         totalSpent: 2847.5,
         period: 'Last 30 Days',
         categories: [
-          { category: 'Electronics', amount: 1250, percentage: 44, color: '#6a5af9' },
-          { category: 'Fashion', amount: 620, percentage: 22, color: '#ffab00' },
-          { category: 'Home & Garden', amount: 480.5, percentage: 17, color: '#00e396' },
-          { category: 'Books', amount: 297, percentage: 10, color: '#ff477e' },
-          { category: 'Sports', amount: 200, percentage: 7, color: '#00b8d9' }
+          { category: 'Electronics', amount: 1250, percentage: 44, color: '#6aa6b8' },
+          { category: 'Fashion', amount: 620, percentage: 22, color: '#efc779' },
+          { category: 'Home & Garden', amount: 480.5, percentage: 17, color: '#234f4f' },
+          { category: 'Books', amount: 297, percentage: 10, color: '#e79aac' },
+          { category: 'Sports', amount: 200, percentage: 7, color: '#b8a5e6' }
         ]
       },
       spendingTrend: {
         title: 'Personal Spending Trend',
         type: 'line',
-        color: '#6a5af9',
+        color: '#6aa6b8',
         data: [
           { label: 'Jan', value: 1200 },
           { label: 'Feb', value: 1900 },
@@ -86,7 +86,7 @@ export class DashboardService {
       revenueChart: {
         title: 'Store Revenue Trend',
         type: 'line',
-        color: '#6a5af9',
+        color: '#234f4f',
         data: [
           { label: 'Jan', value: 32000 },
           { label: 'Feb', value: 45000 },
@@ -147,7 +147,7 @@ export class DashboardService {
       platformRevenueChart: {
         title: 'Platform Revenue',
         type: 'bar',
-        color: '#6a5af9',
+        color: '#6aa6b8',
         data: [
           { label: 'Jan', value: 180000 },
           { label: 'Feb', value: 220000 },
@@ -160,7 +160,7 @@ export class DashboardService {
       userGrowthChart: {
         title: 'User Growth',
         type: 'line',
-        color: '#00e396',
+        color: '#234f4f',
         data: [
           { label: 'Jan', value: 5200 },
           { label: 'Feb', value: 5800 },

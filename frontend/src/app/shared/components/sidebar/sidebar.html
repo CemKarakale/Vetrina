@@ -1,19 +1,19 @@
 <div class="sidebar">
   <div class="logo">
-    <div class="logo-icon">📊</div>
+    <div class="logo-icon">DP</div>
     <h2>DataPulse</h2>
   </div>
 
   <div class="menu-section">
-    <p class="section-title">MAIN MENU</p>
+    <p class="section-title">Main menu</p>
     <ul>
       @for (item of menuItems; track item.label) {
         <li>
-          <a [routerLink]="item.path" routerLinkActive="active" style="display: flex; align-items: center; width: 100%;">
+          <a [routerLink]="item.path" routerLinkActive="active">
             <span class="icon">{{ item.icon }}</span>
             <span class="label">{{ item.label }}</span>
             @if (item.badge) {
-              <span class="badge" style="background:#5744cb; color:white; font-size:10px; font-weight:700; padding:2px 8px; border-radius:12px; margin-left:auto;">{{ item.badge }}</span>
+              <span class="badge">{{ item.badge }}</span>
             }
           </a>
         </li>
@@ -22,7 +22,7 @@
   </div>
 
   <div class="menu-section">
-    <p class="section-title">MANAGEMENT</p>
+    <p class="section-title">Management</p>
     <ul>
       @for (item of managementItems; track item.label) {
         <li>
@@ -37,7 +37,7 @@
 
   <div class="sidebar-footer">
     <button class="logout-btn" (click)="logout()">
-      <span class="icon">🚪</span>
+      <span class="icon">Out</span>
       <span class="label">Logout</span>
     </button>
   </div>

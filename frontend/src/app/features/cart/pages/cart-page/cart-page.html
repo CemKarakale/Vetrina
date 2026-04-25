@@ -1,7 +1,9 @@
 <div class="cart-page">
-  <div class="header-section">
+  <header class="page-header">
+    <p class="eyebrow">Shopping Experience</p>
     <h1>Your Shopping Cart</h1>
-  </div>
+    <p>Manage items in your cart and proceed to a secure checkout.</p>
+  </header>
 
   @if (cartService.cartItems().length === 0 && !paymentSuccess()) {
     <div class="empty-state">

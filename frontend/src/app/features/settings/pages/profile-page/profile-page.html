@@ -1,8 +1,12 @@
 <div class="profile-page">
-  <div class="page-header">
-    <h2>My Profile</h2>
-    <span class="user-role">{{ role() }}</span>
-  </div>
+  <header class="page-header">
+    <p class="eyebrow">Account Management</p>
+    <div class="title-row">
+      <h1>My Profile</h1>
+      <span class="user-role">{{ role() }}</span>
+    </div>
+    <p>View and update your personal information, address, and account preferences.</p>
+  </header>
 
   @if (profileService.errorMessage()) {
     <div class="alert error">{{ profileService.errorMessage() }}</div>

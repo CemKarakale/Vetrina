@@ -16,4 +16,8 @@ export class OrderService {
   getOrderById(id: number) {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
+
+  updateOrderStatus(id: number, status: string) {
+    return this.http.put<any>(`${this.apiUrl}/${id}/status`, { status });
+  }
 }

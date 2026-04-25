@@ -9,7 +9,7 @@ import { StatWidgetData } from '../../../../features/dashboard/models/widget.mod
   template: `
     <div class="stat-card">
       <div class="stat-icon" [class]="iconClass">
-        {{ data.icon }}
+        {{ displayIcon }}
       </div>
       <div class="stat-info">
         <h3>{{ formattedValue }}</h3>
@@ -27,54 +27,77 @@ import { StatWidgetData } from '../../../../features/dashboard/models/widget.mod
   `,
   styles: [`
     .stat-card {
-      background: #1a1b26;
-      border-radius: 16px;
-      padding: 20px;
+      background: #f6fbfa;
+      border-radius: 10px;
+      padding: 18px;
       display: flex;
       align-items: center;
-      border: 1px solid rgba(255, 255, 255, 0.03);
-      gap: 16px;
+      border: 1px solid #c8dcda;
+      gap: 14px;
+      min-width: 0;
+      overflow: hidden;
     }
     .stat-icon {
-      width: 52px;
-      height: 52px;
-      border-radius: 14px;
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 26px;
+      color: #263b36;
+      font-size: 16px;
+      font-weight: 800;
       flex-shrink: 0;
     }
-    .stat-icon.purple { background: rgba(106, 90, 249, 0.15); }
-    .stat-icon.orange { background: rgba(255, 171, 0, 0.15); }
-    .stat-icon.green { background: rgba(0, 227, 150, 0.15); }
-    .stat-icon.pink { background: rgba(255, 71, 126, 0.15); }
+    .stat-icon.purple { background: #dcd8f7; }
+    .stat-icon.orange { background: #f9dfba; }
+    .stat-icon.green { background: #cbe5df; }
+    .stat-icon.pink { background: #f4d4df; }
     .stat-info {
       flex: 1;
+      min-width: 0;
       h3 {
         margin: 0 0 4px 0;
-        font-size: 26px;
+        color: #17312c;
+        font-size: 24px;
         font-weight: 700;
+        line-height: 1.1;
+        overflow-wrap: anywhere;
       }
       p {
         margin: 0;
         font-size: 13px;
-        color: #a0a5ba;
+        color: #61746f;
       }
     }
     .stat-change {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
+      flex: 0 0 auto;
+      max-width: 72px;
       font-size: 13px;
       font-weight: 600;
+      text-align: right;
     }
-    .stat-change.positive { color: #00e396; }
-    .stat-change.negative { color: #ff477e; }
+    .stat-change.positive { color: #1f8f66; }
+    .stat-change.negative { color: #b55b62; }
     .change-label {
       font-size: 11px;
-      color: #a0a5ba;
+      color: #7c8985;
       font-weight: 400;
+    }
+    @media (max-width: 1320px) {
+      .stat-card {
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .stat-change {
+        width: 100%;
+        max-width: none;
+        align-items: flex-start;
+        text-align: left;
+      }
     }
   `]
 })
@@ -83,6 +106,26 @@ export class StatCardComponent {
 
   get iconClass(): string {
     return this.data.color || 'purple';
+  }
+
+  get displayIcon(): string {
+    const icon = String(this.data.icon || '').toLowerCase();
+    const icons: Record<string, string> = {
+      '$': '$',
+      '#': '#',
+      '%': '%',
+      'dollar-sign': '$',
+      'shopping-cart': 'ORD',
+      'users': 'USR',
+      'user': 'USR',
+      'store': 'ST',
+      'package': 'PR',
+      'box': 'PR',
+      'chart': 'AN',
+      'trending-up': 'UP'
+    };
+
+    return icons[icon] || String(this.data.icon || '').slice(0, 3).toUpperCase();
   }
 
   get formattedValue(): string {

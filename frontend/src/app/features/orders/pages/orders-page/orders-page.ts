@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { OrderService } from '../../../../core/services/order';
 import { ShipmentService } from '../../../../core/services/shipment';
-import { SearchService } from '../../../../core/services/search';
+import { AuthService } from '../../../../core/services/auth';
 
 @Component({
   selector: 'app-orders-page',
@@ -22,27 +22,35 @@ export class OrdersPage implements OnInit {
   filterStatus = signal<string>('');
   filterDateFrom = signal<string>('');
   filterDateTo = signal<string>('');
+  productSearchTerm = signal<string>('');
+  memberSearchTerm = signal<string>('');
 
   orderShipments = signal<Record<number, any>>({});
   orderItems = signal<Record<number, any[]>>({});
+  cancellingOrderId = signal<number | null>(null);
+  usingFallbackData = signal<boolean>(false);
+  userRole = signal<string>('USER');
+  isUser = computed(() => this.userRole() === 'USER');
+  isOperationsUser = computed(() => this.userRole() === 'CORPORATE' || this.userRole() === 'ADMIN');
 
   filteredOrders = computed(() => {
-    const term = this.searchService.searchTerm();
+    const productTerm = this.productSearchTerm().trim().toLowerCase();
+    const memberTerm = this.memberSearchTerm().trim().toLowerCase();
     const status = this.filterStatus();
     const dateFrom = this.filterDateFrom();
     const dateTo = this.filterDateTo();
     let list = this.orders();
 
-    if (term) {
-      list = list.filter(o =>
-        o.id?.toString().includes(term) ||
-        o.status?.toLowerCase().includes(term) ||
-        o.storeName?.toLowerCase().includes(term)
-      );
+    if (productTerm) {
+      list = list.filter(order => this.orderMatchesProductSearch(order, productTerm));
+    }
+
+    if (this.isOperationsUser() && memberTerm) {
+      list = list.filter(order => this.orderMatchesMemberSearch(order, memberTerm));
     }
 
     if (status) {
-      list = list.filter(o => o.status.toLowerCase() === status.toLowerCase());
+      list = list.filter(o => this.normalizeStatus(o.status) === this.normalizeStatus(status));
     }
 
     if (dateFrom) {
@@ -58,20 +66,49 @@ export class OrdersPage implements OnInit {
     return list;
   });
 
+  visibleOrdersCount = computed(() => this.filteredOrders().length);
+  openOrdersCount = computed(() => this.orders().filter(order => this.canCancelOrder(order)).length);
+  totalOrderValue = computed(() => this.filteredOrders().reduce((sum, order) => sum + Number(order.grandTotal || 0), 0));
+  productSearchSuggestions = computed(() => {
+    const suggestions = new Set<string>();
+
+    for (const order of this.orders()) {
+      for (const item of this.getOrderItems(order.id)) {
+        if (item.displayName) suggestions.add(item.displayName);
+      }
+    }
+
+    return Array.from(suggestions).sort((a, b) => a.localeCompare(b)).slice(0, 30);
+  });
+
+  memberSearchSuggestions = computed(() => {
+    const suggestions = new Set<string>();
+
+    for (const order of this.orders()) {
+      if (this.isOperationsUser() && order.userName) {
+        suggestions.add(order.userName);
+      }
+    }
+
+    return Array.from(suggestions).sort((a, b) => a.localeCompare(b)).slice(0, 30);
+  });
+
   constructor(
     private orderService: OrderService,
     private shipmentService: ShipmentService,
-    private searchService: SearchService,
+    private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit() {
+    this.userRole.set(this.normalizeRole(this.authService.getRole()));
     this.loadOrders();
   }
 
   loadOrders() {
     this.isLoading.set(true);
     this.errorMessage.set('');
+    this.usingFallbackData.set(false);
 
     this.orderService.getOrders().subscribe({
       next: (response: any) => {
@@ -82,14 +119,15 @@ export class OrdersPage implements OnInit {
       },
       error: () => {
         this.errorMessage.set('Could not load orders from API. Showing demo data.');
+        this.usingFallbackData.set(true);
         this.isLoading.set(false);
 
         const demoOrders = [
-          { id: 10425, status: 'Delivered', grandTotal: 120.50, createdAt: '2025-05-01', storeName: 'Tech Haven', items: [{ id: 1, name: 'Wireless Headphones', price: 79.99, quantity: 1 }, { id: 2, name: 'Phone Case', price: 40.51, quantity: 1 }] },
-          { id: 10426, status: 'Processing', grandTotal: 89.99, createdAt: '2025-05-03', storeName: 'Comfort Seating', items: [{ id: 3, name: 'Office Chair Cushion', price: 89.99, quantity: 1 }] },
-          { id: 10427, status: 'Shipped', grandTotal: 299.00, createdAt: '2025-05-04', storeName: 'Active Lifestyle', items: [{ id: 4, name: 'Fitness Watch', price: 199.00, quantity: 1 }, { id: 5, name: 'Running Shoes', price: 100.00, quantity: 1 }] },
-          { id: 10428, status: 'Cancelled', grandTotal: 14.50, createdAt: '2025-05-05', storeName: 'EcoWear', items: [{ id: 6, name: 'Cotton T-Shirt', price: 14.50, quantity: 1 }] },
-          { id: 10429, status: 'Pending', grandTotal: 1045.00, createdAt: '2025-05-06', storeName: 'Home Essentials', items: [{ id: 7, name: 'Blender', price: 89.99, quantity: 2 }, { id: 8, name: 'Coffee Maker', price: 165.00, quantity: 5 }] }
+          { id: 10425, status: 'DELIVERED', grandTotal: 120.50, createdAt: '2025-05-01', storeName: 'Tech Haven', userName: 'Maya Carter', items: [{ id: 1, productName: 'Wireless Headphones', price: 79.99, quantity: 1 }, { id: 2, productName: 'Phone Case', price: 40.51, quantity: 1 }] },
+          { id: 10426, status: 'CONFIRMED', grandTotal: 89.99, createdAt: '2025-05-03', storeName: 'Comfort Seating', userName: 'Emir Yilmaz', items: [{ id: 3, productName: 'Office Chair Cushion', price: 89.99, quantity: 1 }] },
+          { id: 10427, status: 'SHIPPED', grandTotal: 299.00, createdAt: '2025-05-04', storeName: 'Active Lifestyle', userName: 'Nora Stone', items: [{ id: 4, productName: 'Fitness Watch', price: 199.00, quantity: 1 }, { id: 5, productName: 'Running Shoes', price: 100.00, quantity: 1 }] },
+          { id: 10428, status: 'CANCELLED', grandTotal: 14.50, createdAt: '2025-05-05', storeName: 'EcoWear', userName: 'Aylin Demir', items: [{ id: 6, productName: 'Cotton T-Shirt', price: 14.50, quantity: 1 }] },
+          { id: 10429, status: 'PENDING', grandTotal: 1045.00, createdAt: '2025-05-06', storeName: 'Home Essentials', userName: 'Jordan Lee', items: [{ id: 7, productName: 'Blender', price: 179.98, quantity: 2 }, { id: 8, productName: 'Coffee Maker', price: 865.02, quantity: 5 }] }
         ];
         this.orders.set(demoOrders);
         this.loadAllShipments(demoOrders);
@@ -121,21 +159,20 @@ export class OrdersPage implements OnInit {
       });
 
       if (order.items) {
-        this.orderItems.update(current => ({
-          ...current,
-          [order.id]: order.items.map((item: any) => ({
-            ...item,
-            displayName: item.name || item.productName || item.itemName || 'Item #' + item.id
-          }))
-        }));
+        this.setOrderItems(order.id, order.items);
       } else if (order.orderItems) {
-        this.orderItems.update(current => ({
-          ...current,
-          [order.id]: order.orderItems.map((item: any) => ({
-            ...item,
-            displayName: item.name || item.productName || item.itemName || 'Item #' + item.id
-          }))
-        }));
+        this.setOrderItems(order.id, order.orderItems);
+      } else {
+        this.orderService.getOrderById(order.id).subscribe({
+          next: (detail: any) => {
+            if (detail?.items?.length) {
+              this.setOrderItems(order.id, detail.items);
+              this.orders.update(current => current.map(currentOrder =>
+                currentOrder.id === order.id ? { ...currentOrder, userName: detail.userName, items: detail.items } : currentOrder
+              ));
+            }
+          }
+        });
       }
     });
   }
@@ -144,8 +181,34 @@ export class OrdersPage implements OnInit {
     const items = this.orderItems()[orderId] || [];
     return items.map((item: any) => ({
       ...item,
-      displayName: item.name || item.productName || item.itemName || 'Item #' + item.id
+      displayName: this.getItemName(item),
+      lineTotal: this.getItemTotal(item)
     }));
+  }
+
+  setOrderItems(orderId: number, items: any[]) {
+    this.orderItems.update(current => ({
+      ...current,
+      [orderId]: items.map((item: any) => ({
+        ...item,
+        displayName: this.getItemName(item),
+        lineTotal: this.getItemTotal(item)
+      }))
+    }));
+  }
+
+  getPrimaryProduct(orderId: number): string {
+    const items = this.getOrderItems(orderId);
+    if (!items.length) return 'Products loading';
+    const firstName = items[0].displayName;
+    const preview = this.truncateText(firstName, 40);
+    return items.length > 1 ? `${preview} +${items.length - 1} more` : preview;
+  }
+
+  getProductPreview(orderId: number): string {
+    const items = this.getOrderItems(orderId);
+    if (!items.length) return 'Open for product details';
+    return items.length > 1 ? 'Open to see full product names' : 'Open to see full product name';
   }
 
   getShipment(orderId: number) {
@@ -156,6 +219,16 @@ export class OrdersPage implements OnInit {
     this.filterStatus.set('');
     this.filterDateFrom.set('');
     this.filterDateTo.set('');
+    this.productSearchTerm.set('');
+    this.memberSearchTerm.set('');
+  }
+
+  setProductSearchTerm(value: string) {
+    this.productSearchTerm.set(value);
+  }
+
+  setMemberSearchTerm(value: string) {
+    this.memberSearchTerm.set(value);
   }
 
   setDateFrom(value: string) {
@@ -178,11 +251,96 @@ export class OrdersPage implements OnInit {
     this.router.navigate(['/orders', id]);
   }
 
+  cancelOrder(order: any, event?: Event) {
+    event?.stopPropagation();
+    if (!this.canCancelOrder(order) || this.cancellingOrderId() === order.id) return;
+
+    const confirmed = window.confirm(`Cancel order #${order.id}?`);
+    if (!confirmed) return;
+
+    this.cancellingOrderId.set(order.id);
+    this.errorMessage.set('');
+
+    if (this.usingFallbackData()) {
+      this.applyCancelledOrder(order.id);
+      this.cancellingOrderId.set(null);
+      return;
+    }
+
+    this.orderService.updateOrderStatus(order.id, 'CANCELLED').subscribe({
+      next: (updated: any) => {
+        this.orders.update(current => current.map(currentOrder =>
+          currentOrder.id === order.id ? { ...currentOrder, ...updated, status: 'CANCELLED' } : currentOrder
+        ));
+        this.cancellingOrderId.set(null);
+      },
+      error: () => {
+        this.errorMessage.set('Could not cancel this order. It may already be in fulfillment.');
+        this.cancellingOrderId.set(null);
+      }
+    });
+  }
+
+  canCancelOrder(order: any): boolean {
+    const status = this.normalizeStatus(order?.status);
+    return status === 'PENDING' || status === 'CONFIRMED' || status === 'PROCESSING';
+  }
+
+  getStatusLabel(status: string): string {
+    return this.normalizeStatus(status).replace('_', ' ').toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+  }
+
+  getItemName(item: any): string {
+    return item?.productName || item?.name || item?.itemName || item?.product?.name || `Item #${item?.id ?? ''}`.trim();
+  }
+
+  getItemTotal(item: any): number {
+    const quantity = Number(item?.quantity || 1);
+    const price = Number(item?.price ?? item?.unitPrice ?? item?.product?.unitPrice ?? 0);
+    return price;
+  }
+
+  private orderMatchesProductSearch(order: any, term: string): boolean {
+    return this.getOrderItems(order.id).some((item: any) =>
+      item.displayName.toLowerCase().includes(term)
+    );
+  }
+
+  private orderMatchesMemberSearch(order: any, term: string): boolean {
+    return String(order.userName || '').toLowerCase().includes(term);
+  }
+
+  private truncateText(value: string, maxLength: number): string {
+    if (!value || value.length <= maxLength) return value;
+    return `${value.slice(0, maxLength).trim()}...`;
+  }
+
+  normalizeStatus(status: string): string {
+    return String(status || '').toUpperCase();
+  }
+
+  private normalizeRole(role: string | null): string {
+    const normalized = String(role || 'USER').replace('ROLE_', '').toUpperCase();
+    if (normalized === 'INDIVIDUAL' || normalized === 'INDIVIDUAL_USER') return 'USER';
+    if (normalized === 'CORPORATE' || normalized === 'ADMIN') return normalized;
+    return 'USER';
+  }
+
+  private applyCancelledOrder(orderId: number) {
+    this.orders.update(current => current.map(order =>
+      order.id === orderId ? { ...order, status: 'CANCELLED' } : order
+    ));
+    this.orderShipments.update(current => ({
+      ...current,
+      [orderId]: { ...(current[orderId] || {}), status: 'CANCELLED' }
+    }));
+  }
+
   exportOrders() {
     const orders = this.filteredOrders();
     const csv = [
-      ['Order ID', 'Date', 'Store', 'Status', 'Total'].join(','),
-      ...orders.map(o => [o.id, o.createdAt, o.storeName, o.status, o.grandTotal].join(','))
+      ['Order ID', 'Date', 'Store', 'Customer', 'Products', 'Status', 'Total'].join(','),
+      ...orders.map(o => [o.id, o.createdAt, o.storeName, o.userName || '', this.getPrimaryProduct(o.id), o.status, o.grandTotal].join(','))
     ].join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });

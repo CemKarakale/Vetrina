@@ -1,11 +1,13 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AnalyticsService } from '../../../../core/services/analytics';
+import { ChartWidgetComponent } from '../../../../shared/components/widgets';
+import { ChartWidgetData } from '../../../dashboard/models/widget.model';
 
 @Component({
   selector: 'app-analytics-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ChartWidgetComponent],
   templateUrl: './analytics-page.html',
   styleUrl: './analytics-page.scss'
 })
@@ -13,6 +15,23 @@ export class AnalyticsPage implements OnInit {
   analyticsData = signal<any>(null);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string>('');
+  revenueChart = computed<ChartWidgetData>(() => ({
+    title: 'Revenue Trends',
+    type: 'line',
+    color: '#6aa6b8',
+    data: (this.analyticsData()?.revenueTrend ?? []).map((item: any) => ({
+      label: item.month,
+      value: item.revenue
+    }))
+  }));
+  categoryChart = computed<ChartWidgetData>(() => ({
+    title: 'Category Distribution',
+    type: 'pie',
+    data: (this.analyticsData()?.categoryDistribution ?? []).map((item: any) => ({
+      label: item.label,
+      value: item.percentage
+    }))
+  }));
 
   constructor(private analyticsService: AnalyticsService) {}
 

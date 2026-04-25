@@ -1,12 +1,14 @@
 <div class="customers-page">
-  <div class="page-header">
-    <div class="header-left">
-      <h2>Customers</h2>
+  <header class="page-header">
+    <p class="eyebrow">Relationship Management</p>
+    <div class="title-row">
+      <h1>Customers</h1>
       @if (!isLoading()) {
         <span class="count-badge">Total: {{ totalCustomers() | number }}</span>
       }
     </div>
-  </div>
+    <p>Manage your customer base, view membership tiers, and track lifetime spend.</p>
+  </header>
 
   @if (isLoading()) {
     <div class="loading-state">
@@ -33,7 +35,6 @@
             <th>Membership</th>
             <th>Orders</th>
             <th>Total Spend</th>
-            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -47,10 +48,6 @@
               </td>
               <td>{{ customer.orderCount }}</td>
               <td class="font-bold text-success">${{ customer.totalSpend | number:'1.2-2' }}</td>
-              <td>
-                <span class="status-dot" [ngClass]="customer.status.toLowerCase()"></span>
-                {{ customer.status }}
-              </td>
               <td>
                 <button class="action-btn" (click)="viewProfile(customer)">View Profile</button>
               </td>

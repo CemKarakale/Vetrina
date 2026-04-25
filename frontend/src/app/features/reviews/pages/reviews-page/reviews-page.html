@@ -1,8 +1,9 @@
 <div class="reviews-page">
-  <div class="page-header">
-    <div class="header-left">
-      <h2>Reviews</h2>
-    </div>
+  <header class="page-header">
+    <p class="eyebrow">Customer Feedback</p>
+    <h1>Reviews</h1>
+    <p>Monitor and respond to customer feedback to improve your store's reputation.</p>
+  </header>
     @if (canReply()) {
       <div class="filters-bar">
         <div class="filter-group">
@@ -54,7 +55,7 @@
         </button>
       </div>
     }
-  </div>
+
 
   @if (isLoading()) {
     <div class="loading-state">
@@ -130,12 +131,12 @@
             }
           </div>
 
-          <div class="review-footer" style="display: flex; gap: 12px; margin-top: 12px;">
+          <div class="review-footer">
             @if (canReply() && !review.adminReply) {
-              <button class="reply-btn" (click)="replyToReview(review.id)" style="background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">Reply to Customer</button>
+              <button class="reply-btn" (click)="replyToReview(review.id)">Reply to Customer</button>
             }
             @if (canDelete(review)) {
-              <button class="delete-btn" (click)="deleteReview(review.id)" style="background: #ef4444; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Delete Review</button>
+              <button class="delete-btn" (click)="deleteReview(review.id)">Delete Review</button>
             }
           </div>
         </div>
