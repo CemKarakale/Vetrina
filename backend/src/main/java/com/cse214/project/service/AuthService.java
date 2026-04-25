@@ -5,6 +5,7 @@ import com.cse214.project.dto.auth.LoginResponse;
 import com.cse214.project.entity.User;
 import com.cse214.project.exception.UnauthorizedAccessException;
 import com.cse214.project.repository.UserRepository;
+import com.cse214.project.repository.StoreRepository;
 import com.cse214.project.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final StoreRepository storeRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
@@ -29,6 +31,13 @@ public class AuthService {
         String accessToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
+        Integer storeId = null;
+        if ("CORPORATE".equals(user.getRoleType())) {
+            storeId = storeRepository.findByOwnerId(user.getId())
+                    .map(store -> store.getId())
+                    .orElse(null);
+        }
+
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -36,6 +45,7 @@ public class AuthService {
                 .userId(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
+                .storeId(storeId)
                 .build();
     }
 
@@ -52,6 +62,13 @@ public class AuthService {
         String newAccessToken = jwtService.generateToken(user);
         String newRefreshToken = jwtService.generateRefreshToken(user);
 
+        Integer storeId = null;
+        if ("CORPORATE".equals(user.getRoleType())) {
+            storeId = storeRepository.findByOwnerId(user.getId())
+                    .map(store -> store.getId())
+                    .orElse(null);
+        }
+
         return LoginResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
@@ -59,6 +76,7 @@ public class AuthService {
                 .userId(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
+                .storeId(storeId)
                 .build();
     }
 }

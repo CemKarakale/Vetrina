@@ -47,7 +47,7 @@ order_items
   - order_id (INT, FK -> orders.id)
   - product_id (INT, FK -> products.id)
   - quantity (INT)
-  - unit_price (DECIMAL)
+  - price (DECIMAL) -- NOT unit_price!
 
 shipments
   - id (INT, PK)

@@ -12,4 +12,5 @@ public class LoginResponse {
     private Integer userId;
     private String name;
     private String email;
+    private Integer storeId;
 }

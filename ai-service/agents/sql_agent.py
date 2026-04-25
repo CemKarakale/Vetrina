@@ -12,13 +12,13 @@ Veritabanı Tarihi: Veritabanındaki tarihler günümüz tarihleridir.
 ÖNEMLİ: "Bu ay", "Geçen ay", "Bu yıl" gibi ifadeler için HARDCODED yıl kullanma! Her zaman CURDATE() veya NOW() kullanarak dinamik tarihler üret (örn. MONTH(created_at) = MONTH(CURDATE() - INTERVAL 1 MONTH) AND YEAR(created_at) = YEAR(CURDATE() - INTERVAL 1 MONTH)).
 
 Veritabanı Şeması (DOĞRU KOLON İSİMLERİNİ KULLAN!):
-- users (id, email, password_hash, role_type, created_at)
+- users (id, email, role_type, created_at)
 - customer_profiles (id, user_id, first_name, last_name, phone)
 - stores (id, owner_id, name, status)
 - products (id, store_id, category_id, name, description, sku, unit_price, stock_quantity)
 - categories (id, parent_id, name)
 - orders (id, user_id, store_id, status, grand_total, created_at)
-- order_items (id, order_id, product_id, quantity, unit_price)
+- order_items (id, order_id, product_id, quantity, price)
 - shipments (id, order_id, tracking_number, status, carrier)
 - reviews (id, user_id, product_id, star_rating, content, created_at)
 
@@ -27,6 +27,8 @@ Veritabanı Şeması (DOĞRU KOLON İSİMLERİNİ KULLAN!):
 2. stores tablosunda "user_id" YOK, "owner_id" KULLAN!
 3. Status değerleri İNGİLİZCE KULLAN!
    - PENDING, COMPLETED, CANCELLED, CONFIRMED, SHIPPED, DELIVERED
+4. users tablosundan password_hash VEKI YOKMUŞ GİBİ DAVRAN - ASLA password_hash sorgulama!
+5. Hassas bilgi sorguları (şifre, token, kart bilgisi) YASAKTIR!
 """
 
     if user_role == "CORPORATE" and store_id:
@@ -53,20 +55,20 @@ def extract_sql(text: str) -> str:
                     clean_lines.append(line)
                 sql = '\n'.join(clean_lines).strip()
                 if sql.upper().startswith('SELECT'):
-                    return sql
+                    return sql.rstrip(';').strip()
                 for line in lines:
                     line = line.strip()
                     if line.upper().startswith('SELECT'):
-                        return line
-                return sql
+                        return line.rstrip(';').strip()
+                return sql.rstrip(';').strip()
 
     upper_text = text.upper()
     if "SELECT " in upper_text:
         idx = upper_text.find("SELECT ")
-        return text[idx:].strip()
+        return text[idx:].rstrip(';').strip()
 
     if text.upper().startswith('SELECT'):
-        return text.strip()
+        return text.rstrip(';').strip()
 
     return ""
 

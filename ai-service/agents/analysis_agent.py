@@ -74,6 +74,9 @@ def format_value(key: str, value) -> str:
 
     key_lower = key.lower()
 
+    if any(x in key_lower for x in ['password', 'hash', 'secret', 'token', 'api_key', 'credit_card', 'ssn']):
+        return "••••••••"
+
     if isinstance(value, float):
         if any(x in key_lower for x in ['tutar', 'fiyat', 'total', 'gelir', 'satis', 'kar', 'maliyet', 'amount', 'price', 'revenue']):
             return f"₺{value:,.2f}"
