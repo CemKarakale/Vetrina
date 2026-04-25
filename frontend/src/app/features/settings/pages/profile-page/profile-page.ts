@@ -1,7 +1,11 @@
-import { Component, OnInit, signal, effect } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProfileService } from '../../../../core/services/profile';
+import {
+  ProfilePreferences,
+  ProfileService,
+  UserProfile
+} from '../../../../core/services/profile';
 import { AuthService } from '../../../../core/services/auth';
 
 @Component({
@@ -14,6 +18,8 @@ import { AuthService } from '../../../../core/services/auth';
 export class ProfilePage implements OnInit {
   activeTab = signal<string>('info');
   role = signal<string>('');
+  successMessage = signal<string>('');
+  profileDraft: UserProfile | null = null;
 
   constructor(
     public profileService: ProfileService,
@@ -26,39 +32,77 @@ export class ProfilePage implements OnInit {
     if (r === 'INDIVIDUAL' || r === 'INDIVIDUAL_USER') r = 'USER';
     this.role.set(r);
 
-    this.profileService.loadProfile();
+    this.profileDraft = this.cloneProfile(this.profileService.profile());
+    this.profileService.loadProfile().subscribe({
+      next: (profile) => {
+        this.profileDraft = this.cloneProfile(profile);
+      },
+      error: () => {
+        this.profileDraft = this.cloneProfile(this.profileService.profile());
+      }
+    });
   }
 
   setTab(tab: string) {
     this.activeTab.set(tab);
+    this.successMessage.set('');
   }
 
   updateInfo() {
-    const p = this.profileService.profile();
-    if (!p) return;
-    this.profileService.updateProfile({
-      firstName: p.firstName,
-      lastName: p.lastName,
-      email: p.email,
-      phone: p.phone
-    });
+    if (!this.profileDraft) return;
+
+    const firstName = this.profileDraft.firstName.trim();
+    const lastName = this.profileDraft.lastName.trim();
+
+    this.saveProfile({
+      firstName,
+      lastName,
+      name: `${firstName} ${lastName}`.trim(),
+      email: this.profileDraft.email.trim(),
+      phone: this.profileDraft.phone.trim()
+    }, 'Profile information saved.');
   }
 
   updateAddress() {
-    const p = this.profileService.profile();
-    if (!p) return;
-    this.profileService.updateProfile({ address: p.address });
+    if (!this.profileDraft) return;
+    this.saveProfile({ address: this.profileDraft.address }, 'Address saved.');
   }
 
   toggleNotification() {
-    const p = this.profileService.profile();
-    if (!p) return;
-    this.profileService.updatePreferences({
-      notifications: !p.preferences.notifications
+    if (!this.profileDraft) return;
+    const notifications = !this.profileDraft.preferences.notifications;
+    this.savePreferences({ notifications }, 'Notification preference saved.');
+  }
+
+  setTheme(theme: ProfilePreferences['theme']) {
+    this.savePreferences({ theme }, 'Theme preference saved.');
+  }
+
+  private saveProfile(payload: Parameters<ProfileService['updateProfile']>[0], message: string) {
+    this.successMessage.set('');
+    this.profileService.updateProfile(payload).subscribe({
+      next: (profile) => {
+        this.profileDraft = this.cloneProfile(profile);
+        this.successMessage.set(message);
+      },
+      error: () => {}
     });
   }
 
-  setTheme(theme: string) {
-    this.profileService.updatePreferences({ theme });
+  private savePreferences(payload: Partial<ProfilePreferences>, message: string) {
+    if (!this.profileDraft) return;
+
+    this.successMessage.set('');
+    this.profileService.updatePreferences(payload).subscribe({
+      next: (profile) => {
+        this.profileDraft = this.cloneProfile(profile);
+        this.successMessage.set(message);
+      },
+      error: () => {}
+    });
+  }
+
+  private cloneProfile(profile: UserProfile | null): UserProfile | null {
+    return profile ? structuredClone(profile) : null;
   }
 }

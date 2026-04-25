@@ -1,108 +1,164 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, finalize, tap } from 'rxjs/operators';
 import { AuthService } from './auth';
+
+export interface ProfileAddress {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
+export interface ProfilePreferences {
+  theme: 'dark' | 'light';
+  notifications: boolean;
+  language: string;
+  currency: string;
+}
+
+export interface UserProfile {
+  id: number | string | null;
+  firstName: string;
+  lastName: string;
+  name: string;
+  email: string;
+  phone: string;
+  role?: string;
+  address: ProfileAddress;
+  preferences: ProfilePreferences;
+}
+
+export type ProfileUpdateRequest = Partial<
+  Pick<UserProfile, 'firstName' | 'lastName' | 'name' | 'email' | 'phone' | 'address' | 'preferences'>
+>;
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProfileService {
-  apiUrl: string = '/api/profile';
+  private readonly apiUrl = '/api/profile';
 
-  profile = signal<any>(null);
+  profile = signal<UserProfile | null>(null);
   isLoading = signal<boolean>(false);
+  isSaving = signal<boolean>(false);
+  errorMessage = signal<string>('');
 
   constructor(
     private http: HttpClient,
     private authService: AuthService
   ) {
-    this.loadFromStorage();
+    this.loadCachedProfile();
   }
 
-  private getUserKey(): string {
-    return 'profile_' + (this.authService.getUsername() || 'guest');
+  loadProfile(): Observable<UserProfile> {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    return this.http.get<UserProfile>(`${this.apiUrl}/me`).pipe(
+      tap((data) => this.setProfile(data)),
+      catchError((error) => {
+        const cached = this.getCachedProfile();
+        if (cached) {
+          this.profile.set(cached);
+          this.errorMessage.set('Backend profile endpoint is unavailable. Showing last loaded profile.');
+        } else {
+          this.profile.set(null);
+          this.errorMessage.set('Profile could not be loaded from the backend.');
+        }
+        return throwError(() => error);
+      }),
+      finalize(() => this.isLoading.set(false))
+    );
   }
 
-  private loadFromStorage() {
-    const stored = localStorage.getItem(this.getUserKey());
-    if (stored) {
-      this.profile.set(JSON.parse(stored));
+  updateProfile(data: ProfileUpdateRequest): Observable<UserProfile> {
+    this.isSaving.set(true);
+    this.errorMessage.set('');
+
+    return this.http.put<UserProfile>(`${this.apiUrl}/me`, data).pipe(
+      tap((updated) => this.setProfile(updated)),
+      catchError((error) => {
+        this.errorMessage.set('Profile was not saved. Please try again when the backend is available.');
+        return throwError(() => error);
+      }),
+      finalize(() => this.isSaving.set(false))
+    );
+  }
+
+  updatePreferences(prefs: Partial<ProfilePreferences>): Observable<UserProfile> {
+    this.isSaving.set(true);
+    this.errorMessage.set('');
+
+    return this.http.patch<UserProfile>(`${this.apiUrl}/me/preferences`, prefs).pipe(
+      tap((updated) => this.setProfile(updated)),
+      catchError((error) => {
+        this.errorMessage.set('Preferences were not saved. Please try again when the backend is available.');
+        return throwError(() => error);
+      }),
+      finalize(() => this.isSaving.set(false))
+    );
+  }
+
+  private setProfile(data: Partial<UserProfile>) {
+    const normalized = this.normalizeProfile(data);
+    this.profile.set(normalized);
+    localStorage.setItem(this.getCacheKey(), JSON.stringify(normalized));
+  }
+
+  private loadCachedProfile() {
+    const cached = this.getCachedProfile();
+    if (cached) {
+      this.profile.set(cached);
     }
   }
 
-  private saveToStorage() {
-    localStorage.setItem(this.getUserKey(), JSON.stringify(this.profile()));
+  private getCachedProfile(): UserProfile | null {
+    const stored = localStorage.getItem(this.getCacheKey());
+    if (!stored) {
+      return null;
+    }
+
+    try {
+      return this.normalizeProfile(JSON.parse(stored));
+    } catch {
+      return null;
+    }
   }
 
-  loadProfile() {
-    this.isLoading.set(true);
-    const userId = this.authService.getUsername();
+  private getCacheKey(): string {
+    return `profile_${this.authService.getUserId() || this.authService.getEmail() || this.authService.getUsername() || 'guest'}`;
+  }
 
-    this.http.get<any>(`${this.apiUrl}/${userId}`).subscribe({
-      next: (data) => {
-        this.profile.set(data);
-        this.saveToStorage();
-        this.isLoading.set(false);
+  private normalizeProfile(data: Partial<UserProfile>): UserProfile {
+    const fullName = data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim();
+    const splitName = fullName.split(' ').filter(Boolean);
+    const firstName = data.firstName || splitName[0] || '';
+    const lastName = data.lastName || splitName.slice(1).join(' ');
+
+    return {
+      id: data.id ?? this.authService.getUserId() ?? null,
+      firstName,
+      lastName,
+      name: fullName || `${firstName} ${lastName}`.trim(),
+      email: data.email || this.authService.getEmail() || '',
+      phone: data.phone || '',
+      role: data.role || this.authService.getRole() || undefined,
+      address: {
+        street: data.address?.street || '',
+        city: data.address?.city || '',
+        state: data.address?.state || '',
+        zipCode: data.address?.zipCode || '',
+        country: data.address?.country || ''
       },
-      error: () => {
-        const stored = localStorage.getItem(this.getUserKey());
-        if (stored) {
-          this.profile.set(JSON.parse(stored));
-        } else {
-          this.profile.set({
-            id: userId,
-            firstName: 'User',
-            lastName: 'Name',
-            email: userId + '@example.com',
-            phone: '+1 555-000-0000',
-            preferences: {
-              theme: 'dark',
-              notifications: true,
-              language: 'English',
-              currency: 'USD'
-            },
-            address: {
-              street: '',
-              city: '',
-              state: '',
-              zipCode: '',
-              country: ''
-            }
-          });
-        }
-        this.isLoading.set(false);
+      preferences: {
+        theme: data.preferences?.theme || 'dark',
+        notifications: data.preferences?.notifications ?? true,
+        language: data.preferences?.language || 'English',
+        currency: data.preferences?.currency || 'USD'
       }
-    });
-  }
-
-  updateProfile(data: any) {
-    const userId = this.authService.getUsername();
-
-    this.http.put<any>(`${this.apiUrl}/${userId}`, data).subscribe({
-      next: (updated) => {
-        this.profile.set(updated);
-        this.saveToStorage();
-      },
-      error: () => {
-        this.profile.update(p => {
-          const updated = { ...p, ...data };
-          localStorage.setItem(this.getUserKey(), JSON.stringify(updated));
-          return updated;
-        });
-      }
-    });
-  }
-
-  updatePreferences(prefs: any) {
-    this.profile.update(p => {
-      const updated = {
-        ...p,
-        preferences: { ...p.preferences, ...prefs }
-      };
-      localStorage.setItem(this.getUserKey(), JSON.stringify(updated));
-      return updated;
-    });
-
-    const userId = this.authService.getUsername();
-    this.http.put<any>(`${this.apiUrl}/${userId}/preferences`, prefs).subscribe({});
+    };
   }
 }

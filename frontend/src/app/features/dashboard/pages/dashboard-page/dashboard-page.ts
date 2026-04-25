@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { DashboardService } from '../../../../core/services/dashboard';
 import { AuthService } from '../../../../core/services/auth';
 import {
+  DashboardAlert,
+  DashboardInsight,
+  DashboardRange,
   DashboardRole,
   UserDashboardDto,
   CorporateDashboardDto,
@@ -38,10 +41,12 @@ export class DashboardPage implements OnInit {
   errorMessage = signal<string>('');
 
   userRole = signal<DashboardRole>('USER');
+  selectedRange = signal<DashboardRange>('30d');
 
   isUser = computed(() => this.userRole() === 'USER');
   isCorporate = computed(() => this.userRole() === 'CORPORATE');
   isAdmin = computed(() => this.userRole() === 'ADMIN');
+  rangeLabel = computed(() => this.getRangeLabel(this.selectedRange()));
 
   constructor(
     private dashboardService: DashboardService,
@@ -63,7 +68,7 @@ export class DashboardPage implements OnInit {
 
     this.userRole.set(role as DashboardRole);
 
-    this.dashboardService.getDashboardData(role as DashboardRole).subscribe({
+    this.dashboardService.getDashboardData(role as DashboardRole, this.selectedRange()).subscribe({
       next: (data) => {
         this.setDashboardData(role as DashboardRole, data);
         this.isLoading.set(false);
@@ -74,6 +79,11 @@ export class DashboardPage implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  changeRange(range: DashboardRange) {
+    this.selectedRange.set(range);
+    this.loadDashboard();
   }
 
   private setDashboardData(role: DashboardRole, data: any) {
@@ -114,5 +124,33 @@ export class DashboardPage implements OnInit {
   getWelcomeMessage(): string {
     const username = this.authService.getUsername() || 'User';
     return `${this.getGreeting()}, ${username}`;
+  }
+
+  getRoleDescription(): string {
+    if (this.isAdmin()) return 'Platform analytics, store governance, audit monitoring, and cross-store reporting';
+    if (this.isCorporate()) return 'Store KPIs, inventory health, order fulfillment, customer insights, and revenue reporting';
+    return 'Personal spending analytics, order history, shipment status, and review activity';
+  }
+
+  getRangeLabel(range: DashboardRange): string {
+    const labels: Record<DashboardRange, string> = {
+      '7d': 'Last 7 days',
+      '30d': 'Last 30 days',
+      '90d': 'Last 90 days'
+    };
+
+    return labels[range];
+  }
+
+  getInsights(): DashboardInsight[] {
+    if (this.isAdmin()) return this.adminDashboard()?.systemInsights || [];
+    if (this.isCorporate()) return this.corporateDashboard()?.fulfillmentInsights || [];
+    return this.userDashboard()?.personalInsights || [];
+  }
+
+  getAlerts(): DashboardAlert[] {
+    if (this.isCorporate()) return this.corporateDashboard()?.inventoryAlerts || [];
+    if (this.isUser()) return this.userDashboard()?.shipmentAlerts || [];
+    return [];
   }
 }

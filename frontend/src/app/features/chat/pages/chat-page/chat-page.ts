@@ -1,13 +1,15 @@
-import { Component, OnInit, signal, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth';
-import { ChatService } from '../../../../core/services/chat';
+import { AiChatResponse, ChatService } from '../../../../core/services/chat';
 
 type Message = {
   role: 'user' | 'assistant' | 'guardrail' | 'chart';
   content?: string;
   metadata?: any;
+  sqlQuery?: string | null;
+  visualizationCode?: string | null;
 };
 
 @Component({
@@ -21,18 +23,18 @@ export class ChatPage implements OnInit, AfterViewChecked {
   @ViewChild('chatScroll') private chatScroll!: ElementRef;
 
   messages = signal<Message[]>([]);
-  userInput: string = '';
-  storeId = '1042';
+  isSending = signal<boolean>(false);
+  userInput = '';
 
   suggestions = [
-    'Geçen aya göre satışlar nasıl değişti?',
-    'Stoku 10\'un altına düşen ürünler?',
-    'En değerli 5 müşterim kimler?',
-    'Bekleyen siparişlerin toplam değeri nedir?',
-    'Hangi kategoride iade oranı en yüksek?',
-    'Bu hafta yapılan sevkiyatların durumu?',
-    '1 yıldız alan ürünleri listele',
-    'Aylık gelir trendini grafik olarak göster'
+    'Gecen aya gore satislar nasil degisti?',
+    'Stoku 10 un altina dusen urunler?',
+    'En degerli 5 musterim kimler?',
+    'Bekleyen siparislerin toplam degeri nedir?',
+    'Hangi kategoride iade orani en yuksek?',
+    'Bu hafta yapilan sevkiyatlarin durumu?',
+    '1 yildiz alan urunleri listele',
+    'Aylik gelir trendini grafik olarak goster'
   ];
 
   constructor(
@@ -46,10 +48,27 @@ export class ChatPage implements OnInit, AfterViewChecked {
     this.scrollToBottom();
   }
 
+  get storeId() {
+    return this.authService.getStoreId() || 'yok';
+  }
+
+  get username() {
+    return this.authService.getUsername() || 'Demo User';
+  }
+
+  get userRole() {
+    const role = this.normalizedRole();
+    if (role === 'ADMIN' || role === 'CORPORATE') return 'Corporate User';
+    if (role === 'INDIVIDUAL') return 'Individual User';
+    return 'User';
+  }
+
   scrollToBottom(): void {
     try {
       this.chatScroll.nativeElement.scrollTop = this.chatScroll.nativeElement.scrollHeight;
-    } catch(err) { }
+    } catch {
+      // ViewChild is not ready during the first render.
+    }
   }
 
   sendSuggestion(text: string) {
@@ -57,148 +76,123 @@ export class ChatPage implements OnInit, AfterViewChecked {
     this.sendMessage();
   }
 
-  get username() {
-    return this.authService.getUsername() || 'Ahmet Şahin';
-  }
-
-  get userRole() {
-     let role = this.authService.getRole() || 'USER';
-     if (role.toUpperCase().startsWith('ROLE_')) role = role.replace('ROLE_', '');
-     if (role === 'ADMIN' || role === 'CORPORATE') return 'Corporate User';
-     return 'Individual User';
-  }
-
   sendMessage() {
     const text = this.userInput.trim();
-    if (!text) return;
+    if (!text || this.isSending()) return;
 
-    this.messages.update(m => [...m, { role: 'user', content: text }]);
+    this.messages.update(messages => [...messages, { role: 'user', content: text }]);
     this.userInput = '';
+    this.isSending.set(true);
 
-    const lower = text.toLowerCase();
+    this.messages.update(messages => [...messages, { role: 'assistant', content: 'Verileriniz inceleniyor...' }]);
 
-    // Delay simulation
-    setTimeout(() => {
-      // Scenario 2: Prompt Injection
-      if (lower.includes('ignore previous instructions')) {
-         this.messages.update(m => [...m, { 
-           role: 'guardrail', 
-           metadata: {
-              title: 'Bu mesaj güvenlik filtrelerini tetikledi.',
-              tagText: 'Guardrail Agent — PROMPT INJECTION',
-              alertTitle: 'Prompt Injection Tespit Edildi',
-              fields: [
-                { label: 'Tespit türü', value: 'Prompt Injection' },
-                { label: 'Tetikleyici', value: '"Ignore previous instructions"' },
-                { label: 'Hedef', value: 'store_id filtresi bypass' },
-                { label: 'Eylem', value: 'İstek tamamen reddedildi' }
-              ],
-              sqlCrossout: 'SELECT * FROM orders WHERE store_id=? kaldırıldı (engellendi)',
-              footerText: 'Sistem promptunu değiştirmeye yönelik girişimler engellenir ve kayıt altına alınır.',
-              footerBadge: 'Güvenlik olayı loglandı'
-           }
-         }]);
-         return;
+    this.chatService.sendMessage(text).subscribe({
+      next: (response) => {
+        this.replaceLoadingWith(this.toMessage(response));
+        this.isSending.set(false);
+      },
+      error: () => {
+        this.replaceLoadingWith({
+          role: 'assistant',
+          content: 'AI servisine ulasilamadi. FastAPI servisinin 8000 portunda calistigindan emin olun.'
+        });
+        this.isSending.set(false);
       }
-
-      // Scenario 3: Filter By-pass
-      if (lower.includes('filtresini kaldır')) {
-         this.messages.update(m => [...m, { 
-           role: 'guardrail', 
-           metadata: {
-              title: 'Bu sorgu kısıtlı veri kapsamına giriyor.',
-              tagText: 'Guardrail Agent — KAPSAM DIŞI',
-              alertTitle: 'Kapsam Dışı Sorgu',
-              fields: [
-                 { label: 'Tespit türü', value: 'Filter bypass attempt' },
-                 { label: 'Anahtar kelime', value: '"store_id filtresini kaldır"' },
-                 { label: 'Eylem', value: 'SQL üretimi durduruldu' }
-              ],
-              alternativeTitle: 'Bunun yerine yapabilirim:',
-              alternativeContent: 'Mağazanız (#1042) için dönemsel ciro karşılaştırması yapabilirim — örn. bu ay vs geçen ay.',
-              footerBadgeAlternative: 'Kapsam dışı • Alternatif önerildi'
-           }
-         }]);
-         return;
-      }
-
-      // Scenario 1: Cross-store Access
-      if (lower.includes('2055')) {
-         this.messages.update(m => [...m, { 
-           role: 'guardrail', 
-           metadata: {
-              title: 'Bu isteği gerçekleştiremiyorum.',
-              tagText: 'Guardrail Agent — ENGELLENDİ',
-              alertTitle: 'Yetki Dışı Erişim Girişimi',
-              fields: [
-                 { label: 'Tespit türü', value: 'Cross-store data access', urgent: true },
-                 { label: 'İstenen store', value: '#2055 (yetkisiz)', urgent: true },
-                 { label: 'Oturum store', value: 'sadece #1042' },
-                 { label: 'Eylem', value: 'SQL üretimi durduruldu', urgent: true }
-              ],
-              footerText: 'Yalnızca kendi mağazanız (#1042) için sorgulama yapabilirsiniz.',
-              footerBadgeFail: 'SQL üretilmedi'
-           }
-         }]);
-         return;
-      }
-
-      // Success Scenario (Mock specific chart)
-      if (lower.includes('en çok satan')) {
-         this.messages.update(m => [...m, {
-           role: 'chart',
-           metadata: {
-             title: 'Nisan 2026 için mağazanızın en çok satan 5 ürünü:',
-             bars: [
-               { label: 'Kablosuz Kulaklık', width: '85%', val: '284 ad.' },
-               { label: 'Akıllı Saat X', width: '65%', val: '217 ad.' },
-               { label: 'Deri Çanta', width: '55%', val: '196 ad.' },
-               { label: 'Koşu Ayakkabısı Pro', width: '45%', val: '178 ad.' },
-               { label: 'Güneş Gözlüğü', width: '35%', val: '143 ad.' }
-             ],
-             sql: "SELECT p.name, SUM(oi.quantity) AS total\nFROM order_items oi JOIN products p ON p.id = oi.product_id\nJOIN orders o ON o.id = oi.order_id\nWHERE o.store_id=1042 AND MONTH(o.created_at)=4\nGROUP BY p.id ORDER BY total DESC LIMIT 5;",
-             stats: "5 satır döndü • 0.03s"
-           }
-         }]);
-         return;
-      }
-
-      // API Backend integration for generic queries
-      this.messages.update(m => [...m, { role: 'assistant', content: "💭 Verileriniz inceleniyor..." }]);
-      
-      this.chatService.sendMessage(text).subscribe({
-         next: (res: any) => {
-            this.messages.update(list => {
-               const updated = [...list];
-               updated.pop(); // remove loading message
-               updated.push({ role: 'assistant', content: res.answer || res.response || JSON.stringify(res) });
-               return updated;
-            });
-         },
-         error: () => {
-            const mockResponse = this.generateMockResponse(lower);
-            this.messages.update(list => {
-               const updated = [...list];
-               updated.pop(); 
-               updated.push({ role: 'assistant', content: mockResponse });
-               return updated;
-            });
-         }
-      });
-      
-    }, 400); // Slight delay for realism
+    });
   }
 
-  generateMockResponse(text: string): string {
-    if (text.includes('geçen ay')) return 'Geçen aya göre satışlarınız %15 artış gösterdi. Özellikle "Elektronik" kategorisinde belirgin bir ivme var.';
-    if (text.includes('stok') && text.includes('10')) return 'Stoku 10\'un altına düşen 3 ürününüz var: 1. Akıllı Saat X (8 adet), 2. Kablosuz Şarj Cihazı (4 adet), 3. Oyuncu Klavyesi (9 adet).';
-    if (text.includes('müşteri')) return 'En değerli müşterileriniz: 1. Ahmet Y. (₺12,500), 2. Mehmet K. (₺9,200), 3. Ayşe S. (₺8,100).';
-    if (text.includes('bekleyen')) return 'Şu anda kargolanmayı bekleyen 14 siparişiniz bulunuyor, toplam değerleri ₺4,500.';
-    if (text.includes('iade')) return 'İade oranının en yüksek olduğu kategori %12 ile "Giyim". Genellikle beden uyuşmazlığı nedeniyle iade yapılmış.';
-    if (text.includes('sevkiyat')) return 'Bu hafta yapılan 45 sevkiyatın 40\'ı teslim edildi, 5\'i halen yolda.';
-    if (text.includes('1 yıldız')) return '1 yıldız alan ürünler: "Ucuz Telefon Kılıfı" (Malzeme kalitesi şikayeti) ve "Pilli Radyo" (Bozuk ürün şikayeti).';
-    if (text.includes('trend')) return 'Aylık gelir trendiniz yükselişte. Lütfen tam grafiksel görünüm için "bu ay en çok satan 5 ürün hangileri" sorgusunu deneyin.';
+  private toMessage(response: AiChatResponse): Message {
+    if (response.blocked_reason) {
+      return this.buildGuardrailMessage(response);
+    }
 
-    return 'Şu anda AI sunucusuna ulaşılamıyor (Backend çevrimdışı) ve bu soru için çevrimdışı bir yanıt bulunmuyor. Lütfen daha sonra tekrar deneyin veya örnek sorulardan birini seçin.';
+    const chart = this.buildChartMessage(response);
+    if (chart) {
+      return chart;
+    }
+
+    return {
+      role: 'assistant',
+      content: response.answer || 'AI yaniti bos dondu.',
+      sqlQuery: response.sql_query,
+      visualizationCode: response.visualization_code
+    };
+  }
+
+  private buildGuardrailMessage(response: AiChatResponse): Message {
+    const reason = response.blocked_reason || 'UNKNOWN';
+    const titles: Record<string, string> = {
+      PROMPT_INJECTION: 'Prompt injection tespit edildi',
+      SCOPE_BYPASS: 'Kapsam disi veri erisimi engellendi',
+      NO_STORE_ID: 'Store bilgisi eksik'
+    };
+
+    return {
+      role: 'guardrail',
+      metadata: {
+        title: response.answer || 'Bu istegi gerceklestiremiyorum.',
+        tagText: `Guardrail Agent - ${reason}`,
+        alertTitle: titles[reason] || 'Guvenlik kontrolu',
+        fields: [
+          { label: 'Tespit turu', value: reason, urgent: true },
+          { label: 'Kullanici rolu', value: this.normalizedRole() },
+          { label: 'Store', value: this.storeId === 'yok' ? 'Belirtilmedi' : `#${this.storeId}` },
+          { label: 'Eylem', value: 'SQL uretimi durduruldu', urgent: true }
+        ],
+        footerBadgeFail: 'SQL uretilmedi'
+      }
+    };
+  }
+
+  private buildChartMessage(response: AiChatResponse): Message | null {
+    if (!response.visualization_code) return null;
+
+    try {
+      const spec = JSON.parse(response.visualization_code);
+      const firstTrace = spec?.data?.[0];
+      if (!firstTrace?.x || !firstTrace?.y) return null;
+
+      const values = firstTrace.y.map((value: any) => Number(value) || 0);
+      const max = Math.max(...values, 1);
+
+      return {
+        role: 'chart',
+        metadata: {
+          title: response.answer || spec?.layout?.title || 'Sorgu sonucu',
+          bars: firstTrace.x.map((label: any, index: number) => ({
+            label: String(label),
+            width: `${Math.max((values[index] / max) * 100, 4)}%`,
+            val: String(firstTrace.y[index])
+          })),
+          sql: response.sql_query,
+          stats: `${firstTrace.x.length} satir dondu`
+        }
+      };
+    } catch {
+      return {
+        role: 'assistant',
+        content: response.answer || 'Grafik yaniti alindi ancak gorsellestirme okunamadi.',
+        sqlQuery: response.sql_query,
+        visualizationCode: response.visualization_code
+      };
+    }
+  }
+
+  private replaceLoadingWith(message: Message) {
+    this.messages.update(messages => {
+      const next = [...messages];
+      const last = next[next.length - 1];
+      if (last?.role === 'assistant' && last.content === 'Verileriniz inceleniyor...') {
+        next.pop();
+      }
+      next.push(message);
+      return next;
+    });
+  }
+
+  private normalizedRole() {
+    const role = (this.authService.getRole() || 'USER').toUpperCase().replace(/^ROLE_/, '');
+    if (role === 'INDIVIDUAL_USER') return 'INDIVIDUAL';
+    return role;
   }
 }

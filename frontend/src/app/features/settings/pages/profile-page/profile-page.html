@@ -4,6 +4,14 @@
     <span class="user-role">{{ role() }}</span>
   </div>
 
+  @if (profileService.errorMessage()) {
+    <div class="alert error">{{ profileService.errorMessage() }}</div>
+  }
+
+  @if (successMessage()) {
+    <div class="alert success">{{ successMessage() }}</div>
+  }
+
   @if (profileService.isLoading()) {
     <div class="loading-state">
       <div class="spinner"></div>
@@ -11,7 +19,7 @@
     </div>
   }
 
-  @if (!profileService.isLoading() && profileService.profile()) {
+  @if (!profileService.isLoading() && profileDraft) {
     <div class="tabs">
       <button [class.active]="activeTab() === 'info'" (click)="setTab('info')">Personal Info</button>
       <button [class.active]="activeTab() === 'address'" (click)="setTab('address')">Address</button>
@@ -25,22 +33,24 @@
           <div class="form-grid">
             <div class="form-group">
               <label>First Name</label>
-              <input type="text" [(ngModel)]="profileService.profile().firstName">
+              <input type="text" [(ngModel)]="profileDraft.firstName">
             </div>
             <div class="form-group">
               <label>Last Name</label>
-              <input type="text" [(ngModel)]="profileService.profile().lastName">
+              <input type="text" [(ngModel)]="profileDraft.lastName">
             </div>
             <div class="form-group">
               <label>Email</label>
-              <input type="email" [(ngModel)]="profileService.profile().email">
+              <input type="email" [(ngModel)]="profileDraft.email">
             </div>
             <div class="form-group">
               <label>Phone</label>
-              <input type="tel" [(ngModel)]="profileService.profile().phone">
+              <input type="tel" [(ngModel)]="profileDraft.phone">
             </div>
           </div>
-          <button class="save-btn" (click)="updateInfo()">Save Changes</button>
+          <button class="save-btn" (click)="updateInfo()" [disabled]="profileService.isSaving()">
+            {{ profileService.isSaving() ? 'Saving...' : 'Save Changes' }}
+          </button>
         </div>
       </div>
     }
@@ -52,26 +62,28 @@
           <div class="form-grid">
             <div class="form-group full">
               <label>Street</label>
-              <input type="text" [(ngModel)]="profileService.profile().address.street">
+              <input type="text" [(ngModel)]="profileDraft.address.street">
             </div>
             <div class="form-group">
               <label>City</label>
-              <input type="text" [(ngModel)]="profileService.profile().address.city">
+              <input type="text" [(ngModel)]="profileDraft.address.city">
             </div>
             <div class="form-group">
               <label>State</label>
-              <input type="text" [(ngModel)]="profileService.profile().address.state">
+              <input type="text" [(ngModel)]="profileDraft.address.state">
             </div>
             <div class="form-group">
               <label>ZIP Code</label>
-              <input type="text" [(ngModel)]="profileService.profile().address.zipCode">
+              <input type="text" [(ngModel)]="profileDraft.address.zipCode">
             </div>
             <div class="form-group">
               <label>Country</label>
-              <input type="text" [(ngModel)]="profileService.profile().address.country">
+              <input type="text" [(ngModel)]="profileDraft.address.country">
             </div>
           </div>
-          <button class="save-btn" (click)="updateAddress()">Save Address</button>
+          <button class="save-btn" (click)="updateAddress()" [disabled]="profileService.isSaving()">
+            {{ profileService.isSaving() ? 'Saving...' : 'Save Address' }}
+          </button>
         </div>
       </div>
     }
@@ -85,22 +97,22 @@
               <p class="pref-label">Dark Theme</p>
               <p class="pref-desc">Use dark mode for the interface</p>
             </div>
-            <button class="toggle-btn" [class.active]="profileService.profile().preferences.theme === 'dark'" (click)="setTheme('dark')">Dark</button>
+            <button class="toggle-btn" [class.active]="profileDraft.preferences.theme === 'dark'" (click)="setTheme('dark')" [disabled]="profileService.isSaving()">Dark</button>
           </div>
           <div class="preference-item">
             <div>
               <p class="pref-label">Light Theme</p>
               <p class="pref-desc">Use light mode for the interface</p>
             </div>
-            <button class="toggle-btn" [class.active]="profileService.profile().preferences.theme === 'light'" (click)="setTheme('light')">Light</button>
+            <button class="toggle-btn" [class.active]="profileDraft.preferences.theme === 'light'" (click)="setTheme('light')" [disabled]="profileService.isSaving()">Light</button>
           </div>
           <div class="preference-item">
             <div>
               <p class="pref-label">Notifications</p>
               <p class="pref-desc">Receive order and promo updates</p>
             </div>
-            <button class="toggle-btn" [class.active]="profileService.profile().preferences.notifications" (click)="toggleNotification()">
-              {{ profileService.profile().preferences.notifications ? 'On' : 'Off' }}
+            <button class="toggle-btn" [class.active]="profileDraft.preferences.notifications" (click)="toggleNotification()" [disabled]="profileService.isSaving()">
+              {{ profileDraft.preferences.notifications ? 'On' : 'Off' }}
             </button>
           </div>
         </div>
@@ -108,9 +120,9 @@
     }
   }
 
-  @if (!profileService.isLoading() && !profileService.profile()) {
+  @if (!profileService.isLoading() && !profileDraft) {
     <div class="empty-state">
-      <p>Could not load profile.</p>
+      <p>Could not load profile. The backend needs to provide the profile API first.</p>
     </div>
   }
 </div>

@@ -70,12 +70,49 @@ export interface WidgetConfig {
 }
 
 export type DashboardRole = 'USER' | 'CORPORATE' | 'ADMIN';
+export type DashboardRange = '7d' | '30d' | '90d';
+
+export interface DashboardInsight {
+  label: string;
+  value: string;
+  detail: string;
+  status?: 'good' | 'warning' | 'danger' | 'neutral';
+}
+
+export interface DashboardAlert {
+  title: string;
+  detail: string;
+  severity: 'info' | 'warning' | 'danger';
+}
+
+export interface CustomerSegment {
+  name: string;
+  customers: number;
+  averageSpend: number;
+  satisfaction: number;
+}
+
+export interface StoreComparisonItem {
+  storeName: string;
+  revenue: number;
+  orders: number;
+  rating: number;
+}
+
+export interface AuditActivity {
+  actor: string;
+  action: string;
+  date: string;
+  severity: 'info' | 'warning' | 'danger';
+}
 
 export interface UserDashboardDto {
   spending: SpendingOverview;
   spendingTrend: ChartWidgetData;
   recentOrders: RecentOrder[];
   stats: StatWidgetData[];
+  personalInsights?: DashboardInsight[];
+  shipmentAlerts?: DashboardAlert[];
 }
 
 export interface SpendingOverview {
@@ -93,6 +130,10 @@ export interface CorporateDashboardDto {
   revenueChart: ChartWidgetData;
   topProducts: TopProductsWidgetData;
   categoryDistribution: ChartWidgetData;
+  inventoryAlerts?: DashboardAlert[];
+  customerSegments?: CustomerSegment[];
+  fulfillmentInsights?: DashboardInsight[];
+  reviewInsights?: DashboardInsight[];
 }
 
 export interface TopProductsData {
@@ -108,6 +149,9 @@ export interface AdminDashboardDto {
   platformRevenueChart: ChartWidgetData;
   userGrowthChart: ChartWidgetData;
   categoryDistribution: ChartWidgetData;
+  storeComparisons?: StoreComparisonItem[];
+  auditActivities?: AuditActivity[];
+  systemInsights?: DashboardInsight[];
 }
 
 export type DashboardData = UserDashboardDto | CorporateDashboardDto | AdminDashboardDto;

@@ -29,6 +29,13 @@ export class LoginPage {
         localStorage.setItem('refreshToken', response.refreshToken);
         localStorage.setItem('role', response.role);
         localStorage.setItem('username', response.name);
+        localStorage.setItem('email', response.email || this.email);
+        if (response.userId !== undefined && response.userId !== null) {
+          localStorage.setItem('userId', String(response.userId));
+        }
+        if (response.storeId !== undefined && response.storeId !== null) {
+          localStorage.setItem('storeId', String(response.storeId));
+        }
 
         this.router.navigate(['/dashboard']);
       },
@@ -44,6 +51,9 @@ export class LoginPage {
     localStorage.setItem('refreshToken', 'demo-refresh');
     localStorage.setItem('role', 'CORPORATE');
     localStorage.setItem('username', 'Demo User');
+    localStorage.setItem('email', 'demo@example.com');
+    localStorage.setItem('userId', '1');
+    localStorage.setItem('storeId', '1042');
 
     this.router.navigate(['/dashboard']);
   }
