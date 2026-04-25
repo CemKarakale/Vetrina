@@ -1,0 +1,12 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: ecommerce-db
+    ports:
+      - "3307:3306" # SOL TARAFI 3307 YAPTIK
+    environment:
+      MYSQL_DATABASE: ecommerce_db
+      MYSQL_ROOT_PASSWORD: root
+    command: --lower_case_table_names=1
+    volumes:
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
