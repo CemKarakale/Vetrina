@@ -28,9 +28,7 @@
 
       <div class="orders-actions">
         <span class="role-badge">{{ userRole() }}</span>
-        @if (isOperationsUser()) {
-          <button type="button" class="export-btn" (click)="exportOrders()">Export CSV</button>
-        }
+        <button type="button" class="export-btn" (click)="exportOrders()">Export CSV</button>
       </div>
     </section>
 
@@ -167,6 +165,15 @@
 
                 <div class="detail-actions">
                   <button type="button" class="details-btn" (click)="goToDetails(order.id)">View Details</button>
+                  @if (isOperationsUser() && getNextFulfillmentStatus(order.status)) {
+                    <button
+                      type="button"
+                      class="fulfillment-btn"
+                      [disabled]="updatingOrderId() === order.id"
+                      (click)="advanceFulfillment(order, $event)">
+                      {{ updatingOrderId() === order.id ? 'Updating...' : getFulfillmentActionLabel(order) }}
+                    </button>
+                  }
                   @if (canCancelOrder(order)) {
                     <button
                       type="button"

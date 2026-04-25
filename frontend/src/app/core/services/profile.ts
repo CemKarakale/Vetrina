@@ -106,6 +106,9 @@ export class ProfileService {
     const normalized = this.normalizeProfile(data);
     this.profile.set(normalized);
     localStorage.setItem(this.getCacheKey(), JSON.stringify(normalized));
+    if (normalized.name) localStorage.setItem('username', normalized.name);
+    if (normalized.email) localStorage.setItem('email', normalized.email);
+    window.dispatchEvent(new CustomEvent('profile-updated', { detail: normalized }));
   }
 
   private loadCachedProfile() {

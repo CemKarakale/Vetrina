@@ -13,6 +13,12 @@ import { SettingsPage } from './features/settings/pages/settings-page/settings-p
 import { ProfilePage } from './features/settings/pages/profile-page/profile-page';
 import { CartPage } from './features/cart/pages/cart-page/cart-page';
 import { ChatPage } from './features/chat/pages/chat-page/chat-page';
+import { AdminUsersPage } from './features/admin/pages/admin-users-page/admin-users-page';
+import { AdminStoresPage } from './features/admin/pages/admin-stores-page/admin-stores-page';
+import { AdminCategoriesPage } from './features/admin/pages/admin-categories-page/admin-categories-page';
+import { AdminSettingsPage } from './features/admin/pages/admin-settings-page/admin-settings-page';
+import { AdminAuditLogsPage } from './features/admin/pages/admin-audit-logs-page/admin-audit-logs-page';
+import { AdminReportsPage } from './features/admin/pages/admin-reports-page/admin-reports-page';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -29,5 +35,11 @@ export const routes: Routes = [
     { path: 'profile', component: ProfilePage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
     { path: 'cart', component: CartPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'USER'] } },
     { path: 'ai-assistant', component: ChatPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
+    { path: 'admin/users', component: AdminUsersPage, canActivate: [authGuard], data: { roles: ['ADMIN'] } },
+    { path: 'admin/stores', component: AdminStoresPage, canActivate: [authGuard], data: { roles: ['ADMIN'] } },
+    { path: 'admin/categories', component: AdminCategoriesPage, canActivate: [authGuard], data: { roles: ['ADMIN'] } },
+    { path: 'admin/settings', component: AdminSettingsPage, canActivate: [authGuard], data: { roles: ['ADMIN'] } },
+    { path: 'admin/audit-logs', component: AdminAuditLogsPage, canActivate: [authGuard], data: { roles: ['ADMIN'] } },
+    { path: 'admin/reports', component: AdminReportsPage, canActivate: [authGuard], data: { roles: ['ADMIN'] } },
     { path: '**', redirectTo: 'login' }
 ];

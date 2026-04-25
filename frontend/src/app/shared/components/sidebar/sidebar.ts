@@ -37,6 +37,12 @@ export class Sidebar implements OnInit {
       { icon: 'CU', label: 'Customers', path: '/customers', roles: ['ADMIN', 'CORPORATE'] },
       { icon: 'ST', label: 'Store Settings', path: '/settings', roles: ['ADMIN', 'CORPORATE'] },
       { icon: 'RV', label: 'Reviews', path: '/reviews', roles: ['ADMIN', 'CORPORATE', 'USER'] },
+      { icon: 'US', label: 'Admin Users', path: '/admin/users', roles: ['ADMIN'] },
+      { icon: 'AS', label: 'Admin Stores', path: '/admin/stores', roles: ['ADMIN'] },
+      { icon: 'TX', label: 'Categories', path: '/admin/categories', roles: ['ADMIN'] },
+      { icon: 'CF', label: 'System Settings', path: '/admin/settings', roles: ['ADMIN'] },
+      { icon: 'LG', label: 'Audit Logs', path: '/admin/audit-logs', roles: ['ADMIN'] },
+      { icon: 'RP', label: 'Store Reports', path: '/admin/reports', roles: ['ADMIN'] },
     ];
 
     this.menuItems = allMenuItems.filter(item => item.roles.includes(role));

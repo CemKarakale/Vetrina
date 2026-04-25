@@ -1,0 +1,48 @@
+<div class="admin-page">
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Store Approval</h1>
+      <p>Open, close, and suspend marketplace stores.</p>
+    </div>
+    <button class="secondary-btn" type="button" disabled title="Backend needs POST /api/admin/stores first">Add Store</button>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="admin-alert">{{ errorMessage() }}</div>
+  }
+
+  <section class="admin-toolbar">
+    <input type="search" placeholder="Search stores..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+    <select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+      <option value="">All statuses</option>
+      <option value="ACTIVE">Active</option>
+      <option value="CLOSED">Closed</option>
+      <option value="SUSPENDED">Suspended</option>
+    </select>
+  </section>
+
+  @if (isLoading()) {
+    <div class="admin-empty">Loading stores...</div>
+  } @else {
+    <section class="admin-table">
+      <div class="admin-row admin-head">
+        <span>Store</span><span>Owner</span><span>Status</span><span>Products</span><span>Orders</span><span>Actions</span>
+      </div>
+      @for (store of filteredStores(); track store.id) {
+        <div class="admin-row">
+          <strong>{{ store.name }}</strong>
+          <span>{{ store.ownerName }}<br><small>{{ store.ownerEmail }}</small></span>
+          <span class="pill" [class.warning]="store.status === 'SUSPENDED'">{{ store.status }}</span>
+          <span>{{ store.productCount || 0 }}</span>
+          <span>{{ store.orderCount || 0 }}</span>
+          <div class="row-actions">
+            <button type="button" (click)="setStatus(store, 'ACTIVE')">Open</button>
+            <button type="button" (click)="setStatus(store, 'CLOSED')">Close</button>
+            <button type="button" class="danger" (click)="setStatus(store, 'SUSPENDED')">Suspend</button>
+          </div>
+        </div>
+      }
+    </section>
+  }
+</div>

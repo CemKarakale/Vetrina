@@ -85,7 +85,9 @@ export class ProfilePage implements OnInit {
         this.profileDraft = this.cloneProfile(profile);
         this.successMessage.set(message);
       },
-      error: () => {}
+      error: () => {
+        this.successMessage.set('');
+      }
     });
   }
 
@@ -98,7 +100,9 @@ export class ProfilePage implements OnInit {
         this.profileDraft = this.cloneProfile(profile);
         this.successMessage.set(message);
       },
-      error: () => {}
+      error: () => {
+        this.successMessage.set('');
+      }
     });
   }
 

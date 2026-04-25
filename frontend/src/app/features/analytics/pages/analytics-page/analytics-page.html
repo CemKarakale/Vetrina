@@ -5,6 +5,19 @@
     <p>Review order value, returns, revenue, and product category performance.</p>
   </div>
 
+  <section class="date-range-bar">
+    <div class="filter-group">
+      <label>From</label>
+      <input type="date" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event)">
+    </div>
+    <div class="filter-group">
+      <label>To</label>
+      <input type="date" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event)">
+    </div>
+    <button type="button" class="primary-btn" (click)="applyDateRange()">Apply</button>
+    <button type="button" class="secondary-btn" (click)="clearDateRange()">Clear</button>
+  </section>
+
   @if (isLoading()) {
     <div class="loading-state">
       <div class="spinner"></div>
@@ -20,6 +33,20 @@
     }
 
     <div class="kpi-cards">
+      <div class="card">
+        <div class="card-info">
+          <p>Total Revenue</p>
+          <h3>{{ analyticsData()?.totalRevenue | currency:'USD':'symbol':'1.0-0' }}</h3>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-info">
+          <p>Total Orders</p>
+          <h3>{{ analyticsData()?.totalOrders | number }}</h3>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-info">
           <p>Return Rate</p>
@@ -44,5 +71,83 @@
         <app-chart-widget [data]="categoryChart()"></app-chart-widget>
       </div>
     </div>
+
+    <section class="drilldown-panel">
+      <div class="panel-header">
+        <div>
+          <h2>Revenue drill-down</h2>
+          <p>Inspect revenue by period, category, or top products.</p>
+        </div>
+        <div class="segmented-control">
+          <button type="button" [class.active]="drilldownType() === 'revenue'" (click)="drilldownType.set('revenue')">Period</button>
+          <button type="button" [class.active]="drilldownType() === 'category'" (click)="drilldownType.set('category')">Category</button>
+          <button type="button" [class.active]="drilldownType() === 'products'" (click)="drilldownType.set('products')">Products</button>
+        </div>
+      </div>
+
+      @if (drilldownType() === 'revenue') {
+        <div class="data-table">
+          <div class="table-row table-head">
+            <span>Period</span>
+            <span>Revenue</span>
+            <span>Orders</span>
+            <span>AOV</span>
+          </div>
+          @for (row of revenueRows(); track row.label) {
+            <div class="table-row">
+              <strong>{{ row.label }}</strong>
+              <span>{{ row.revenue | currency:'USD':'symbol':'1.0-0' }}</span>
+              <span>{{ row.orders | number }}</span>
+              <span>{{ row.averageOrderValue | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      @if (drilldownType() === 'category') {
+        <div class="data-table">
+          <div class="table-row table-head">
+            <span>Category</span>
+            <span>Share</span>
+            <span>Revenue</span>
+            <span>Orders</span>
+          </div>
+          @for (row of categoryRows(); track row.label) {
+            <div class="table-row">
+              <strong>{{ row.label }}</strong>
+              <span>{{ row.percentage | number:'1.0-1' }}%</span>
+              <span>{{ row.revenue ? (row.revenue | currency:'USD':'symbol':'1.0-0') : '-' }}</span>
+              <span>{{ row.orders | number }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      @if (drilldownType() === 'products') {
+        @if (productRows().length) {
+          <div class="data-table">
+            <div class="table-row table-head">
+              <span>Product</span>
+              <span>Sales</span>
+              <span>Revenue</span>
+              <span>Product ID</span>
+            </div>
+            @for (row of productRows(); track row.id || row.name) {
+              <div class="table-row">
+                <strong>{{ row.name }}</strong>
+                <span>{{ row.sales || row.quantitySold || '-' }}</span>
+                <span>{{ row.revenue | currency:'USD':'symbol':'1.0-0' }}</span>
+                <span>{{ row.id || '-' }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <h2>No product revenue rows</h2>
+            <p>The analytics response does not include topProducts, and dashboard top-products could not be loaded.</p>
+          </div>
+        }
+      }
+    </section>
   }
 </div>

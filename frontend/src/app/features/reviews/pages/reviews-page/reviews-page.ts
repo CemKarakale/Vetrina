@@ -17,6 +17,8 @@ export class ReviewsPage implements OnInit {
   isLoading = signal<boolean>(true);
   errorMessage = signal<string>('');
   replyModalId = signal<string | null>(null);
+  isReplying = signal<boolean>(false);
+  deletingReviewId = signal<number | null>(null);
 
   selectedStars = signal<number | null>(null);
   selectedProduct = signal<string | null>(null);
@@ -110,8 +112,22 @@ export class ReviewsPage implements OnInit {
   submitReply(response: string) {
     if (!response) return;
     const targetId = this.replyModalId();
-    this.reviews.update(list => list.map(r => r.id.toString() === targetId ? { ...r, adminReply: response } : r));
-    this.replyModalId.set(null);
+    if (!targetId) return;
+
+    this.isReplying.set(true);
+    this.reviewService.replyToReview(Number(targetId), response).subscribe({
+      next: (updated: any) => {
+        this.reviews.update(list => list.map(r => r.id.toString() === targetId ? { ...r, ...updated, adminReply: updated.adminReply || response } : r));
+        this.isReplying.set(false);
+        this.replyModalId.set(null);
+      },
+      error: () => {
+        this.reviews.update(list => list.map(r => r.id.toString() === targetId ? { ...r, adminReply: response } : r));
+        this.errorMessage.set('Could not save reply to API. Reply is shown locally for this session.');
+        this.isReplying.set(false);
+        this.replyModalId.set(null);
+      }
+    });
   }
 
   canReply() {
@@ -128,7 +144,18 @@ export class ReviewsPage implements OnInit {
   }
 
   deleteReview(id: number) {
-    this.reviews.update(list => list.filter(r => r.id !== id));
+    this.deletingReviewId.set(id);
+    this.reviewService.deleteReview(id).subscribe({
+      next: () => {
+        this.reviews.update(list => list.filter(r => r.id !== id));
+        this.deletingReviewId.set(null);
+      },
+      error: () => {
+        this.reviews.update(list => list.filter(r => r.id !== id));
+        this.errorMessage.set('Could not delete review through API. Removed locally for this session.');
+        this.deletingReviewId.set(null);
+      }
+    });
   }
 
   postReview() {

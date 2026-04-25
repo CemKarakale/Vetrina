@@ -28,6 +28,7 @@ export class OrdersPage implements OnInit {
   orderShipments = signal<Record<number, any>>({});
   orderItems = signal<Record<number, any[]>>({});
   cancellingOrderId = signal<number | null>(null);
+  updatingOrderId = signal<number | null>(null);
   usingFallbackData = signal<boolean>(false);
   userRole = signal<string>('USER');
   isUser = computed(() => this.userRole() === 'USER');
@@ -281,6 +282,52 @@ export class OrdersPage implements OnInit {
     });
   }
 
+  advanceFulfillment(order: any, event?: Event) {
+    event?.stopPropagation();
+    if (!this.isOperationsUser() || this.updatingOrderId() === order.id) return;
+
+    const nextStatus = this.getNextFulfillmentStatus(order.status);
+    if (!nextStatus) return;
+
+    this.updatingOrderId.set(order.id);
+    this.errorMessage.set('');
+
+    if (this.usingFallbackData()) {
+      this.applyOrderStatus(order.id, nextStatus);
+      this.updatingOrderId.set(null);
+      return;
+    }
+
+    this.orderService.updateOrderStatus(order.id, nextStatus).subscribe({
+      next: (updated: any) => {
+        this.orders.update(current => current.map(currentOrder =>
+          currentOrder.id === order.id ? { ...currentOrder, ...updated, status: nextStatus } : currentOrder
+        ));
+        this.updatingOrderId.set(null);
+      },
+      error: () => {
+        this.errorMessage.set('Could not update fulfillment status. Please refresh and try again.');
+        this.updatingOrderId.set(null);
+      }
+    });
+  }
+
+  getNextFulfillmentStatus(status: string): string | null {
+    switch (this.normalizeStatus(status)) {
+      case 'PENDING': return 'CONFIRMED';
+      case 'CONFIRMED': return 'PROCESSING';
+      case 'PROCESSING': return 'SHIPPED';
+      case 'SHIPPED': return 'DELIVERED';
+      default: return null;
+    }
+  }
+
+  getFulfillmentActionLabel(order: any): string {
+    const nextStatus = this.getNextFulfillmentStatus(order?.status);
+    if (!nextStatus) return '';
+    return `Mark ${this.getStatusLabel(nextStatus)}`;
+  }
+
   canCancelOrder(order: any): boolean {
     const status = this.normalizeStatus(order?.status);
     return status === 'PENDING' || status === 'CONFIRMED' || status === 'PROCESSING';
@@ -327,12 +374,16 @@ export class OrdersPage implements OnInit {
   }
 
   private applyCancelledOrder(orderId: number) {
+    this.applyOrderStatus(orderId, 'CANCELLED');
+  }
+
+  private applyOrderStatus(orderId: number, status: string) {
     this.orders.update(current => current.map(order =>
-      order.id === orderId ? { ...order, status: 'CANCELLED' } : order
+      order.id === orderId ? { ...order, status } : order
     ));
     this.orderShipments.update(current => ({
       ...current,
-      [orderId]: { ...(current[orderId] || {}), status: 'CANCELLED' }
+      [orderId]: { ...(current[orderId] || {}), status }
     }));
   }
 

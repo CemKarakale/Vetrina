@@ -100,6 +100,7 @@
 .export-btn,
 .clear-btn,
 .details-btn,
+.fulfillment-btn,
 .cancel-btn {
   border-radius: 6px;
   font-weight: 700;
@@ -123,6 +124,7 @@
 .export-btn,
 .clear-btn,
 .details-btn,
+.fulfillment-btn,
 .cancel-btn {
   min-height: 40px;
   padding: 10px 14px;
@@ -130,6 +132,17 @@
   font: inherit;
   font-size: 13px;
   transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.fulfillment-btn {
+  border: 1px solid #59756f;
+  color: #234f4f;
+  background: #d7ebe7;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
 }
 
 .summary-strip {

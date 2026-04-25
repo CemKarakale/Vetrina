@@ -21,6 +21,10 @@ export class Header implements OnInit {
   ngOnInit() {
     // Get the stored username from login
     this.userName = this.authService.getUsername() || 'User';
+    window.addEventListener('profile-updated', ((event: Event) => {
+      const profile = (event as CustomEvent).detail;
+      this.userName = profile?.name || this.authService.getUsername() || 'User';
+    }) as EventListener);
 
     // Update page title based on current route
     this.router.events.pipe(

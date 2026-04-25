@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +9,10 @@ export class AnalyticsService {
 
   constructor(private http: HttpClient) {}
 
-  getOverview() {
-    return this.http.get<any>(this.apiUrl);
+  getOverview(from?: string, to?: string) {
+    let params = new HttpParams();
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    return this.http.get<any>(this.apiUrl, { params });
   }
 }

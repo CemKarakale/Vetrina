@@ -19,9 +19,15 @@
 
   @if (!isLoading() && errorMessage()) {
     <div class="error-banner">
-      <span>⚠️</span>
+      <span>!</span>
       <p>{{ errorMessage() }}</p>
-      <span class="muted-text">Showing local demonstration data</span>
+    </div>
+  }
+
+  @if (!isLoading() && successMessage()) {
+    <div class="success-banner">
+      <span>Saved</span>
+      <p>{{ successMessage() }}</p>
     </div>
   }
 
@@ -30,35 +36,35 @@
       <div class="settings-card">
         <h3>General Information</h3>
         <p class="card-desc">Update your store's basic profile details.</p>
-        
+
         <div class="form-grid">
           <div class="form-group">
             <label>Store Name</label>
-            <input type="text" [value]="settings()?.storeName" placeholder="Enter store name">
+            <input type="text" [ngModel]="settings()?.storeName" (ngModelChange)="updateSetting('storeName', $event)" placeholder="Enter store name">
           </div>
-          
+
           <div class="form-group">
             <label>Contact Email</label>
-            <input type="email" [value]="settings()?.email" placeholder="store@example.com">
+            <input type="email" [ngModel]="settings()?.email" (ngModelChange)="updateSetting('email', $event)" placeholder="store@example.com">
           </div>
-          
+
           <div class="form-group">
             <label>Store Category</label>
-            <input type="text" [value]="settings()?.category" placeholder="E.g. Electronics, Apparel">
+            <input type="text" [ngModel]="settings()?.category" (ngModelChange)="updateSetting('category', $event)" placeholder="E.g. Electronics, Apparel">
           </div>
-          
+
           <div class="form-group">
             <label>Store Status</label>
-            <select [value]="settings()?.status">
+            <select [ngModel]="settings()?.status" (ngModelChange)="updateSetting('status', $event)">
               <option value="Open">Open (Accepting Orders)</option>
               <option value="Closed">Closed (Maintenance)</option>
               <option value="Vacation">Vacation Mode</option>
             </select>
           </div>
-          
+
           <div class="form-group full-width">
             <label>Store Description</label>
-            <textarea rows="3" placeholder="Briefly describe your store...">{{ settings()?.description }}</textarea>
+            <textarea rows="3" [ngModel]="settings()?.description" (ngModelChange)="updateSetting('description', $event)" placeholder="Briefly describe your store..."></textarea>
           </div>
         </div>
       </div>
@@ -66,20 +72,20 @@
       <div class="settings-card">
         <h3>Localization</h3>
         <p class="card-desc">Configure your store's locale formatting.</p>
-        
+
         <div class="form-grid">
           <div class="form-group">
             <label>Currency</label>
-            <select [value]="settings()?.currency">
+            <select [ngModel]="settings()?.currency" (ngModelChange)="updateSetting('currency', $event)">
               <option value="USD ($)">USD ($)</option>
               <option value="EUR (€)">EUR (€)</option>
               <option value="GBP (£)">GBP (£)</option>
             </select>
           </div>
-          
+
           <div class="form-group">
             <label>Timezone</label>
-            <input type="text" [value]="settings()?.timezone" placeholder="America/New_York">
+            <input type="text" [ngModel]="settings()?.timezone" (ngModelChange)="updateSetting('timezone', $event)" placeholder="America/New_York">
           </div>
         </div>
       </div>

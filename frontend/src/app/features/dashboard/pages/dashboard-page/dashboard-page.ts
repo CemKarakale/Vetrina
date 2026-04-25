@@ -39,6 +39,7 @@ export class DashboardPage implements OnInit {
   adminDashboard = signal<AdminDashboardDto | null>(null);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string>('');
+  displayName = signal<string>('User');
 
   userRole = signal<DashboardRole>('USER');
   selectedRange = signal<DashboardRange>('30d');
@@ -54,6 +55,11 @@ export class DashboardPage implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.displayName.set(this.authService.getUsername() || 'User');
+    window.addEventListener('profile-updated', ((event: Event) => {
+      const profile = (event as CustomEvent).detail;
+      this.displayName.set(profile?.name || this.authService.getUsername() || 'User');
+    }) as EventListener);
     this.loadDashboard();
   }
 
@@ -122,8 +128,7 @@ export class DashboardPage implements OnInit {
   }
 
   getWelcomeMessage(): string {
-    const username = this.authService.getUsername() || 'User';
-    return `${this.getGreeting()}, ${username}`;
+    return `${this.getGreeting()}, ${this.displayName()}`;
   }
 
   getRoleDescription(): string {

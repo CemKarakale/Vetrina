@@ -32,10 +32,72 @@
 }
 
 .loading-state,
-.error-banner {
+.error-banner,
+.date-range-bar,
+.panel-header,
+.segmented-control {
   display: flex;
+}
+
+.loading-state,
+.error-banner {
   align-items: center;
   justify-content: center;
+}
+
+.date-range-bar {
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #c8dcda;
+  border-radius: 8px;
+  background: #f6fbfa;
+}
+
+.filter-group {
+  display: flex;
+  min-width: 180px;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    color: #59756f;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  input {
+    min-height: 40px;
+    padding: 9px 11px;
+    border: 1px solid #c8dcda;
+    border-radius: 6px;
+    color: #22312f;
+    background: #ffffff;
+    font: inherit;
+  }
+}
+
+.primary-btn,
+.secondary-btn {
+  min-height: 40px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primary-btn {
+  border: 1px solid #234f4f;
+  color: #ffffff;
+  background: #234f4f;
+}
+
+.secondary-btn {
+  border: 1px solid #c8dcda;
+  color: #48615c;
+  background: #ffffff;
 }
 
 .loading-state {
@@ -79,7 +141,7 @@
 
 .kpi-cards {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -115,6 +177,87 @@
   min-height: 340px;
 }
 
+.drilldown-panel {
+  padding: 20px;
+  border: 1px solid #c8dcda;
+  border-radius: 8px;
+  background: #f6fbfa;
+  box-shadow: 0 12px 28px rgba(35, 79, 79, 0.08);
+}
+
+.panel-header {
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  h2 {
+    margin: 0;
+    color: #17312c;
+    font-size: 18px;
+  }
+
+  p {
+    margin: 4px 0 0;
+    color: #74807c;
+    font-size: 13px;
+  }
+}
+
+.segmented-control {
+  border: 1px solid #c8dcda;
+  border-radius: 8px;
+  overflow: hidden;
+
+  button {
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 0;
+    border-right: 1px solid #c8dcda;
+    color: #48615c;
+    background: #ffffff;
+    cursor: pointer;
+    font-weight: 800;
+
+    &:last-child {
+      border-right: 0;
+    }
+
+    &.active {
+      color: #ffffff;
+      background: #234f4f;
+    }
+  }
+}
+
+.data-table {
+  display: grid;
+  gap: 8px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(90px, 1fr));
+  gap: 12px;
+  align-items: center;
+  padding: 11px 12px;
+  border: 1px solid #d8e8e4;
+  border-radius: 6px;
+  background: #ffffff;
+
+  &.table-head {
+    color: #59756f;
+    background: #edf6f4;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #17312c;
+  }
+}
+
 :host ::ng-deep {
   .chart-widget {
     height: 100%;
@@ -139,6 +282,18 @@
   .kpi-cards {
     grid-template-columns: 1fr;
   }
+
+  .date-range-bar,
+  .panel-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filter-group,
+  .primary-btn,
+  .secondary-btn {
+    width: 100%;
+  }
 }
 
 @media (max-width: 640px) {
@@ -149,5 +304,9 @@
   .error-banner {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .table-row {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

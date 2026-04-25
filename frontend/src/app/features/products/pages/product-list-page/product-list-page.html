@@ -1,12 +1,54 @@
 <div class="product-list-page">
   <div class="page-header">
-    <h2>Products</h2>
+    <div>
+      <p class="eyebrow">{{ isCorporateUser() ? 'Catalog management' : 'Product catalog' }}</p>
+      <h2>Products</h2>
+    </div>
     <div class="header-actions">
-      <button class="action-btn new-btn" (click)="openAddModal()">+ Add Product</button>
+      @if (isCorporateUser()) {
+        <button class="action-btn new-btn" (click)="openAddModal()">Add Product</button>
+      }
     </div>
   </div>
 
-  <!-- Filter Section -->
+  @if (isCorporateUser()) {
+    <section class="inventory-strip">
+      <article>
+        <span>Active SKUs</span>
+        <strong>{{ inventorySummary().total }}</strong>
+      </article>
+      <article>
+        <span>Total units</span>
+        <strong>{{ inventorySummary().units }}</strong>
+      </article>
+      <article class="warning">
+        <span>Low stock</span>
+        <strong>{{ inventorySummary().low }}</strong>
+      </article>
+      <article class="danger">
+        <span>Out of stock</span>
+        <strong>{{ inventorySummary().out }}</strong>
+      </article>
+    </section>
+
+    @if (lowStockProducts().length) {
+      <section class="low-stock-panel">
+        <div>
+          <h3>Low-stock alerts</h3>
+          <p>Products at or below their reorder threshold.</p>
+        </div>
+        <div class="low-stock-list">
+          @for (product of lowStockProducts(); track product.id) {
+            <button type="button" (click)="editProduct(product)">
+              <strong>{{ product.name }}</strong>
+              <span>{{ getStockQuantity(product) }} left</span>
+            </button>
+          }
+        </div>
+      </section>
+    }
+  }
+
   <div class="filter-bar">
     <div class="filter-group">
       <label>Category</label>
@@ -30,11 +72,24 @@
       <select [value]="sortBy()" (change)="sortBy.set($any($event.target).value)">
         <option value="name">Name</option>
         <option value="price">Price</option>
+        @if (isCorporateUser()) {
+          <option value="stock">Stock</option>
+        }
       </select>
     </div>
+    @if (isCorporateUser()) {
+      <div class="filter-group">
+        <label>Inventory</label>
+        <select [value]="stockFilter()" (change)="stockFilter.set($any($event.target).value)">
+          <option value="all">All Stock</option>
+          <option value="low">Low Stock</option>
+          <option value="out">Out of Stock</option>
+        </select>
+      </div>
+    }
     <div class="sort-buttons">
-      <button [class.active]="sortOrder() === 'asc'" (click)="sortOrder.set('asc')">↑</button>
-      <button [class.active]="sortOrder() === 'desc'" (click)="sortOrder.set('desc')">↓</button>
+      <button [class.active]="sortOrder() === 'asc'" (click)="sortOrder.set('asc')">Asc</button>
+      <button [class.active]="sortOrder() === 'desc'" (click)="sortOrder.set('desc')">Desc</button>
     </div>
     <button class="clear-btn" (click)="clearFilters()">Clear</button>
   </div>
@@ -48,7 +103,7 @@
 
   @if (!isLoading() && errorMessage()) {
     <div class="error-banner">
-      <span>⚠️</span>
+      <span>!</span>
       <p>{{ errorMessage() }}</p>
     </div>
   }
@@ -64,16 +119,28 @@
       @for (product of filteredProducts(); track product.id) {
         <div class="product-card">
           <div class="card-header">
-            <span class="category-badge">{{ product.categoryName }}</span>
+            <span class="category-badge">{{ product.categoryName || 'General' }}</span>
           </div>
-          
+
           <div class="card-body">
             <h3 class="product-title">{{ product.name }}</h3>
             <p class="product-price">${{ product.unitPrice }}</p>
-            <p class="product-store"><span class="store-icon">🏪</span> {{ product.storeName }}</p>
+            <p class="product-store">{{ product.storeName }}</p>
+            @if (isCorporateUser()) {
+              <div class="stock-row" [class.low]="isLowStock(product)" [class.out]="getStockQuantity(product) <= 0">
+                <span>{{ getStockStatus(product) }}</span>
+                <strong>{{ getStockQuantity(product) }} units</strong>
+              </div>
+            }
           </div>
           <div class="card-footer">
             <button class="details-btn" (click)="goToDetails(product.id)">View Details</button>
+            @if (isCorporateUser()) {
+              <button class="edit-btn" (click)="editProduct(product, $event)">Edit</button>
+              <button class="delete-btn" [disabled]="deletingProductId() === product.id" (click)="deleteProduct(product, $event)">
+                {{ deletingProductId() === product.id ? 'Deleting...' : 'Delete' }}
+              </button>
+            }
           </div>
         </div>
       }
@@ -85,26 +152,50 @@
   <div class="modal-overlay" (click)="closeAddModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>Add New Product</h3>
-        <button class="close-btn" (click)="closeAddModal()">×</button>
+        <h3>{{ editingProduct() ? 'Edit Product' : 'Add New Product' }}</h3>
+        <button class="close-btn" (click)="closeAddModal()">x</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
           <label>Product Name</label>
-          <input #nameInput type="text" placeholder="E.g. Smart Watch">
+          <input type="text" placeholder="E.g. Smart Watch" [ngModel]="productForm().name" (ngModelChange)="updateForm('name', $event)">
+        </div>
+        <div class="form-group">
+          <label>SKU</label>
+          <input type="text" placeholder="SKU-1001" [ngModel]="productForm().sku" (ngModelChange)="updateForm('sku', $event)">
         </div>
         <div class="form-group">
           <label>Category</label>
-          <input #categoryInput type="text" placeholder="E.g. Electronics">
+          <input type="text" placeholder="E.g. Electronics" [ngModel]="productForm().categoryName" (ngModelChange)="updateForm('categoryName', $event)">
+        </div>
+        <div class="form-group">
+          <label>Category ID</label>
+          <input type="number" min="1" [ngModel]="productForm().categoryId" (ngModelChange)="updateForm('categoryId', $event)">
         </div>
         <div class="form-group">
           <label>Price ($)</label>
-          <input #priceInput type="number" placeholder="0.00">
+          <input type="number" min="0" placeholder="0.00" [ngModel]="productForm().unitPrice" (ngModelChange)="updateForm('unitPrice', $event)">
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Stock</label>
+            <input type="number" min="0" [ngModel]="productForm().stockQuantity" (ngModelChange)="updateForm('stockQuantity', $event)">
+          </div>
+          <div class="form-group">
+            <label>Low-stock threshold</label>
+            <input type="number" min="0" [ngModel]="productForm().lowStockThreshold" (ngModelChange)="updateForm('lowStockThreshold', $event)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea rows="3" [ngModel]="productForm().description" (ngModelChange)="updateForm('description', $event)"></textarea>
         </div>
       </div>
       <div class="modal-footer">
         <button class="secondary-btn" (click)="closeAddModal()">Cancel</button>
-        <button class="primary-btn" (click)="saveProduct(nameInput.value, categoryInput.value, priceInput.value)">Add Product</button>
+        <button class="primary-btn" [disabled]="isSaving()" (click)="saveProduct()">
+          {{ isSaving() ? 'Saving...' : (editingProduct() ? 'Save Changes' : 'Add Product') }}
+        </button>
       </div>
     </div>
   </div>

@@ -81,7 +81,8 @@
   }
 }
 
-.error-banner {
+.error-banner,
+.success-banner {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -101,6 +102,12 @@
     font-size: 12px;
     opacity: 0.8;
   }
+}
+
+.success-banner {
+  border-color: #b8d8be;
+  color: #246b45;
+  background: #dff0e3;
 }
 
 .settings-container {
@@ -178,4 +185,3 @@
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
-

@@ -87,6 +87,79 @@
   }
 }
 
+.segment-strip,
+.behavior-strip {
+  display: grid;
+  gap: 14px;
+}
+
+.segment-strip {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  max-width: 1100px;
+
+  button {
+    padding: 16px;
+    border: 1px solid #c8dcda;
+    border-radius: 8px;
+    color: #22312f;
+    background: #f6fbfa;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+
+    &.active,
+    &:hover {
+      border-color: #234f4f;
+      background: #edf6f4;
+    }
+
+    span,
+    small {
+      display: block;
+      color: #74807c;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    strong {
+      display: block;
+      margin: 6px 0;
+      color: #17312c;
+      font-size: 24px;
+    }
+
+    small {
+      color: #59756f;
+      text-transform: none;
+    }
+  }
+}
+
+.behavior-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  article {
+    padding: 16px;
+    border: 1px solid #c8dcda;
+    border-radius: 8px;
+    background: #f6fbfa;
+
+    span {
+      display: block;
+      color: #74807c;
+      font-size: 13px;
+    }
+
+    strong {
+      display: block;
+      margin-top: 6px;
+      color: #17312c;
+      font-size: 24px;
+    }
+  }
+}
+
 .table-container {
   padding: 24px;
   border: 1px solid #c8dcda;
@@ -247,6 +320,27 @@
       letter-spacing: 0.04em;
     }
 
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+
+      div {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      strong {
+        color: #17312c;
+        font-size: 15px;
+      }
+
+      .membership-badge {
+        width: fit-content;
+      }
+    }
+
     .membership-badge {
       display: inline-block;
       margin-top: 4px;
@@ -291,3 +385,16 @@
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 900px) {
+  .behavior-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .segment-strip,
+  .modal-content .modal-body .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
