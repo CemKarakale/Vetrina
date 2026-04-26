@@ -1,5 +1,7 @@
 ﻿from decimal import Decimal
 
+import re
+
 LABELS = {
     "toplam_satis_tutari": "Toplam satis tutari",
     "siparis_sayisi": "Siparis sayisi",
@@ -11,6 +13,11 @@ LABELS = {
     "haftalik_gelir": "Haftalik gelir",
     "ay": "Ay",
     "durum": "Durum",
+    "siparis_durumu": "Siparis durumu",
+    "kargo_durumu": "Kargo durumu",
+    "kargo_tipi": "Kargo tipi",
+    "takip_numarasi": "Takip numarasi",
+    "tahmini_teslimat_tarihi": "Tahmini teslimat tarihi",
     "urun": "Urun",
     "urunler": "Urunler",
     "puan": "Puan",
@@ -33,10 +40,13 @@ STATUS_LABELS = {
     "PENDING": "Bekliyor",
     "CONFIRMED": "Onaylandi",
     "SHIPPED": "Kargoda",
+    "PROCESSING": "Hazirlaniyor",
+    "IN_TRANSIT": "Yolda",
     "DELIVERED": "Teslim edildi",
     "CANCELLED": "Iptal edildi",
     "CANCELED": "Iptal edildi",
     "REFUNDED": "Iade edildi",
+    "KARGO_BILGISI_YOK": "Kargo bilgisi yok",
 }
 
 
@@ -102,7 +112,7 @@ def format_list_results(result: list, question: str) -> str:
     for index, row in enumerate(result[:8], 1):
         if isinstance(row, dict):
             key_set = {str(key).lower() for key in row.keys()}
-            max_items = 5 if "siparis_id" in key_set else 3
+            max_items = 8 if "kargo_durumu" in key_set else 5 if "siparis_id" in key_set else 3
             items = cleaned_items(row)[:max_items]
             if not items:
                 items = [(format_column_name(k), format_value(k, v)) for k, v in list(row.items())[:2]]
@@ -172,6 +182,39 @@ def single_row_answer(row: dict) -> str:
     return "\n".join(f"{label}: {value}" for label, value in items)
 
 
+def shipment_status_answer(row: dict) -> str:
+    order_id = format_value("siparis_id", row.get("siparis_id"))
+    order_status = format_value("siparis_durumu", row.get("siparis_durumu"))
+    shipment_status = format_value("kargo_durumu", row.get("kargo_durumu"))
+    tracking_number = format_value("takip_numarasi", row.get("takip_numarasi"))
+    estimated_date = format_value("tahmini_teslimat_tarihi", row.get("tahmini_teslimat_tarihi"))
+
+    if str(row.get("kargo_durumu") or "").upper() == "KARGO_BILGISI_YOK":
+        return (
+            f"Son siparisiniz #{order_id} su anda {order_status}. "
+            "Bu siparis icin henuz kargo bilgisi veya takip numarasi olusturulmamis."
+        )
+
+    parts = [
+        f"Son siparisiniz #{order_id} icin kargo durumu: {shipment_status}.",
+        f"Siparis durumu: {order_status}.",
+    ]
+    if row.get("takip_numarasi"):
+        parts.append(f"Takip numarasi: {tracking_number}.")
+    if row.get("tahmini_teslimat_tarihi"):
+        parts.append(f"Tahmini teslimat tarihi: {estimated_date}.")
+    return " ".join(parts)
+
+
+def asks_for_multiple(question: str, result: list) -> bool:
+    q = (question or "").lower()
+    if len(result) > 1:
+        return True
+    if re.search(r"\b\d{1,2}\b", q):
+        return True
+    return any(word in q for word in ["liste", "list", "goster", "göster", "son bes", "son beş", "son uc", "son üç"])
+
+
 def analyze_result(question: str, sql: str, result: list, user_role: str, store_id: int | None) -> dict:
     if not result:
         return {
@@ -183,6 +226,13 @@ def analyze_result(question: str, sql: str, result: list, user_role: str, store_
     try:
         query_type = detect_query_type(question, result)
         first_row = result[0]
+
+        if len(result) == 1 and isinstance(first_row, dict) and "kargo_durumu" in {str(key).lower() for key in first_row.keys()} and not asks_for_multiple(question, result):
+            return {
+                "answer": shipment_status_answer(first_row),
+                "needs_visualization": False,
+                "raw_result": result,
+            }
 
         if len(result) == 1 and isinstance(first_row, dict):
             return {

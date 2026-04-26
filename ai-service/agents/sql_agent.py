@@ -1,4 +1,5 @@
 ﻿import unicodedata
+import re
 from dotenv import load_dotenv
 from services.llm_service import call_llm
 
@@ -36,9 +37,11 @@ Kurallar:
 2. stores tablosunda user_id yok, owner_id kullan.
 3. shipments tablosunda carrier yok, warehouse ve mode kullan.
 4. Status degerleri Ingilizce: PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED, REFUNDED.
-5. users.password_hash veya hassas alanlari asla sorgulama.
-6. Kolonlara okunabilir alias ver: toplam_satis_tutari, siparis_sayisi, gelir, ay, durum, urun.
-7. Tek sayi gereken sorgularda SELECT 1 dondurme; ilgili aggregate sorgusunu dondur.
+5. Kargo/gonderim/teslimat/takip sorularinda shipments tablosunu orders ile join et; s.status, tracking_number, estimated_delivery_date kullan.
+6. "son siparis", "son satin aldigim", "en son verdigim" gibi ifadelerde ORDER BY o.created_at DESC LIMIT kullan.
+7. users.password_hash veya hassas alanlari asla sorgulama.
+8. Kolonlara okunabilir alias ver: toplam_satis_tutari, siparis_sayisi, gelir, ay, durum, urun, siparis_durumu, kargo_durumu.
+9. Tek sayi gereken sorgularda SELECT 1 dondurme; ilgili aggregate sorgusunu dondur.
 """
 
     if user_role == "CORPORATE" and store_id:
@@ -82,10 +85,140 @@ def _product_scope_clause(user_role: str, store_id: int | None, alias: str = "p"
     return ""
 
 
+def _has_any(q: str, terms: list[str]) -> bool:
+    return any(term in q for term in terms)
+
+
+def _is_order_question(q: str) -> bool:
+    return _has_any(q, ["siparis", "order", "satin aldigim", "aldigim", "alisveris"])
+
+
+def _is_latest_question(q: str) -> bool:
+    return _has_any(q, ["son", "en son", "latest", "recent", "last"])
+
+
+def _is_shipment_question(q: str) -> bool:
+    return _has_any(q, [
+        "gonder",
+        "gonderme",
+        "gonderim",
+        "kargo",
+        "kargom",
+        "shipment",
+        "teslimat",
+        "takip",
+        "tracking",
+    ])
+
+
+def _requested_order_status(q: str) -> str | None:
+    status_terms = {
+        "DELIVERED": ["delivered", "teslim", "teslim edilen", "teslim edilmis"],
+        "PENDING": ["pending", "bekliyor", "bekleyen"],
+        "CONFIRMED": ["confirmed", "onaylandi", "onaylanan"],
+        "SHIPPED": ["shipped", "kargoda", "kargoya verilen"],
+        "CANCELLED": ["cancelled", "canceled", "iptal", "iptal edilen"],
+        "REFUNDED": ["refunded", "iade", "iade edilen"],
+    }
+    for status, terms in status_terms.items():
+        if any(term in q for term in terms):
+            return status
+    return None
+
+
+def _requested_limit(q: str, default: int = 5, maximum: int = 20) -> int:
+    number_words = {
+        "bir": 1,
+        "iki": 2,
+        "uc": 3,
+        "dort": 4,
+        "bes": 5,
+        "alti": 6,
+        "yedi": 7,
+        "sekiz": 8,
+        "dokuz": 9,
+        "on": 10,
+        "one": 1,
+        "two": 2,
+        "three": 3,
+        "four": 4,
+        "five": 5,
+        "six": 6,
+        "seven": 7,
+        "eight": 8,
+        "nine": 9,
+        "ten": 10,
+    }
+    match = re.search(r"\b(?:son|last|latest)\s+(\d{1,2})\b", q)
+    if not match:
+        match = re.search(r"\b(\d{1,2})\s+(?:siparis|order)\b", q)
+    if match:
+        return min(max(int(match.group(1)), 1), maximum)
+
+    word_pattern = "|".join(number_words.keys())
+    word_match = re.search(rf"\b(?:son|last|latest)\s+({word_pattern})\b", q)
+    if not word_match:
+        word_match = re.search(rf"\b({word_pattern})\s+(?:siparis|order)\b", q)
+    if word_match:
+        return min(max(number_words[word_match.group(1)], 1), maximum)
+
+    return default
+
+
+def _has_explicit_limit(q: str) -> bool:
+    return _requested_limit(q, default=0) > 0
+
+
+def _order_list_sql(user_id: int, where_extra: str = "", limit: int = 5) -> str:
+    return f"""
+SELECT o.id AS siparis_id,
+       COALESCE(SUBSTRING(GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ', '), 1, 70), 'Urun bulunamadi') AS urunler,
+       o.status AS durum,
+       o.created_at AS tarih,
+       o.grand_total AS toplam_tutar
+FROM orders o
+LEFT JOIN order_items oi ON oi.order_id = o.id
+LEFT JOIN products p ON p.id = oi.product_id
+WHERE o.user_id = {user_id}
+  {where_extra}
+GROUP BY o.id, o.status, o.created_at, o.grand_total
+ORDER BY o.created_at DESC
+LIMIT {limit}
+""".strip()
+
+
+def _shipment_list_sql(user_role: str, store_id: int | None, user_id: int, where_extra: str = "", limit: int = 5) -> str:
+    scope = f"AND o.store_id = {store_id}" if user_role == "CORPORATE" and store_id else f"AND o.user_id = {user_id}"
+    return f"""
+SELECT o.id AS siparis_id,
+       COALESCE(SUBSTRING(GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ', '), 1, 70), 'Urun bulunamadi') AS urunler,
+       o.status AS siparis_durumu,
+       COALESCE(s.status, 'KARGO_BILGISI_YOK') AS kargo_durumu,
+       s.mode AS kargo_tipi,
+       s.tracking_number AS takip_numarasi,
+       s.estimated_delivery_date AS tahmini_teslimat_tarihi,
+       o.created_at AS tarih
+FROM orders o
+LEFT JOIN shipments s ON s.order_id = o.id
+LEFT JOIN order_items oi ON oi.order_id = o.id
+LEFT JOIN products p ON p.id = oi.product_id
+WHERE 1=1
+  {scope}
+  {where_extra}
+GROUP BY o.id, o.status, s.status, s.mode, s.tracking_number, s.estimated_delivery_date, o.created_at
+ORDER BY o.created_at DESC
+LIMIT {limit}
+""".strip()
+
+
 def deterministic_sql(question: str, user_role: str, store_id: int | None, user_id: int) -> str | None:
     q = _normalize_question(question)
     order_scope = _scope_clause(user_role, store_id, user_id, "o")
     product_scope = _product_scope_clause(user_role, store_id, "p")
+    requested_status = _requested_order_status(q)
+    is_order_question = _is_order_question(q)
+    is_latest_question = _is_latest_question(q)
+    is_shipment_question = _is_shipment_question(q)
 
     if any(phrase in q for phrase in ["en pahali urun", "en pahali", "most expensive", "highest price"]):
         return f"""
@@ -174,30 +307,19 @@ GROUP BY seq.n, ay
 ORDER BY seq.n DESC
 """.strip()
 
-    if user_role == "INDIVIDUAL" and "siparis" in q and "durum" in q and any(phrase in q for phrase in ["en son", "son verdigim", "latest"]):
-        return f"""
-SELECT o.id AS siparis_id,
-       COALESCE(SUBSTRING(GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ', '), 1, 70), 'Urun bulunamadi') AS urunler,
-       o.status AS durum,
-       o.created_at AS tarih,
-       o.grand_total AS toplam_tutar
-FROM orders o
-LEFT JOIN order_items oi ON oi.order_id = o.id
-LEFT JOIN products p ON p.id = oi.product_id
-WHERE o.user_id = {user_id}
-GROUP BY o.id, o.status, o.created_at, o.grand_total
-ORDER BY o.created_at DESC
-LIMIT 1
-""".strip()
+    if is_order_question and is_shipment_question and any(word in q for word in ["durum", "status", "nerede", "takip", "liste", "list", "goster", "getir", "ne"]):
+        return _shipment_list_sql(user_role, store_id, user_id, "", 1 if is_latest_question and not _has_explicit_limit(q) else _requested_limit(q))
 
-    if "siparis" in q and any(word in q for word in ["durum", "dagilim", "status"]):
-        return f"""
-SELECT o.status AS durum, COUNT(*) AS siparis_sayisi
-FROM orders o
-WHERE 1=1 {order_scope}
-GROUP BY o.status
-ORDER BY siparis_sayisi DESC
-""".strip()
+    if is_shipment_question and any(word in q for word in ["kargo", "kargom", "shipment", "gonder", "teslimat", "takip", "nerede"]):
+        singular = _has_any(q, ["kargom", "nerede", "ne durumda", "takip numarasi"]) and not _has_explicit_limit(q)
+        return _shipment_list_sql(user_role, store_id, user_id, "", 1 if singular else _requested_limit(q))
+
+    if user_role == "INDIVIDUAL" and is_order_question and requested_status and any(word in q for word in ["liste", "list", "goster", "getir", "son", "last", "latest"]):
+        return _order_list_sql(user_id, f"AND o.status = '{requested_status}'", _requested_limit(q))
+
+    if user_role == "INDIVIDUAL" and is_order_question and is_latest_question:
+        limit = 1 if any(word in q for word in ["status", "durum", "ne"]) and not _has_explicit_limit(q) else _requested_limit(q)
+        return _order_list_sql(user_id, "", limit)
 
     if any(phrase in q for phrase in ["en cok satan", "en cok satilan", "en cok satilan urun", "top selling"]):
         limit = 1 if any(phrase in q for phrase in ["hangisi", "which", "tek", "birinci"]) else 5
@@ -213,32 +335,16 @@ ORDER BY satis_adedi DESC
 LIMIT {limit}
 """.strip()
 
-    if user_role == "INDIVIDUAL" and any(phrase in q for phrase in ["son siparis", "recent order", "latest order"]):
-        return f"""
-SELECT o.id AS siparis_id,
-       COALESCE(SUBSTRING(GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ', '), 1, 70), 'Urun bulunamadi') AS urunler,
-       o.status AS durum,
-       o.created_at AS tarih,
-       o.grand_total AS toplam_tutar
-FROM orders o
-LEFT JOIN order_items oi ON oi.order_id = o.id
-LEFT JOIN products p ON p.id = oi.product_id
-WHERE o.user_id = {user_id}
-GROUP BY o.id, o.status, o.created_at, o.grand_total
-ORDER BY o.created_at DESC
-LIMIT 5
-""".strip()
-
-    if user_role == "INDIVIDUAL" and "siparis" in q and any(word in q for word in ["durum", "dagilim", "status"]):
+    if is_order_question and any(word in q for word in ["durum", "dagilim", "status"]) and not requested_status and not is_shipment_question and not any(word in q for word in ["son", "last", "latest", "liste", "list"]):
         return f"""
 SELECT o.status AS durum, COUNT(*) AS siparis_sayisi
 FROM orders o
-WHERE o.user_id = {user_id}
+WHERE 1=1 {order_scope}
 GROUP BY o.status
 ORDER BY siparis_sayisi DESC
 """.strip()
 
-    if user_role == "INDIVIDUAL" and "siparis" in q and any(word in q for word in ["kac", "sayi", "sayisi", "adet", "count"]):
+    if user_role == "INDIVIDUAL" and is_order_question and any(word in q for word in ["kac", "sayi", "sayisi", "adet", "count"]):
         return f"""
 SELECT COUNT(*) AS siparis_sayisi
 FROM orders o
@@ -253,20 +359,7 @@ WHERE o.user_id = {user_id}
 """.strip()
 
     if user_role == "INDIVIDUAL" and any(phrase in q for phrase in ["teslim edilen siparis", "delivered order"]):
-        return f"""
-SELECT o.id AS siparis_id,
-       COALESCE(SUBSTRING(GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ', '), 1, 70), 'Urun bulunamadi') AS urunler,
-       o.created_at AS tarih,
-       o.grand_total AS toplam_tutar
-FROM orders o
-LEFT JOIN order_items oi ON oi.order_id = o.id
-LEFT JOIN products p ON p.id = oi.product_id
-WHERE o.user_id = {user_id}
-  AND o.status = 'DELIVERED'
-GROUP BY o.id, o.created_at, o.grand_total
-ORDER BY o.created_at DESC
-LIMIT 5
-""".strip()
+        return _order_list_sql(user_id, "AND o.status = 'DELIVERED'", _requested_limit(q))
 
     if user_role == "INDIVIDUAL" and any(phrase in q for phrase in ["iptal edilen siparis", "cancelled order", "canceled order"]):
         if any(phrase in q for phrase in ["var mi", "varmi", "any"]):

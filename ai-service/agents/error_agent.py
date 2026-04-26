@@ -8,8 +8,8 @@ Tablo şeması:
 - products (id, store_id, category_id, name, description, sku, unit_price, stock_quantity)
 - categories (id, parent_id, name)
 - orders (id, user_id, store_id, status, grand_total, created_at)
-- order_items (id, order_id, product_id, quantity, unit_price)
-- shipments (id, order_id, tracking_number, status, carrier)
+- order_items (id, order_id, product_id, quantity, price)
+- shipments (id, order_id, warehouse, mode, status, tracking_number, estimated_delivery_date)
 - reviews (id, user_id, product_id, star_rating, content, created_at)
 
 ÖNEMLİ: users tablosunda created_at kolonu vardır ama WHERE filtresinde dikkatli kullan.
