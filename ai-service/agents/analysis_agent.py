@@ -1,243 +1,264 @@
-import json
+﻿from decimal import Decimal
+
 import re
 
+LABELS = {
+    "toplam_satis_tutari": "Toplam satis tutari",
+    "siparis_sayisi": "Siparis sayisi",
+    "satis_adedi": "Satis adedi",
+    "stok_adedi": "Stok adedi",
+    "ortalama_urun_puani": "Ortalama urun puani",
+    "gelir": "Gelir",
+    "hafta": "Hafta",
+    "haftalik_gelir": "Haftalik gelir",
+    "ay": "Ay",
+    "durum": "Durum",
+    "siparis_durumu": "Siparis durumu",
+    "kargo_durumu": "Kargo durumu",
+    "kargo_tipi": "Kargo tipi",
+    "takip_numarasi": "Takip numarasi",
+    "tahmini_teslimat_tarihi": "Tahmini teslimat tarihi",
+    "urun": "Urun",
+    "urunler": "Urunler",
+    "puan": "Puan",
+    "yorum_sayisi": "Yorum sayisi",
+    "siparis_id": "Siparis",
+    "iptal_edilen_siparis_sayisi": "Iptal edilen siparis sayisi",
+    "toplam_tutar": "Toplam tutar",
+    "toplam_harcama": "Toplam harcama",
+    "tarih": "Tarih",
+    "yorum": "Yorum",
+    "name": "Ad",
+    "status": "Durum",
+    "grand_total": "Toplam tutar",
+    "quantity": "Adet",
+    "price": "Fiyat",
+    "star_rating": "Puan",
+}
+
+STATUS_LABELS = {
+    "PENDING": "Bekliyor",
+    "CONFIRMED": "Onaylandi",
+    "SHIPPED": "Kargoda",
+    "PROCESSING": "Hazirlaniyor",
+    "IN_TRANSIT": "Yolda",
+    "DELIVERED": "Teslim edildi",
+    "CANCELLED": "Iptal edildi",
+    "CANCELED": "Iptal edildi",
+    "REFUNDED": "Iade edildi",
+    "KARGO_BILGISI_YOK": "Kargo bilgisi yok",
+}
+
+
 def format_column_name(name: str) -> str:
-    name = name.replace('_', ' ')
+    key = str(name or "").strip()
+    normalized = key.lower().replace(" ", "_")
+    if normalized in LABELS:
+        return LABELS[normalized]
+    return normalized.replace("_", " ").title()
 
-    replacements = {
-        'id': 'ID',
-        'qty': 'Adet',
-        'qty order': 'Sipariş Adedi',
-        'total': 'Toplam',
-        'count': 'Sayı',
-        'sum': 'Toplam',
-        'avg': 'Ortalama',
-        'min': 'En Düşük',
-        'max': 'En Yüksek',
-        'name': 'Adı',
-        'yil': 'Yıl',
-        'ay': 'Ay',
-        'tarih': 'Tarih',
-        'tarihi': 'Tarihi',
-        'siparis': 'Sipariş',
-        'urun': 'Ürün',
-        'musteri': 'Müşteri',
-        'kullanici': 'Kullanıcı',
-        'magaza': 'Mağaza',
-        'satis': 'Satış',
-        'gelir': 'Gelir',
-        'kar': 'Kar',
-        'maliyet': 'Maliyet',
-        'stok': 'Stok',
-        'adet': 'Adet',
-        'fiyat': 'Fiyat',
-        'tutar': 'Tutar',
-        'tarih': 'Tarih',
-        'durum': 'Durum',
-        'status': 'Durum',
-        'olusturuldu': 'Oluşturuldu',
-        'guncellendi': 'Güncellendi',
-        'silindi': 'Silindi',
-        'price': 'Fiyat',
-        'quantity': 'Adet',
-        'amount': 'Tutar',
-        'order': 'Sipariş',
-        'product': 'Ürün',
-        'customer': 'Müşteri',
-        'store': 'Mağaza',
-        'created': 'Oluşturuldu',
-        'updated': 'Güncellendi',
-        'previous month': 'Önceki Ay',
-        'current month': 'Bu Ay',
-        'change': 'Değişim',
-        'percentage': 'Yüzde',
-        'trend': 'Trend',
-        'unit price': 'Birim Fiyat',
-        'grand total': 'Genel Toplam',
-        'order id': 'Sipariş No',
-        'product id': 'Ürün No',
-        'user id': 'Kullanıcı No',
-        'store id': 'Mağaza No',
-        'stock quantity': 'Stok Adedi',
-    }
 
-    name_lower = name.lower()
-    for turkish, replacement in replacements.items():
-        if turkish in name_lower:
-            name = name_lower.replace(turkish, replacement)
+def is_money_key(key: str) -> bool:
+    key = (key or "").lower()
+    money_parts = ["tutar", "fiyat", "total", "gelir", "harcama", "amount", "price", "revenue"]
+    return any(part in key for part in money_parts)
 
-    return name.title()
+
+def is_date_key(key: str) -> bool:
+    return any(part in (key or "").lower() for part in ["tarih", "date", "created_at"])
+
 
 def format_value(key: str, value) -> str:
     if value is None:
-        return "Bulunamadı"
+        return "0" if is_money_key(key) else "Bulunamadi"
 
-    key_lower = key.lower()
-
-    if any(x in key_lower for x in ['password', 'hash', 'secret', 'token', 'api_key', 'credit_card', 'ssn']):
-        return "••••••••"
+    if isinstance(value, Decimal):
+        value = float(value)
 
     if isinstance(value, float):
-        if any(x in key_lower for x in ['tutar', 'fiyat', 'total', 'gelir', 'satis', 'kar', 'maliyet', 'amount', 'price', 'revenue']):
-            return f"₺{value:,.2f}"
-        elif any(x in key_lower for x in ['yuzde', 'percentage', 'rate', 'oran']):
-            return f"%{value:.1f}"
-        else:
-            return f"{value:,.2f}"
+        return f"TL {value:,.2f}" if is_money_key(key) else f"{value:,.2f}"
 
     if isinstance(value, int):
-        if any(x in key_lower for x in ['id', 'no', 'numara']):
-            return f"#{value}"
-        return f"{value:,}"
+        return f"TL {value:,}" if is_money_key(key) else f"{value:,}"
 
     if isinstance(value, str):
-        if len(value) > 50:
-            return value[:50] + "..."
-        return value
+        upper = value.upper()
+        if upper in STATUS_LABELS:
+            return STATUS_LABELS[upper]
+        if is_date_key(key) and "T" in value:
+            return value.split("T", 1)[0]
+        if str(key or "").lower() in {"urun", "urunler"}:
+            return value if len(value) <= 55 else value[:52].rstrip() + "..."
+        return value if len(value) <= 80 else value[:77] + "..."
 
     return str(value)
 
+
+def cleaned_items(row: dict) -> list[tuple[str, str]]:
+    items = []
+    for key, value in row.items():
+        key_lower = str(key).lower()
+        if key_lower == "id" or (key_lower.endswith("_id") and key_lower != "siparis_id"):
+            continue
+        items.append((format_column_name(key), format_value(key, value)))
+    return items
+
+
 def format_list_results(result: list, question: str) -> str:
     if not result:
-        return "Sonuç bulunamadı."
-
-    if len(result) == 1:
-        row = result[0]
-        if isinstance(row, dict):
-            parts = []
-            for k, v in row.items():
-                formatted_key = format_column_name(k)
-                formatted_value = format_value(k, v)
-                parts.append(f"{formatted_key}: {formatted_value}")
-            return " • ".join(parts)
-        else:
-            return str(row)
+        return "Bu kriterlere uygun kayit bulunamadi."
 
     lines = []
-    for i, row in enumerate(result[:10], 1):
+    for index, row in enumerate(result[:8], 1):
         if isinstance(row, dict):
-            parts = []
-            for k, v in list(row.items())[:4]:
-                formatted_key = format_column_name(k)
-                formatted_value = format_value(k, v)
-                parts.append(f"{formatted_key}: {formatted_value}")
-            lines.append(f"{i}. " + " • ".join(parts))
+            key_set = {str(key).lower() for key in row.keys()}
+            max_items = 8 if "kargo_durumu" in key_set else 5 if "siparis_id" in key_set else 3
+            items = cleaned_items(row)[:max_items]
+            if not items:
+                items = [(format_column_name(k), format_value(k, v)) for k, v in list(row.items())[:2]]
+            text = " | ".join(f"{label}: {value}" for label, value in items)
+            lines.append(f"{index}. {text}")
         else:
-            lines.append(f"{i}. {row}")
+            lines.append(f"{index}. {row}")
 
-    suffix = ""
-    if len(result) > 10:
-        suffix = f"\n...ve {len(result) - 10} sonuç daha"
+    if len(result) > 8:
+        lines.append(f"...ve {len(result) - 8} kayit daha")
 
-    return "\n".join(lines) + suffix
+    return "\n".join(lines)
+
 
 def detect_query_type(question: str, result: list) -> str:
-    q = question.lower()
+    q = (question or "").lower()
+    first = result[0] if result and isinstance(result[0], dict) else {}
+    keys = {str(key).lower() for key in first.keys()}
 
-    if 'kaç' in q or 'sayı' in q or 'adet' in q or 'count' in q:
-        return "count"
-    if 'toplam' in q or 'sum' in q or 'tutar' in q:
-        return "sum"
-    if 'ortalama' in q or 'avg' in q or 'average' in q:
-        return "average"
-    if 'en çok' in q or 'en yüksek' in q or 'top' in q or 'best' in q:
-        return "top"
-    if 'list' in q or 'göster' in q or 'getir' in q:
+    if any(key in keys for key in ["siparis_id", "yorum", "tarih", "content"]):
         return "list"
-    if 'trend' in q or 'değişim' in q or 'karşılaştır' in q:
-        return "trend"
+    if any(word in q for word in ["grafik", "trend", "dagilim", "dağılım", "chart"]):
+        return "chart"
+    if any(word in q for word in ["kaç", "kac", "sayi", "sayisi", "adet", "count"]):
+        return "count"
+    if any(word in q for word in ["toplam", "sum", "tutar", "gelir", "satis"]):
+        return "sum"
+    if any(word in q for word in ["ortalama", "avg", "average"]):
+        return "average"
+    if any(word in q for word in ["en cok", "en çok", "en yuksek", "top", "best", "en az"]):
+        return "top"
+    if any(word in q for word in ["liste", "list", "goster", "göster", "getir"]):
+        return "list"
+    return "single" if len(result) == 1 else "list"
 
-    if result:
-        first = result[0]
-        if isinstance(first, dict):
-            keys = list(first.keys())
-            if len(result) == 1 and len(keys) <= 3:
-                return "single"
-            elif len(result) == 1:
-                return "detail"
-            else:
-                return "list"
 
-    return "general"
+def chart_answer_title(question: str, result: list) -> str:
+    q = (question or "").lower()
+    first = result[0] if result and isinstance(result[0], dict) else {}
+    keys = {str(key).lower() for key in first.keys()}
+
+    if "ay" in keys and "siparis_sayisi" in keys:
+        return "Son 7 ay siparis trendi"
+    if "ay" in keys and "gelir" in keys:
+        return "Aylik gelir trendi"
+    if "hafta" in keys and any(key in keys for key in ["gelir", "haftalik_gelir"]):
+        return "Haftalik gelir trendi"
+    if "durum" in keys:
+        return "Siparis durum dagilimi"
+    if "puan" in keys or "star_rating" in keys:
+        return "Puan dagilimi"
+    if "urun" in keys and "gelir" in keys:
+        return "En cok gelir getiren urunler"
+    if "urun" in keys and "satis_adedi" in keys:
+        return "En cok satan urunler"
+    if "stok_adedi" in keys:
+        return "Stokta en az kalan urunler"
+    if "trend" in q:
+        return "Trend analizi"
+    return "Bulunan kayitlar"
+
+
+def single_row_answer(row: dict) -> str:
+    items = cleaned_items(row)
+    if not items:
+        return "Bu kriterlere uygun kayit bulunamadi."
+    return "\n".join(f"{label}: {value}" for label, value in items)
+
+
+def shipment_status_answer(row: dict) -> str:
+    order_id = format_value("siparis_id", row.get("siparis_id"))
+    order_status = format_value("siparis_durumu", row.get("siparis_durumu"))
+    shipment_status = format_value("kargo_durumu", row.get("kargo_durumu"))
+    tracking_number = format_value("takip_numarasi", row.get("takip_numarasi"))
+    estimated_date = format_value("tahmini_teslimat_tarihi", row.get("tahmini_teslimat_tarihi"))
+
+    if str(row.get("kargo_durumu") or "").upper() == "KARGO_BILGISI_YOK":
+        return (
+            f"Son siparisiniz #{order_id} su anda {order_status}. "
+            "Bu siparis icin henuz kargo bilgisi veya takip numarasi olusturulmamis."
+        )
+
+    parts = [
+        f"Son siparisiniz #{order_id} icin kargo durumu: {shipment_status}.",
+        f"Siparis durumu: {order_status}.",
+    ]
+    if row.get("takip_numarasi"):
+        parts.append(f"Takip numarasi: {tracking_number}.")
+    if row.get("tahmini_teslimat_tarihi"):
+        parts.append(f"Tahmini teslimat tarihi: {estimated_date}.")
+    return " ".join(parts)
+
+
+def asks_for_multiple(question: str, result: list) -> bool:
+    q = (question or "").lower()
+    if len(result) > 1:
+        return True
+    if re.search(r"\b\d{1,2}\b", q):
+        return True
+    return any(word in q for word in ["liste", "list", "goster", "göster", "son bes", "son beş", "son uc", "son üç"])
+
 
 def analyze_result(question: str, sql: str, result: list, user_role: str, store_id: int | None) -> dict:
     if not result:
         return {
-            "answer": "Bu sorgu için veritabanında sonuç bulunamadı.",
-            "needs_visualization": False
+            "answer": "Bu kriterlere uygun kayit bulunamadi.",
+            "needs_visualization": False,
+            "raw_result": result,
         }
 
     try:
         query_type = detect_query_type(question, result)
-        first_row = result[0] if result else {}
+        first_row = result[0]
 
-        if query_type == "count":
-            if isinstance(first_row, dict):
-                val = list(first_row.values())[0]
-                answer = f"Toplam {format_value('', val)} sonuç bulundu."
-            else:
-                answer = f"Toplam {first_row} sonuç bulundu."
+        if len(result) == 1 and isinstance(first_row, dict) and "kargo_durumu" in {str(key).lower() for key in first_row.keys()} and not asks_for_multiple(question, result):
             return {
-                "answer": answer,
+                "answer": shipment_status_answer(first_row),
                 "needs_visualization": False,
-                "raw_result": result
+                "raw_result": result,
             }
 
-        if query_type == "sum" or query_type == "average":
-            if isinstance(first_row, dict):
-                parts = []
-                for k, v in first_row.items():
-                    parts.append(f"{format_column_name(k)}: {format_value(k, v)}")
-                answer = "Sorgunuzun sonucu:\n" + "\n".join(parts)
-            else:
-                answer = f"Sonuç: {format_value('', first_row)}"
+        if len(result) == 1 and isinstance(first_row, dict):
             return {
-                "answer": answer,
+                "answer": single_row_answer(first_row),
                 "needs_visualization": False,
-                "raw_result": result
+                "raw_result": result,
             }
 
-        if query_type == "list" or query_type == "top":
-            formatted_list = format_list_results(result, question)
-            count = len(result)
-            prefix = f"{count} sonuç bulundu:\n\n" if count > 1 else ""
+        needs_visualization = query_type in {"chart", "top"}
+        if needs_visualization:
             return {
-                "answer": prefix + formatted_list,
-                "needs_visualization": len(result) > 2,
-                "raw_result": result
-            }
-
-        if query_type == "single" and isinstance(first_row, dict):
-            parts = []
-            for k, v in first_row.items():
-                parts.append(f"{format_column_name(k)}: {format_value(k, v)}")
-            return {
-                "answer": "Sonuç:\n" + "\n".join(parts),
-                "needs_visualization": False,
-                "raw_result": result
+                "answer": chart_answer_title(question, result),
+                "needs_visualization": True,
+                "raw_result": result,
             }
 
         formatted_list = format_list_results(result, question)
         return {
             "answer": formatted_list,
-            "needs_visualization": len(result) > 2,
-            "raw_result": result
+            "needs_visualization": needs_visualization,
+            "raw_result": result,
         }
 
-    except Exception as e:
+    except Exception as exc:
         return {
-            "answer": f"Sorgu çalıştı ama sonuç okunamadı: {str(e)}",
+            "answer": f"Sorgu calisti ama sonuc okunamadi: {exc}",
             "needs_visualization": False,
-            "raw_result": result
+            "raw_result": result,
         }
-
-    needs_chart = any(keyword in question.lower() for keyword in [
-        "grafik", "chart", "trend", "en çok satan", "karşılaştır",
-        "dağılım", "distribution", "comparison", "top", "en yüksek", "en düşük"
-    ])
-
-    return {
-        "answer": "Sorgunuz başarıyla çalıştırıldı.",
-        "needs_visualization": needs_chart,
-        "raw_result": result
-    }
