@@ -1,0 +1,44 @@
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">DP</div>
+    <h2>DataPulse</h2>
+  </div>
+
+  <div class="menu-section">
+    <p class="section-title">Main menu</p>
+    <ul>
+      @for (item of menuItems; track item.label) {
+        <li>
+          <a [routerLink]="item.path" routerLinkActive="active">
+            <span class="icon">{{ item.icon }}</span>
+            <span class="label">{{ item.label }}</span>
+            @if (item.badge) {
+              <span class="badge">{{ item.badge }}</span>
+            }
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <div class="menu-section">
+    <p class="section-title">Management</p>
+    <ul>
+      @for (item of managementItems; track item.label) {
+        <li>
+          <a [routerLink]="item.path" routerLinkActive="active">
+            <span class="icon">{{ item.icon }}</span>
+            <span class="label">{{ item.label }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="logout-btn" (click)="logout()">
+      <span class="icon">Out</span>
+      <span class="label">Logout</span>
+    </button>
+  </div>
+</div>

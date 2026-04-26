@@ -1,0 +1,55 @@
+<!-- Floating chat toggle button -->
+<button class="chat-fab" (click)="toggleChat()" [class.active]="isOpen()">
+  @if (isOpen()) {
+    <span>✕</span>
+  } @else {
+    <span>🤖</span>
+  }
+</button>
+
+<!-- Chat panel -->
+@if (isOpen()) {
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div class="chat-title">
+        <span class="chat-icon">🤖</span>
+        <div>
+          <h4>AI Assistant</h4>
+          <span class="status-text">Ask questions about your data</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-messages">
+      @for (msg of messages(); track $index) {
+        <div class="message" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
+          @if (msg.role === 'assistant') {
+            <div class="msg-avatar">🤖</div>
+          }
+          <div class="msg-bubble">{{ msg.text }}</div>
+        </div>
+      }
+
+      @if (isTyping()) {
+        <div class="message assistant">
+          <div class="msg-avatar">🤖</div>
+          <div class="msg-bubble typing">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="chat-input">
+      <input
+        type="text"
+        [(ngModel)]="userInput"
+        (keydown)="onKeyDown($event)"
+        placeholder="Ask about your store data..."
+      />
+      <button class="send-btn" (click)="sendMessage()">➤</button>
+    </div>
+  </div>
+}

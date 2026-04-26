@@ -1,0 +1,43 @@
+<main class="login-page">
+  <section class="welcome-panel">
+    <p class="eyebrow">E-Commerce Dashboard</p>
+    <h1>Welcome back</h1>
+    <p class="welcome-text">
+      Sign in to manage products, orders, customers, and store reports from one place.
+    </p>
+
+    <div class="quick-notes">
+      <span>Products</span>
+      <span>Orders</span>
+      <span>Customers</span>
+    </div>
+  </section>
+
+  <section class="login-card">
+    <h2>Login</h2>
+    <p class="card-text">Use your account details to continue.</p>
+
+    <label for="email">Email address</label>
+    <input
+      id="email"
+      type="email"
+      [(ngModel)]="email"
+      placeholder="name@example.com"
+    />
+
+    <label for="password">Password</label>
+    <input
+      id="password"
+      type="password"
+      [(ngModel)]="password"
+      placeholder="Enter your password"
+    />
+
+    <button class="login-btn" (click)="onLogin()">Login</button>
+    <button class="demo-btn" (click)="demoLogin()">Demo login</button>
+
+    @if (errorMessage()) {
+      <p class="error-text">{{ errorMessage() }}</p>
+    }
+  </section>
+</main>

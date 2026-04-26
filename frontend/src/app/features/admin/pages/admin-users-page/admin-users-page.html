@@ -1,0 +1,83 @@
+<div class="admin-page">
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>User Management</h1>
+      <p>Create accounts, review roles, suspend access, and remove users.</p>
+    </div>
+    <button class="primary-btn" type="button" (click)="openCreate()">Create User</button>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="admin-alert">{{ errorMessage() }}</div>
+  }
+
+  <section class="admin-toolbar">
+    <input type="search" placeholder="Search users..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+    <select [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)">
+      <option value="">All roles</option>
+      <option value="ADMIN">Admin</option>
+      <option value="CORPORATE">Corporate</option>
+      <option value="INDIVIDUAL">Individual</option>
+    </select>
+    <select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+      <option value="">All statuses</option>
+      <option value="ACTIVE">Active</option>
+      <option value="SUSPENDED">Suspended</option>
+      <option value="DELETED">Deleted</option>
+    </select>
+  </section>
+
+  @if (isLoading()) {
+    <div class="admin-empty">Loading users...</div>
+  } @else {
+    <section class="admin-table">
+      <div class="admin-row admin-head">
+        <span>ID</span><span>Name</span><span>Email</span><span>Role</span><span>Status</span><span>Actions</span>
+      </div>
+      @for (user of filteredUsers(); track user.id) {
+        <div class="admin-row">
+          <span>{{ user.id }}</span>
+          <strong>{{ user.name }}</strong>
+          <span>{{ user.email }}</span>
+          <span class="pill">{{ user.roleType }}</span>
+          <span class="pill" [class.warning]="user.status === 'SUSPENDED'">{{ user.status || 'ACTIVE' }}</span>
+          <div class="row-actions">
+            <button type="button" (click)="editUser(user)">Edit</button>
+            <button type="button" (click)="setStatus(user, 'ACTIVE')">Activate</button>
+            <button type="button" (click)="setStatus(user, 'SUSPENDED')">Suspend</button>
+            <button type="button" class="danger" (click)="deleteUser(user)">Delete</button>
+          </div>
+        </div>
+      }
+    </section>
+  }
+</div>
+
+@if (formOpen()) {
+  <div class="modal-overlay" (click)="closeForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingUser() ? 'Edit User' : 'Create User' }}</h3>
+        <button class="close-btn" type="button" (click)="closeForm()">x</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group"><label>Name</label><input [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)"></div>
+        <div class="form-group"><label>Email</label><input type="email" [ngModel]="form().email" (ngModelChange)="updateForm('email', $event)"></div>
+        <div class="form-group"><label>Password</label><input type="password" [placeholder]="editingUser() ? 'Leave blank to keep current' : ''" [ngModel]="form().password" (ngModelChange)="updateForm('password', $event)"></div>
+        <div class="form-group">
+          <label>Role</label>
+          <select [ngModel]="form().roleType" (ngModelChange)="updateForm('roleType', $event)">
+            <option value="INDIVIDUAL">Individual</option>
+            <option value="CORPORATE">Corporate</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="secondary-btn" type="button" (click)="closeForm()">Cancel</button>
+        <button class="primary-btn" type="button" [disabled]="isSaving()" (click)="saveUser()">{{ isSaving() ? 'Saving...' : 'Save' }}</button>
+      </div>
+    </div>
+  </div>
+}

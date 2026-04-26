@@ -1,0 +1,69 @@
+<div class="admin-page">
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Cross-Store Reports</h1>
+      <p>Compare revenue, orders, returns, product depth, and ratings across stores.</p>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="admin-alert">{{ errorMessage() }}</div>
+  }
+
+  <section class="admin-toolbar">
+    <input type="date" [ngModel]="filters().from" (ngModelChange)="updateFilter('from', $event)">
+    <input type="date" [ngModel]="filters().to" (ngModelChange)="updateFilter('to', $event)">
+    <select [ngModel]="filters().sortBy" (ngModelChange)="updateFilter('sortBy', $event)">
+      <option value="revenue">Revenue</option>
+      <option value="orders">Orders</option>
+      <option value="rating">Rating</option>
+    </select>
+    <button class="primary-btn" type="button" (click)="loadReports()">Apply</button>
+  </section>
+
+  <section class="admin-kpis">
+    <article><span>Revenue</span><strong>{{ totals().revenue | currency:'USD':'symbol':'1.0-0' }}</strong></article>
+    <article><span>Orders</span><strong>{{ totals().orders | number }}</strong></article>
+    <article><span>Products</span><strong>{{ totals().products | number }}</strong></article>
+    <article><span>Reviews</span><strong>{{ totals().reviews | number }}</strong></article>
+  </section>
+
+  @if (selectedStore()) {
+    <section class="drilldown-card">
+      <div class="admin-header compact">
+        <div>
+          <h2>{{ selectedStore().storeName }}</h2>
+          <p>Store ID #{{ selectedStore().storeId }}</p>
+        </div>
+        <button class="secondary-btn" type="button" (click)="selectedStore.set(null)">Close</button>
+      </div>
+      <div class="admin-kpis">
+        <article><span>Rating</span><strong>{{ selectedStore().rating | number:'1.1-1' }}</strong></article>
+        <article><span>Products</span><strong>{{ selectedStore().productCount | number }}</strong></article>
+        <article><span>Reviews</span><strong>{{ selectedStore().reviewCount | number }}</strong></article>
+        <article><span>AOV</span><strong>{{ selectedStore().averageOrderValue | currency:'USD':'symbol':'1.0-0' }}</strong></article>
+      </div>
+    </section>
+  }
+
+  @if (isLoading()) {
+    <div class="admin-empty">Loading reports...</div>
+  } @else {
+    <section class="admin-table">
+      <div class="admin-row admin-head">
+        <span>Store</span><span>Revenue</span><span>Orders</span><span>AOV</span><span>Return Rate</span><span>Actions</span>
+      </div>
+      @for (report of reports(); track report.storeId) {
+        <div class="admin-row">
+          <strong>{{ report.storeName }}</strong>
+          <span>{{ report.revenue | currency:'USD':'symbol':'1.0-0' }}</span>
+          <span>{{ report.orderCount | number }}</span>
+          <span>{{ report.averageOrderValue | currency:'USD':'symbol':'1.0-0' }}</span>
+          <span>{{ report.returnRate | number:'1.1-1' }}%</span>
+          <div class="row-actions"><button type="button" (click)="selectedStore.set(report)">Drill Down</button></div>
+        </div>
+      }
+    </section>
+  }
+</div>

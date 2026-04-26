@@ -1,0 +1,67 @@
+package com.cse214.project.config;
+
+import com.cse214.project.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthFilter;
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(cors -> cors.configurationSource(
+                    new org.springframework.web.cors.UrlBasedCorsConfigurationSource() {{
+                        registerCorsConfiguration("/**", new org.springframework.web.cors.CorsConfiguration() {{
+                            setAllowedOrigins(java.util.List.of("http://localhost:4200"));
+                            setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                            setAllowedHeaders(java.util.List.of("*"));
+                            setAllowCredentials(true);
+                        }});
+                    }}
+            ))
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/error").permitAll()
+                .requestMatchers("/api/chat/**").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/customers/**").hasAnyRole("ADMIN", "CORPORATE")
+                .requestMatchers("/api/analytics/**").hasAnyRole("ADMIN", "CORPORATE")
+                .requestMatchers("/api/products/**").authenticated()
+                .requestMatchers("/api/orders/**").authenticated()
+                .requestMatchers("/api/dashboard/**").authenticated()
+                .requestMatchers("/api/reviews/**").authenticated()
+                .requestMatchers("/api/categories/**").authenticated()
+                .requestMatchers("/api/shipments/**").authenticated()
+                .requestMatchers("/api/payments/**").authenticated()
+                .requestMatchers("/api/store-settings/**").authenticated()
+                .requestMatchers("/api/profile/**").authenticated()
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
