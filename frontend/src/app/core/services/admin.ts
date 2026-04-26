@@ -34,6 +34,10 @@ export class AdminService {
     return this.http.get<any[]>(`${this.adminUrl}/stores`);
   }
 
+  createStore(payload: any) {
+    return this.http.post<any>(`${this.adminUrl}/stores`, payload);
+  }
+
   updateStoreStatus(id: number, status: string) {
     return this.http.put<any>(`${this.adminUrl}/stores/${id}/status`, { status });
   }

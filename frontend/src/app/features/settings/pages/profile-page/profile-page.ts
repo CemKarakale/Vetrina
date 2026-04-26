@@ -51,15 +51,15 @@ export class ProfilePage implements OnInit {
   updateInfo() {
     if (!this.profileDraft) return;
 
-    const firstName = this.profileDraft.firstName.trim();
-    const lastName = this.profileDraft.lastName.trim();
+    const firstName = String(this.profileDraft.firstName || '').trim();
+    const lastName = String(this.profileDraft.lastName || '').trim();
 
     this.saveProfile({
       firstName,
       lastName,
       name: `${firstName} ${lastName}`.trim(),
-      email: this.profileDraft.email.trim(),
-      phone: this.profileDraft.phone.trim()
+      email: String(this.profileDraft.email || '').trim(),
+      phone: String(this.profileDraft.phone || '').trim()
     }, 'Profile information saved.');
   }
 

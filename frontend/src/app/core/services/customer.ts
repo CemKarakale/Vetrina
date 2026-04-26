@@ -12,4 +12,8 @@ export class CustomerService {
   getCustomers() {
     return this.http.get<any[]>(this.apiUrl);
   }
+
+  deleteCustomer(id: number | string) {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

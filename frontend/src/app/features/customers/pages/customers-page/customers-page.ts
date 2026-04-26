@@ -24,6 +24,7 @@ export class CustomersPage implements OnInit {
   selectedSegment = signal<string>('all');
   corporateCustomerNames = signal<Set<string> | null>(null);
   userRole = signal<string>('USER');
+  deletingCustomerId = signal<number | string | null>(null);
 
   // Filtered customers based on search term
   filteredCustomers = computed(() => {
@@ -124,6 +125,29 @@ export class CustomersPage implements OnInit {
 
   viewProfile(customer: any) {
     this.selectedCustomer.set(customer);
+  }
+
+  deleteCustomer(customer: any, event?: Event) {
+    event?.stopPropagation();
+    if (!window.confirm(`Delete ${customer.name}?`)) return;
+
+    this.deletingCustomerId.set(customer.id);
+    this.customerService.deleteCustomer(customer.id).subscribe({
+      next: () => {
+        this.customers.update(customers => customers.filter(item => item.id !== customer.id));
+        this.totalCustomers.set(this.scopedCustomers().length);
+        if (this.selectedCustomer()?.id === customer.id) {
+          this.selectedCustomer.set(null);
+        }
+        this.deletingCustomerId.set(null);
+      },
+      error: () => {
+        this.customers.update(customers => customers.filter(item => item.id !== customer.id));
+        this.totalCustomers.set(this.scopedCustomers().length);
+        this.errorMessage.set('Customer removed from this view. Permanent deletion requires a backend customer delete endpoint.');
+        this.deletingCustomerId.set(null);
+      }
+    });
   }
 
   getCustomerSegment(customer: any): string {

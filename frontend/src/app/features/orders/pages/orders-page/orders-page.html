@@ -102,7 +102,7 @@
 
     @if (filteredOrders().length > 0) {
       <section class="orders-list">
-        @for (order of filteredOrders(); track order.id) {
+        @for (order of filteredOrders(); track order.id + '-' + $index) {
           <article class="order-card" [class.expanded]="expandedOrderId() === order.id">
             <button type="button" class="order-summary" (click)="toggleOrderDetails(order.id)">
               <span class="order-number">#{{ order.id }}</span>
@@ -129,7 +129,7 @@
                   </div>
                   @if (getOrderItems(order.id).length > 0) {
                     <div class="item-list">
-                      @for (item of getOrderItems(order.id); track item.id) {
+                      @for (item of getOrderItems(order.id); track item.id + '-' + $index) {
                         <div class="item-row">
                           <span class="item-name">{{ item.displayName }}</span>
                           <span class="item-quantity">Qty {{ item.quantity || 1 }}</span>

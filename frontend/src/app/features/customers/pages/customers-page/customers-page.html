@@ -71,7 +71,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (customer of filteredCustomers(); track customer.id) {
+          @for (customer of filteredCustomers(); track customer.id + '-' + $index) {
             <tr>
               <td class="muted-text">{{ customer.id }}</td>
               <td class="font-bold">{{ customer.name }}</td>
@@ -81,7 +81,15 @@
               <td>{{ customer.orderCount }}</td>
               <td class="font-bold text-success">{{ customer.totalSpend | currency:'USD':'symbol':'1.2-2' }}</td>
               <td>
-                <button class="action-btn" (click)="viewProfile(customer)">View Profile</button>
+                <div class="table-actions">
+                  <button class="action-btn" (click)="viewProfile(customer)">View Profile</button>
+                  <button
+                    class="action-btn danger"
+                    [disabled]="deletingCustomerId() === customer.id"
+                    (click)="deleteCustomer(customer, $event)">
+                    {{ deletingCustomerId() === customer.id ? 'Deleting...' : 'Delete' }}
+                  </button>
+                </div>
               </td>
             </tr>
           }

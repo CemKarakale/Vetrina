@@ -138,26 +138,10 @@ export class OrdersPage implements OnInit {
 
   loadAllShipments(orders: any[]) {
     orders.forEach(order => {
-      this.shipmentService.getShipmentByOrderId(order.id).subscribe({
-        next: (shipment: any) => {
-          this.orderShipments.update(current => ({
-            ...current,
-            [order.id]: shipment
-          }));
-        },
-        error: () => {
-          const fallbackShipment = {
-            id: Math.floor(Math.random() * 10000),
-            trackingNumber: 'TRK-' + order.id,
-            status: order.status === 'Cancelled' ? 'Cancelled' : 'Pending',
-            modeOfShipment: 'Standard'
-          };
-          this.orderShipments.update(current => ({
-            ...current,
-            [order.id]: fallbackShipment
-          }));
-        }
-      });
+      this.orderShipments.update(current => ({
+        ...current,
+        [order.id]: this.createFallbackShipment(order)
+      }));
 
       if (order.items) {
         this.setOrderItems(order.id, order.items);
@@ -385,6 +369,15 @@ export class OrdersPage implements OnInit {
       ...current,
       [orderId]: { ...(current[orderId] || {}), status }
     }));
+  }
+
+  private createFallbackShipment(order: any) {
+    return {
+      id: `local-${order.id}`,
+      trackingNumber: order.trackingNumber || 'Not assigned',
+      status: this.normalizeStatus(order.status) === 'CANCELLED' ? 'Cancelled' : 'Pending',
+      modeOfShipment: order.modeOfShipment || 'Standard'
+    };
   }
 
   exportOrders() {

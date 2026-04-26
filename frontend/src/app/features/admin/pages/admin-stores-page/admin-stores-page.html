@@ -5,7 +5,7 @@
       <h1>Store Approval</h1>
       <p>Open, close, and suspend marketplace stores.</p>
     </div>
-    <button class="secondary-btn" type="button" disabled title="Backend needs POST /api/admin/stores first">Add Store</button>
+    <button class="primary-btn" type="button" (click)="openCreate()">Add Store</button>
   </header>
 
   @if (errorMessage()) {
@@ -46,3 +46,43 @@
     </section>
   }
 </div>
+
+@if (formOpen()) {
+  <div class="modal-overlay" (click)="closeForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add Store</h3>
+        <button class="close-btn" type="button" (click)="closeForm()">x</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Store Name</label>
+          <input [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" placeholder="Store name">
+        </div>
+        <div class="form-group">
+          <label>Owner</label>
+          <select [ngModel]="form().ownerId" (ngModelChange)="updateForm('ownerId', $event)">
+            <option value="">Select an existing owner</option>
+            @for (owner of ownerOptions(); track owner.id) {
+              <option [value]="owner.id">{{ owner.name }} - {{ owner.email }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select [ngModel]="form().status" (ngModelChange)="updateForm('status', $event)">
+            <option value="ACTIVE">Active</option>
+            <option value="CLOSED">Closed</option>
+            <option value="SUSPENDED">Suspended</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="secondary-btn" type="button" (click)="closeForm()">Cancel</button>
+        <button class="primary-btn" type="button" [disabled]="isSaving()" (click)="saveStore()">
+          {{ isSaving() ? 'Saving...' : 'Add Store' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
