@@ -113,6 +113,14 @@ public class OrderService {
             Product product = productRepository.findById(itemReq.getProductId())
                     .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + itemReq.getProductId()));
 
+            // Stok güncelle
+            int newStock = product.getStockQuantity() - itemReq.getQuantity();
+            if (newStock < 0) {
+                throw new RuntimeException("Yetersiz stok: " + product.getName() + " (Mevcut: " + product.getStockQuantity() + ", İstenen: " + itemReq.getQuantity() + ")");
+            }
+            product.setStockQuantity(newStock);
+            productRepository.save(product);
+
             BigDecimal lineTotal = product.getUnitPrice().multiply(BigDecimal.valueOf(itemReq.getQuantity()));
 
             OrderItem orderItem = OrderItem.builder()

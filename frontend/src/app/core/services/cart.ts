@@ -23,7 +23,7 @@ export class CartService {
       if (existing) {
         return items.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...items, { ...product, quantity: 1 }];
+      return [...items, { ...product, quantity: 1, storeId: product.storeId || 1 }];
     });
   }
 

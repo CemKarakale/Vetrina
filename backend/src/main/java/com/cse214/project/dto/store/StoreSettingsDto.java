@@ -1,9 +1,10 @@
 package com.cse214.project.dto.store;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class StoreSettingsDto {
     private Integer id;

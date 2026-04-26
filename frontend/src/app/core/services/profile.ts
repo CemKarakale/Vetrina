@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, finalize, tap } from 'rxjs/operators';
 import { AuthService } from './auth';
 
@@ -77,10 +77,20 @@ export class ProfileService {
   updateProfile(data: ProfileUpdateRequest): Observable<UserProfile> {
     this.isSaving.set(true);
     this.errorMessage.set('');
+    const previous = this.profile() || this.getCachedProfile();
+    const optimistic = this.mergeProfileUpdate(data);
+    this.setProfile(optimistic);
 
     return this.http.put<UserProfile>(`${this.apiUrl}/me`, data).pipe(
-      tap((updated) => this.setProfile(updated)),
+      tap((updated) => this.setProfile({ ...updated, ...data })),
       catchError((error) => {
+        if (error?.status !== 409) {
+          this.errorMessage.set('Backend profile endpoint did not save. Saved this profile locally.');
+          return of(optimistic);
+        }
+        if (previous) {
+          this.setProfile(previous);
+        }
         this.errorMessage.set('Profile was not saved. Please try again when the backend is available.');
         return throwError(() => error);
       }),
@@ -133,6 +143,16 @@ export class ProfileService {
 
   private getCacheKey(): string {
     return `profile_${this.authService.getUserId() || this.authService.getEmail() || this.authService.getUsername() || 'guest'}`;
+  }
+
+  private mergeProfileUpdate(data: ProfileUpdateRequest): UserProfile {
+    const current = this.profile() || this.getCachedProfile() || this.normalizeProfile({});
+    return this.normalizeProfile({
+      ...current,
+      ...data,
+      address: data.address ? { ...current.address, ...data.address } : current.address,
+      preferences: data.preferences ? { ...current.preferences, ...data.preferences } : current.preferences
+    });
   }
 
   private normalizeProfile(data: Partial<UserProfile>): UserProfile {

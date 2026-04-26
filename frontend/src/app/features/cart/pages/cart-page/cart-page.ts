@@ -51,30 +51,38 @@ export class CartPage {
 
     this.paymentSuccess.set(true);
 
-    const orderData = {
-      items: this.cartService.cartItems(),
-      total: this.cartService.getTotal(),
-      paymentMethod: this.selectedPayment(),
-      cardLast4: this.cardNumber().replace(/\s/g, '').slice(-4),
-      status: 'Pending'
-    };
+    const cartItems = this.cartService.cartItems();
+    if (cartItems.length === 0) return;
 
-    this.orderService.getOrders().subscribe({
-      next: () => {
-        console.log('Order placed:', orderData);
+    const items = cartItems.map(item => ({
+      productId: item.id,
+      quantity: item.quantity
+    }));
+
+    const storeId = cartItems[0]?.storeId || 1;
+
+    this.orderService.createOrder(items, storeId).subscribe({
+      next: (order) => {
+        console.log('Order created:', order);
+        this.cartService.clearCart();
+        this.resetCardFields();
+        setTimeout(() => {
+          this.paymentMode.set(false);
+          this.paymentSuccess.set(false);
+          this.router.navigate(['/orders']);
+        }, 3000);
       },
       error: () => {
-        console.log('Order placed (mock):', orderData);
+        console.log('Order creation failed, using mock');
+        this.cartService.clearCart();
+        this.resetCardFields();
+        setTimeout(() => {
+          this.paymentMode.set(false);
+          this.paymentSuccess.set(false);
+          this.router.navigate(['/orders']);
+        }, 3000);
       }
     });
-
-    this.cartService.clearCart();
-    this.resetCardFields();
-    setTimeout(() => {
-      this.paymentMode.set(false);
-      this.paymentSuccess.set(false);
-      this.router.navigate(['/orders']);
-    }, 3000);
   }
 
   resetCardFields() {

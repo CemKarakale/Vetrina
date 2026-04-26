@@ -31,7 +31,7 @@ export const routes: Routes = [
     { path: 'orders/:id', component: OrderDetailPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
     { path: 'customers', component: CustomersPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE'] } },
     { path: 'reviews', component: ReviewsPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
-    { path: 'settings', component: SettingsPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE'] } },
+    { path: 'settings', component: SettingsPage, canActivate: [authGuard], data: { roles: ['CORPORATE'] } },
     { path: 'profile', component: ProfilePage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },
     { path: 'cart', component: CartPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'USER'] } },
     { path: 'ai-assistant', component: ChatPage, canActivate: [authGuard], data: { roles: ['ADMIN', 'CORPORATE', 'USER'] } },

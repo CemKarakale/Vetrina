@@ -14,6 +14,7 @@ public class ReviewDto {
     private String userName;
     private Integer starRating;
     private String content;
+    private LocalDateTime createdAt;
     private String adminReply;
     private LocalDateTime replyCreatedAt;
 }

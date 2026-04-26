@@ -14,6 +14,10 @@ export class ReviewService {
     return this.http.get<any[]>(url);
   }
 
+  createReview(productName: string, starRating: number, content: string) {
+    return this.http.post<any>(this.baseUrl, { productName, starRating, content });
+  }
+
   replyToReview(id: number, reply: string) {
     return this.http.put<any>(`${this.baseUrl}/${id}/reply`, { reply });
   }

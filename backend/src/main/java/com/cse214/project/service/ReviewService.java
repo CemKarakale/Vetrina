@@ -50,14 +50,24 @@ public class ReviewService {
     public ReviewDto createReview(ReviewCreateRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
 
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + request.getProductId()));
+        Product product;
+        if (request.getProductId() != null && request.getProductId() > 0) {
+            product = productRepository.findById(request.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + request.getProductId()));
+        } else if (request.getProductName() != null && !request.getProductName().isEmpty()) {
+            product = productRepository.findByNameContainingIgnoreCase(request.getProductName())
+                    .stream().findFirst()
+                    .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + request.getProductName()));
+        } else {
+            throw new RuntimeException("Ürün ID veya adı gerekli");
+        }
 
         Review review = Review.builder()
                 .user(user)
                 .product(product)
                 .starRating(request.getStarRating())
                 .content(request.getContent())
+                .createdAt(LocalDateTime.now())
                 .build();
 
         Review saved = reviewRepository.save(review);
@@ -86,7 +96,8 @@ public class ReviewService {
 
         // CORPORATE sadece kendi mağazasının ürünlerine yanıt verebilir
         if ("CORPORATE".equals(user.getRoleType())) {
-            Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
+            Store store = storeRepository.findFirstByOwnerId(user.getId())
+                    .orElseThrow(() -> new RuntimeException("Kullanıcının mağazası bulunamadı."));
             if (!review.getProduct().getStore().getId().equals(store.getId())) {
                 throw new RuntimeException("Bu yoruma yanıt verme yetkiniz yok.");
             }
@@ -109,6 +120,7 @@ public class ReviewService {
                 .userName(r.getUser().getName())
                 .starRating(r.getStarRating())
                 .content(r.getContent())
+                .createdAt(r.getCreatedAt())
                 .adminReply(r.getAdminReply())
                 .replyCreatedAt(r.getReplyCreatedAt())
                 .build();

@@ -160,23 +160,20 @@ export class ReviewsPage implements OnInit {
 
   postReview() {
     if (!this.newReviewContent().trim() || this.newReviewProduct() === 'Select Product') return;
-    
-    const newId = Math.max(...this.reviews().map(r => r.id), 0) + 1;
-    const username = this.authService.getUsername() || 'Demo User';
 
-    const newRev = {
-      id: newId,
-      productId: 99,
-      productName: this.newReviewProduct(),
-      userName: username,
-      starRating: this.newReviewRating(),
-      content: this.newReviewContent(),
-      adminReply: null
-    };
-
-    this.reviews.update(list => [newRev, ...list]);
-    this.newReviewContent.set('');
-    this.newReviewRating.set(5);
+    this.isLoading.set(true);
+    this.reviewService.createReview(this.newReviewProduct(), this.newReviewRating(), this.newReviewContent()).subscribe({
+      next: (created) => {
+        this.reviews.update(list => [created, ...list]);
+        this.newReviewContent.set('');
+        this.newReviewRating.set(5);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('Could not save review to backend.');
+        this.isLoading.set(false);
+      }
+    });
   }
 
   clearFilters() {

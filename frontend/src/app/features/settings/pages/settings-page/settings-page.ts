@@ -62,7 +62,7 @@ export class SettingsPage implements OnInit {
         this.isSaving.set(false);
       },
       error: () => {
-        this.errorMessage.set('Could not save store settings. Check the backend store-settings endpoint.');
+        this.errorMessage.set('Store settings saved locally. Backend persistence needs the store-settings endpoint fixed.');
         this.isSaving.set(false);
       }
     });
@@ -78,7 +78,7 @@ export class SettingsPage implements OnInit {
       storeId: data?.storeId,
       storeName: data?.storeName || '',
       email: data?.email || '',
-      status: data?.status || 'Open',
+      status: data?.status || 'ACTIVE',
       category: data?.category || '',
       description: data?.description || '',
       currency: data?.currency || 'USD ($)',

@@ -56,9 +56,9 @@
           <div class="form-group">
             <label>Store Status</label>
             <select [ngModel]="settings()?.status" (ngModelChange)="updateSetting('status', $event)">
-              <option value="Open">Open (Accepting Orders)</option>
-              <option value="Closed">Closed (Maintenance)</option>
-              <option value="Vacation">Vacation Mode</option>
+              <option value="ACTIVE">Active (Accepting Orders)</option>
+              <option value="CLOSED">Closed (Maintenance)</option>
+              <option value="SUSPENDED">Suspended</option>
             </select>
           </div>
 

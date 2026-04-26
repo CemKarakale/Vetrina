@@ -25,7 +25,7 @@ export class Sidebar implements OnInit {
 
     const allMenuItems = [
       { icon: 'DB', label: 'Dashboard', path: '/dashboard', roles: ['ADMIN', 'CORPORATE', 'USER'] },
-      { icon: 'AI', label: 'AI Asistan', path: '/ai-assistant', roles: ['ADMIN', 'CORPORATE', 'USER'], badge: 'Yeni' },
+      { icon: 'AI', label: 'AI Assistant', path: '/ai-assistant', roles: ['ADMIN', 'CORPORATE', 'USER'] },
       { icon: 'AN', label: 'Analytics', path: '/analytics', roles: ['ADMIN', 'CORPORATE'] },
       { icon: 'OR', label: 'Orders', path: '/orders', roles: ['ADMIN', 'CORPORATE', 'USER'] },
       { icon: 'PR', label: 'Products', path: '/products', roles: ['ADMIN', 'CORPORATE', 'USER'] },
@@ -35,7 +35,7 @@ export class Sidebar implements OnInit {
     const allManagementItems = [
       { icon: 'ME', label: 'My Profile', path: '/profile', roles: ['ADMIN', 'CORPORATE', 'USER'] },
       { icon: 'CU', label: 'Customers', path: '/customers', roles: ['ADMIN', 'CORPORATE'] },
-      { icon: 'ST', label: 'Store Settings', path: '/settings', roles: ['ADMIN', 'CORPORATE'] },
+      { icon: 'ST', label: 'Store Settings', path: '/settings', roles: ['CORPORATE'] },
       { icon: 'RV', label: 'Reviews', path: '/reviews', roles: ['ADMIN', 'CORPORATE', 'USER'] },
       { icon: 'US', label: 'Admin Users', path: '/admin/users', roles: ['ADMIN'] },
       { icon: 'AS', label: 'Admin Stores', path: '/admin/stores', roles: ['ADMIN'] },

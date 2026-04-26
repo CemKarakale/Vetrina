@@ -1,5 +1,7 @@
 package com.cse214.project.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,6 +13,8 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(UnauthorizedAccessException.class)
     public ResponseEntity<Map<String, String>> handleUnauthorizedAccess(UnauthorizedAccessException ex) {
@@ -30,6 +34,7 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        log.error("Validation error: ", ex);
         Map<String, String> response = new HashMap<>();
         response.put("error", "Bad Request");
         response.put("message", "Eksik veya hatalı parametre gönderdiniz.");
@@ -38,6 +43,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleExceptions(Exception ex) {
+        log.error("Unhandled exception in GlobalExceptionHandler: ", ex);
         Map<String, String> response = new HashMap<>();
         response.put("error", "Internal Server Error");
         response.put("message", ex.getMessage());
