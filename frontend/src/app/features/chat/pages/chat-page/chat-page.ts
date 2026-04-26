@@ -26,7 +26,7 @@ export class ChatPage implements OnInit, AfterViewChecked {
   isSending = signal<boolean>(false);
   userInput = '';
 
-  suggestions = [
+  private readonly adminSuggestions = [
     'Puan dagilimini goster',
     'En cok satan 5 urunu goster',
     'Siparis durum dagilimini goster',
@@ -35,6 +35,17 @@ export class ChatPage implements OnInit, AfterViewChecked {
     'Stokta en az kalan 5 urunu listele',
     'Ortalama urun puani nedir?',
     'Son 7 ayda siparis trendini goster'
+  ];
+
+  private readonly userSuggestions = [
+    'Son siparislerimi listele',
+    'Siparis durum dagilimimi goster',
+    'Toplam kac siparis verdim?',
+    'Toplam harcamam ne kadar?',
+    'En son verdigim siparisin durumu nedir?',
+    'Teslim edilen siparislerimi goster',
+    'Iptal edilen siparislerim var mi?',
+    'Yazdigim yorumlari listele'
   ];
 
   constructor(
@@ -65,6 +76,10 @@ export class ChatPage implements OnInit, AfterViewChecked {
 
   get isBusy() {
     return this.isSending();
+  }
+
+  get suggestions() {
+    return this.normalizedRole() === 'INDIVIDUAL' ? this.userSuggestions : this.adminSuggestions;
   }
 
   scrollToBottom(): void {
@@ -117,11 +132,14 @@ export class ChatPage implements OnInit, AfterViewChecked {
     const text = this.stripResultPrefix(content || '');
     if (!text) return '';
 
-    const resultCard = this.renderResultCard(text);
-    if (resultCard) return resultCard;
-
     const emptyAnswer = this.renderEmptyAnswer(text);
     if (emptyAnswer) return emptyAnswer;
+
+    const structuredAnswer = this.renderStructuredAnswer(text);
+    if (structuredAnswer) return structuredAnswer;
+
+    const resultCard = this.renderResultCard(text);
+    if (resultCard) return resultCard;
 
     const singleLine = this.renderSingleLineAnswer(text);
     if (singleLine) return singleLine;
@@ -250,6 +268,79 @@ export class ChatPage implements OnInit, AfterViewChecked {
       .filter(field => !this.isCountOnlyField(field));
     if (fields.length < 1) return null;
 
+    return `
+      <div class="answer-result-card">
+        <div class="result-metrics">
+          ${fields.map(field => `
+            <div class="result-metric">
+              <span>${this.escapeHtml(field.label)}</span>
+              <strong>${this.escapeHtml(field.value)}</strong>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  private renderStructuredAnswer(text: string): string | null {
+    const lines = text
+      .split('\n')
+      .map(line => line.trim())
+      .filter(Boolean);
+
+    if (!lines.length) return null;
+
+    const tableRows = lines
+      .filter(line => /^\d+[.)]\s+/.test(line) && line.includes('|'))
+      .map(line => this.parseKeyValueSegments(line.replace(/^\d+[.)]\s+/, '')))
+      .filter(row => row.length >= 2);
+
+    if (tableRows.length === lines.length) {
+      return this.renderKeyValueRowsAsTable(tableRows);
+    }
+
+    const cardFields = lines
+      .map(line => this.parseKeyValueLine(line))
+      .filter((field): field is { label: string; value: string } => Boolean(field));
+
+    if (cardFields.length === lines.length && cardFields.length > 1) {
+      return this.renderFieldsCard(cardFields);
+    }
+
+    return null;
+  }
+
+  private parseKeyValueSegments(text: string): { label: string; value: string }[] {
+    return text
+      .split('|')
+      .map(segment => this.parseKeyValueLine(segment.trim()))
+      .filter((field): field is { label: string; value: string } => Boolean(field));
+  }
+
+  private parseKeyValueLine(text: string): { label: string; value: string } | null {
+    const match = text.match(/^([^:]+):\s*(.+)$/);
+    if (!match) return null;
+    return {
+      label: this.cleanFieldLabel(match[1]),
+      value: match[2].trim()
+    };
+  }
+
+  private renderKeyValueRowsAsTable(rows: { label: string; value: string }[][]): string {
+    const headers = Array.from(new Set(rows.flatMap(row => row.map(field => field.label))));
+    const tableLines = [
+      `| ${headers.join(' | ')} |`,
+      `| ${headers.map(() => '---').join(' | ')} |`,
+      ...rows.map(row => {
+        const values = new Map(row.map(field => [field.label, field.value]));
+        return `| ${headers.map(header => values.get(header) || '').join(' | ')} |`;
+      })
+    ];
+
+    return this.renderTable(tableLines);
+  }
+
+  private renderFieldsCard(fields: { label: string; value: string }[]): string {
     return `
       <div class="answer-result-card">
         <div class="result-metrics">
