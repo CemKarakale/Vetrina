@@ -18,11 +18,11 @@
 
         <div class="filter-group">
           <label>Product</label>
-          <input 
-            type="text" 
-            [ngModel]="selectedProduct()" 
-            (ngModelChange)="selectedProduct.set($event || null)" 
-            list="productSuggestions" 
+          <input
+            type="text"
+            [ngModel]="selectedProduct()"
+            (ngModelChange)="selectedProduct.set($event || null)"
+            list="productSuggestions"
             placeholder="Search Product..."
             class="filter-control"
           >
@@ -35,11 +35,11 @@
 
         <div class="filter-group">
           <label>Customer</label>
-          <input 
-            type="text" 
-            [ngModel]="selectedUser()" 
-            (ngModelChange)="selectedUser.set($event || null)" 
-            list="userSuggestions" 
+          <input
+            type="text"
+            [ngModel]="selectedUser()"
+            (ngModelChange)="selectedUser.set($event || null)"
+            list="userSuggestions"
             placeholder="Search User..."
             class="filter-control"
           >
@@ -74,7 +74,7 @@
 
   @if (!isLoading() && filteredReviews().length > 0) {
     <div class="reviews-list">
-      
+
       @if (!canReply()) {
         <div class="review-form-container" style="background: #f6fbfa; padding: 24px; border: 1px solid #c8dcda; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 8px 20px rgba(35, 79, 79, 0.05);">
           <h3 style="margin-top: 0; color: #17312c; font-weight: 800;">Write a Review</h3>
@@ -82,10 +82,16 @@
             <label style="display: block; margin-bottom: 8px; color: #59756f; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">Select Product</label>
             <select [(ngModel)]="newReviewProduct" style="width: 100%; padding: 10px 12px; background: #ffffff; color: #22312f; border: 1px solid #c8dcda; border-radius: 8px; font-size: 14px; outline: none;">
               <option value="Select Product" disabled>Select Product</option>
-              <option value="Wireless Noise-Canceling Headphones">Wireless Noise-Canceling Headphones</option>
-              <option value="Ergonomic Office Chair">Ergonomic Office Chair</option>
-              <option value="Smart Fitness Watch">Smart Fitness Watch</option>
-              <option value="Organic Cotton T-Shirt">Organic Cotton T-Shirt</option>
+              <option value="Wayona Nylon Braided USB to Lightning Fast Charging Cable">Wayona Nylon Braided USB Cable</option>
+              <option value="Ambrane Unbreakable 60W Fast Charging Cable">Ambrane Unbreakable 60W Fast Charging Cable</option>
+              <option value="Sounce Fast Phone Charging Cable">Sounce Fast Phone Charging Cable</option>
+              <option value="boAt Deuce USB 300 Cable">boAt Deuce USB 300 Cable</option>
+              <option value="Portronics Konnect L Cable">Portronics Konnect L Cable</option>
+              <option value="pTron Solero TB301 Cable">pTron Solero TB301 Cable</option>
+              <option value="boAt Micro USB 55 Cable">boAt Micro USB 55 Cable</option>
+              <option value="MI Usb Type-C Cable">MI Usb Type-C Cable</option>
+              <option value="TP-Link USB WiFi Adapter">TP-Link USB WiFi Adapter</option>
+              <option value="AmazonBasics HDMI Cable">AmazonBasics HDMI Cable</option>
             </select>
           </div>
           <div class="form-group" style="margin-bottom: 16px;">
@@ -121,7 +127,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="review-product">
             <span class="badge">Purchased Item</span>
             <span class="product-name">{{ review.productName }}</span>

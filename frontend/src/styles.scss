@@ -402,3 +402,37 @@ html, body {
   .modal-content.product-modal .modal-footer { flex-direction: column-reverse; }
   .modal-content.product-modal .modal-footer button { width: 100%; }
 }
+
+app-chat-page .answer-result-card { min-width: 280px; max-width: 520px; }
+app-chat-page .answer-result-card .result-metrics { display: grid; gap: 8px; }
+app-chat-page .answer-result-card .result-metric { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 9px 0; border-bottom: 1px solid #edf6f4; color: #59756f; font-size: 13px; font-weight: 700; }
+app-chat-page .answer-result-card .result-metric:last-child { border-bottom: 0; }
+app-chat-page .answer-result-card .result-metric span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+app-chat-page .answer-result-card strong { color: #234f4f; font-size: 15px; white-space: nowrap; }
+
+app-chat-page .chart-card { width: 100%; max-width: 540px; padding: 18px 20px; border: 1px solid #c8dcda; border-radius: 8px; background: #ffffff; box-shadow: 0 8px 20px rgba(35, 79, 79, 0.08); }
+app-chat-page .chart-card .chart-title { margin: 0; padding-bottom: 12px; border-bottom: 1px solid #edf6f4; color: #22312f; font-size: 14px; font-weight: 800; }
+app-chat-page .chart-card .chart-summary { display: grid; gap: 7px; margin-top: 14px; }
+app-chat-page .chart-card .summary-row { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; color: #59756f; font-size: 12px; font-weight: 700; }
+app-chat-page .chart-card .summary-row strong { overflow: hidden; color: #22312f; text-overflow: ellipsis; white-space: nowrap; }
+app-chat-page .chart-card .chart-bars-container { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+app-chat-page .chart-card .bar-row { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(140px, 2fr) 44px; align-items: center; gap: 12px; }
+app-chat-page .chart-card .bar-label { display: -webkit-box; overflow: hidden; color: #59756f; font-size: 12px; font-weight: 700; line-height: 1.25; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+app-chat-page .chart-card .bar-track { height: 9px; background: #edf6f4; border-radius: 999px; overflow: hidden; }
+app-chat-page .chart-card .bar-fill { height: 100%; background: #234f4f; border-radius: 999px; }
+app-chat-page .chart-card .bar-val { color: #22312f; font-size: 12px; font-weight: 800; text-align: right; }
+app-chat-page .chart-card .column-chart { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(58px, 1fr); gap: 12px; align-items: end; min-height: 220px; margin-top: 16px; padding: 12px 12px 10px; border: 1px solid #edf6f4; border-radius: 8px; background: linear-gradient(to bottom, #ffffff 0%, #f6fbfa 100%); overflow-x: auto; }
+app-chat-page .chart-card .column-item { display: grid; grid-template-rows: 24px 140px 34px; gap: 8px; align-items: end; min-width: 58px; text-align: center; }
+app-chat-page .chart-card .column-value { color: #22312f; font-size: 12px; font-weight: 800; white-space: nowrap; }
+app-chat-page .chart-card .column-track { position: relative; display: flex; align-items: end; width: 100%; height: 140px; border-radius: 7px; background: #edf6f4; overflow: hidden; }
+app-chat-page .chart-card .column-fill { width: 100%; min-height: 6px; border-radius: 7px 7px 0 0; background: #234f4f; }
+app-chat-page .chart-card .column-label { overflow: hidden; color: #59756f; font-size: 11px; font-weight: 800; line-height: 1.2; text-overflow: ellipsis; }
+app-chat-page .chart-card .line-chart { position: relative; margin-top: 16px; padding: 12px 10px 0; border: 1px solid #edf6f4; border-radius: 8px; background: #f6fbfa; }
+app-chat-page .chart-card .line-grid { position: absolute; inset: 12px 10px 24px; background: repeating-linear-gradient(to bottom, rgba(35, 79, 79, 0.08) 0 1px, transparent 1px 11px); }
+app-chat-page .chart-card svg { position: relative; display: block; width: 100%; height: 150px; }
+app-chat-page .chart-card polyline { fill: none; stroke: #234f4f; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+app-chat-page .chart-card .line-labels { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; padding: 0 0 9px; color: #59756f; font-size: 11px; font-weight: 700; text-align: center; }
+app-chat-page .chart-card .line-labels span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+app-chat-page .sql-details { margin-top: 12px; }
+app-chat-page .sql-details summary { color: #6b6475; font-size: 12px; font-weight: 800; cursor: pointer; }

@@ -1,4 +1,4 @@
-<div class="ai-page">
+﻿<div class="ai-page">
   <header class="page-header">
     <p class="eyebrow">
       <span class="status-dot"></span> AI Assistant
@@ -66,16 +66,22 @@
           <div class="message-row assistant-row">
             <div class="avatar ai-avatar">AI</div>
             <div class="assistant-bubble">
-              <div>{{ msg.content }}</div>
+              <div class="assistant-answer" [innerHTML]="formatAssistantAnswer(msg.content)"></div>
               @if (sqlQueryFor(msg); as sqlQuery) {
-                <div class="sql-box compact">
-                  <pre>{{ sqlQuery }}</pre>
-                </div>
+                <details class="sql-details">
+                  <summary>SQL sorgusunu goster</summary>
+                  <div class="sql-box compact">
+                    <pre>{{ sqlQuery }}</pre>
+                  </div>
+                </details>
               }
               @if (visualizationCodeFor(msg); as visualizationCode) {
-                <div class="sql-box compact">
-                  <pre>{{ visualizationCode }}</pre>
-                </div>
+                <details class="sql-details">
+                  <summary>Gorsellestirme verisini goster</summary>
+                  <div class="sql-box compact">
+                    <pre>{{ visualizationCode }}</pre>
+                  </div>
+                </details>
               }
             </div>
           </div>
@@ -87,6 +93,46 @@
             <div class="chart-card">
               <h4 class="chart-title">{{ msg.metadata.title }}</h4>
 
+              @if (msg.metadata.summaryItems?.length) {
+                <div class="chart-summary">
+                  @for (item of msg.metadata.summaryItems; track $index) {
+                    <div class="summary-row">
+                      <span>{{ item.label }}</span>
+                      <strong>{{ item.value }}</strong>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (msg.metadata.chartType === 'column') {
+                <div class="column-chart">
+                  @for (point of msg.metadata.points; track $index) {
+                    <div class="column-item">
+                      <span class="column-value">{{ point.displayValue }}</span>
+                      <div class="column-track">
+                        <div class="column-fill" [style.height]="point.height"></div>
+                      </div>
+                      <span class="column-label">{{ point.label }}</span>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (msg.metadata.chartType === 'line') {
+                <div class="line-chart">
+                  <div class="line-grid"></div>
+                  <svg viewBox="0 0 100 44" preserveAspectRatio="none" aria-hidden="true">
+                    <polyline [attr.points]="msg.metadata.linePoints"></polyline>
+                  </svg>
+                  <div class="line-labels">
+                    @for (point of msg.metadata.points; track $index) {
+                      <span>{{ point.label }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (msg.metadata.chartType !== 'line' && msg.metadata.chartType !== 'column') {
               <div class="chart-bars-container">
                 @for (bar of msg.metadata.bars; track $index) {
                   <div class="bar-row">
@@ -98,16 +144,16 @@
                   </div>
                 }
               </div>
-
-              @if (msg.metadata.sql) {
-                <div class="sql-box">
-                  <pre>{{ msg.metadata.sql }}</pre>
-                </div>
               }
 
-              <div class="chart-footer">
-                {{ msg.metadata.stats }}
-              </div>
+              @if (msg.metadata.sql) {
+                <details class="sql-details">
+                  <summary>SQL sorgusunu goster</summary>
+                  <div class="sql-box">
+                    <pre>{{ msg.metadata.sql }}</pre>
+                  </div>
+                </details>
+              }
             </div>
           </div>
         }

@@ -26,8 +26,12 @@ export class StoreSettingsService {
   }
 
   updateSettings(payload: any) {
-    this.cacheSettings(payload);
-    return of(payload);
+    return this.http.put<any>(this.apiUrl, payload).pipe(
+      tap(settings => this.cacheSettings(settings)),
+      catchError(error => {
+        return throwError(() => error);
+      })
+    );
   }
 
   private cacheSettings(settings: any) {
