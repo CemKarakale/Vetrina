@@ -176,8 +176,3 @@ Depending on the SpringDoc route mapping, the UI may also be available at:
 http://localhost:8080/swagger-ui/index.html
 ```
 
-## Notes
-
-- The frontend package name is already set to `vetrina`.
-- The AI service exposes health checks at `http://localhost:8000/health`.
-- The database container maps MySQL from container port `3306` to host port `3307`.
