@@ -12,6 +12,7 @@ from security.guardrails import validate_sql_safety
 from graph.state import AgentState
 
 MAX_RETRIES = 3
+SQL_GENERATION_FALLBACK = "SELECT 'Sorgu uretilemedi' AS hata"
 
 # ════════════════════════════════════════════════════════════════════════════
 # Greeting / sohbet cevapları
@@ -134,6 +135,10 @@ def sql_node(state: AgentState) -> AgentState:
 
         sql_query = generate_sql(sub_q, user_role, store_id, user_id)
         print(f"[SQL Node] Generated SQL: {sql_query[:200]}")
+
+        if sql_query.strip() == SQL_GENERATION_FALLBACK:
+            combined_answers.append("AI servisi şu anda SQL üretemedi. Lütfen biraz sonra tekrar deneyin.")
+            continue
 
         # SQL güvenlik kontrolü
         is_safe, reason = validate_sql_safety(sql_query)

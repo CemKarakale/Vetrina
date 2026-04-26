@@ -6,12 +6,13 @@ load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_API_KEY_2 = os.getenv("GROQ_API_KEY_2", "")
+GROQ_API_KEY_3 = os.getenv("GROQ_API_KEY_3", "")
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
 
 
 def call_llm(system_prompt: str, user_message: str) -> str:
-    api_keys = [key for key in [GROQ_API_KEY, GROQ_API_KEY_2] if key]
+    api_keys = [key for key in [GROQ_API_KEY, GROQ_API_KEY_2, GROQ_API_KEY_3] if key]
 
     if not api_keys:
         return "LLM servisi yapilandirilmamis."

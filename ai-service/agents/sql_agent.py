@@ -87,6 +87,38 @@ def deterministic_sql(question: str, user_role: str, store_id: int | None, user_
     order_scope = _scope_clause(user_role, store_id, user_id, "o")
     product_scope = _product_scope_clause(user_role, store_id, "p")
 
+    if any(phrase in q for phrase in ["en pahali urun", "en pahali", "most expensive", "highest price"]):
+        return f"""
+SELECT p.name AS urun, p.unit_price AS fiyat, p.stock_quantity AS stok_adedi
+FROM products p
+{product_scope}
+ORDER BY p.unit_price DESC
+LIMIT 1
+""".strip()
+
+    if any(phrase in q for phrase in ["en cok yorum alan", "en cok yorumlanan", "most reviewed", "most reviews"]):
+        scope = f"WHERE p.store_id = {store_id}" if user_role == "CORPORATE" and store_id else ""
+        return f"""
+SELECT p.name AS urun, COUNT(r.id) AS yorum_sayisi, ROUND(AVG(r.star_rating), 2) AS ortalama_puan
+FROM products p
+LEFT JOIN reviews r ON r.product_id = p.id
+{scope}
+GROUP BY p.id, p.name
+ORDER BY yorum_sayisi DESC, ortalama_puan DESC
+LIMIT 1
+""".strip()
+
+    if q.strip() in {"review", "reviews", "rewiev", "yorum", "yorumlar"}:
+        scope = f"WHERE p.store_id = {store_id}" if user_role == "CORPORATE" and store_id else ""
+        return f"""
+SELECT p.name AS urun, r.star_rating AS puan, r.content AS yorum, r.created_at AS tarih
+FROM reviews r
+JOIN products p ON p.id = r.product_id
+{scope}
+ORDER BY r.created_at DESC
+LIMIT 10
+""".strip()
+
     if ("bu ay" in q or "this month" in q) and any(word in q for word in ["satis", "gelir", "revenue", "tutar"]):
         return f"""
 SELECT COALESCE(SUM(o.grand_total), 0) AS toplam_satis_tutari
@@ -104,6 +136,25 @@ WHERE o.created_at >= DATE_SUB((SELECT MAX(created_at) FROM orders), INTERVAL 11
   {order_scope}
 GROUP BY DATE_FORMAT(o.created_at, '%Y-%m')
 ORDER BY ay
+""".strip()
+
+    if any(phrase in q for phrase in ["haftalik gelir", "haftalik satis", "weekly revenue", "weekly revanue", "weekly sales"]):
+        return f"""
+SELECT CONCAT(
+         DATE_FORMAT(weekly.week_start, '%Y-%m-%d'),
+         ' - ',
+         DATE_FORMAT(DATE_ADD(weekly.week_start, INTERVAL 6 DAY), '%Y-%m-%d')
+       ) AS hafta,
+       COALESCE(SUM(weekly.grand_total), 0) AS gelir
+FROM (
+    SELECT DATE(DATE_SUB(o.created_at, INTERVAL WEEKDAY(o.created_at) DAY)) AS week_start,
+           o.grand_total
+    FROM orders o
+    WHERE o.created_at >= DATE_SUB((SELECT MAX(created_at) FROM orders), INTERVAL 7 WEEK)
+      {order_scope}
+) weekly
+GROUP BY weekly.week_start
+ORDER BY weekly.week_start
 """.strip()
 
     if any(phrase in q for phrase in ["son 7 ay", "last 7 month"]):
@@ -273,7 +324,11 @@ ORDER BY p.stock_quantity ASC
 LIMIT 5
 """.strip()
 
-    if any(phrase in q for phrase in ["puan dagilim", "yildiz dagilim", "rating distribution"]):
+    if (
+        any(phrase in q for phrase in ["puan dagilim", "yildiz dagilim", "rating distribution", "rating distrubution"])
+        or ("degerlendirme" in q and "dagilim" in q)
+        or ("review" in q and any(word in q for word in ["distribution", "distrubution"]))
+    ):
         scope = f"WHERE p.store_id = {store_id}" if user_role == "CORPORATE" and store_id else ""
         return f"""
 SELECT r.star_rating AS puan, COUNT(*) AS yorum_sayisi

@@ -5,6 +5,8 @@ from decimal import Decimal
 LABEL_PRIORITY = [
     "durum",
     "status",
+    "hafta",
+    "week",
     "ay",
     "month",
     "tarih",
@@ -159,6 +161,8 @@ def _title_for(label_key: str | None, value_key: str | None) -> str:
         return "Siparis durum dagilimi"
     if any(word in label for word in ["puan", "rating", "yildiz"]):
         return "Puan dagilimi"
+    if any(word in label for word in ["hafta", "week"]):
+        return "Haftalik gelir trendi"
     if any(word in label for word in ["ay", "month", "tarih"]):
         if any(word in value for word in ["siparis", "order", "count", "sayi"]):
             return "Aylik siparis trendi"
@@ -172,7 +176,7 @@ def _title_for(label_key: str | None, value_key: str | None) -> str:
 
 def _chart_type_for(label_key: str | None, value_count: int, requested_type: str) -> str:
     label = (label_key or "").lower()
-    if any(word in label for word in ["ay", "month", "tarih"]):
+    if any(word in label for word in ["hafta", "week", "ay", "month", "tarih"]):
         return "column"
     if any(word in label for word in ["durum", "status", "puan", "rating", "yildiz"]):
         return "bar"

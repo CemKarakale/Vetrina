@@ -33,7 +33,13 @@ def execute_sql(sql: str) -> list | dict:
     try:
         with httpx.Client(timeout=30.0) as client:
             response = client.post(url, json=payload, headers=headers)
-            response.raise_for_status()
+            if response.status_code >= 400:
+                try:
+                    error_body = response.json()
+                    error_message = error_body.get("error", str(error_body))
+                except Exception:
+                    error_message = response.text
+                return {"error": f"Spring Boot SQL execution hatası: HTTP {response.status_code} - {error_message}"}
             return response.json()
     except httpx.HTTPError as e:
         return {"error": f"Spring Boot SQL execution hatası: {str(e)}"}

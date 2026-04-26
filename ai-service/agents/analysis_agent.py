@@ -7,6 +7,8 @@ LABELS = {
     "stok_adedi": "Stok adedi",
     "ortalama_urun_puani": "Ortalama urun puani",
     "gelir": "Gelir",
+    "hafta": "Hafta",
+    "haftalik_gelir": "Haftalik gelir",
     "ay": "Ay",
     "durum": "Durum",
     "urun": "Urun",
@@ -146,6 +148,8 @@ def chart_answer_title(question: str, result: list) -> str:
         return "Son 7 ay siparis trendi"
     if "ay" in keys and "gelir" in keys:
         return "Aylik gelir trendi"
+    if "hafta" in keys and any(key in keys for key in ["gelir", "haftalik_gelir"]):
+        return "Haftalik gelir trendi"
     if "durum" in keys:
         return "Siparis durum dagilimi"
     if "puan" in keys or "star_rating" in keys:
