@@ -38,7 +38,7 @@ export class SettingsPage implements OnInit {
         
         // Mock fallback demo data
         this.settings.set(this.normalizeSettings({
-          storeName: 'Tech Haven E-Commerce',
+          storeName: 'Vetrina',
           email: 'admin@techhaven.example.com',
           status: 'Open',
           category: 'Electronics & Gadgets',
