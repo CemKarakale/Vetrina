@@ -50,7 +50,21 @@ Kurallar:
 
 
 def _normalize_question(question: str) -> str:
-    normalized = unicodedata.normalize("NFKD", question or "")
+    turkish_map = str.maketrans({
+        "ı": "i",
+        "İ": "I",
+        "ğ": "g",
+        "Ğ": "G",
+        "ü": "u",
+        "Ü": "U",
+        "ş": "s",
+        "Ş": "S",
+        "ö": "o",
+        "Ö": "O",
+        "ç": "c",
+        "Ç": "C",
+    })
+    normalized = unicodedata.normalize("NFKD", (question or "").translate(turkish_map))
     return normalized.encode("ascii", "ignore").decode("ascii").lower()
 
 
@@ -109,6 +123,22 @@ GROUP BY seq.n, ay
 ORDER BY seq.n DESC
 """.strip()
 
+    if user_role == "INDIVIDUAL" and "siparis" in q and "durum" in q and any(phrase in q for phrase in ["en son", "son verdigim", "latest"]):
+        return f"""
+SELECT o.id AS siparis_id,
+       COALESCE(SUBSTRING(GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ', '), 1, 70), 'Urun bulunamadi') AS urunler,
+       o.status AS durum,
+       o.created_at AS tarih,
+       o.grand_total AS toplam_tutar
+FROM orders o
+LEFT JOIN order_items oi ON oi.order_id = o.id
+LEFT JOIN products p ON p.id = oi.product_id
+WHERE o.user_id = {user_id}
+GROUP BY o.id, o.status, o.created_at, o.grand_total
+ORDER BY o.created_at DESC
+LIMIT 1
+""".strip()
+
     if "siparis" in q and any(word in q for word in ["durum", "dagilim", "status"]):
         return f"""
 SELECT o.status AS durum, COUNT(*) AS siparis_sayisi
@@ -118,7 +148,8 @@ GROUP BY o.status
 ORDER BY siparis_sayisi DESC
 """.strip()
 
-    if any(phrase in q for phrase in ["en cok satan", "top selling"]):
+    if any(phrase in q for phrase in ["en cok satan", "en cok satilan", "en cok satilan urun", "top selling"]):
+        limit = 1 if any(phrase in q for phrase in ["hangisi", "which", "tek", "birinci"]) else 5
         product_scope_join = f" AND p.store_id = {store_id}" if user_role == "CORPORATE" and store_id else ""
         return f"""
 SELECT p.name AS urun, SUM(oi.quantity) AS satis_adedi
@@ -128,6 +159,95 @@ JOIN orders o ON o.id = oi.order_id
 WHERE 1=1 {order_scope}{product_scope_join}
 GROUP BY p.id, p.name
 ORDER BY satis_adedi DESC
+LIMIT {limit}
+""".strip()
+
+    if user_role == "INDIVIDUAL" and any(phrase in q for phrase in ["son siparis", "recent order", "latest order"]):
+        return f"""
+SELECT o.id AS siparis_id,
+       COALESCE(SUBSTRING(GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ', '), 1, 70), 'Urun bulunamadi') AS urunler,
+       o.status AS durum,
+       o.created_at AS tarih,
+       o.grand_total AS toplam_tutar
+FROM orders o
+LEFT JOIN order_items oi ON oi.order_id = o.id
+LEFT JOIN products p ON p.id = oi.product_id
+WHERE o.user_id = {user_id}
+GROUP BY o.id, o.status, o.created_at, o.grand_total
+ORDER BY o.created_at DESC
+LIMIT 5
+""".strip()
+
+    if user_role == "INDIVIDUAL" and "siparis" in q and any(word in q for word in ["durum", "dagilim", "status"]):
+        return f"""
+SELECT o.status AS durum, COUNT(*) AS siparis_sayisi
+FROM orders o
+WHERE o.user_id = {user_id}
+GROUP BY o.status
+ORDER BY siparis_sayisi DESC
+""".strip()
+
+    if user_role == "INDIVIDUAL" and "siparis" in q and any(word in q for word in ["kac", "sayi", "sayisi", "adet", "count"]):
+        return f"""
+SELECT COUNT(*) AS siparis_sayisi
+FROM orders o
+WHERE o.user_id = {user_id}
+""".strip()
+
+    if user_role == "INDIVIDUAL" and any(phrase in q for phrase in ["toplam harcama", "harcamam", "total spent"]):
+        return f"""
+SELECT COALESCE(SUM(o.grand_total), 0) AS toplam_harcama
+FROM orders o
+WHERE o.user_id = {user_id}
+""".strip()
+
+    if user_role == "INDIVIDUAL" and any(phrase in q for phrase in ["teslim edilen siparis", "delivered order"]):
+        return f"""
+SELECT o.id AS siparis_id,
+       COALESCE(SUBSTRING(GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ', '), 1, 70), 'Urun bulunamadi') AS urunler,
+       o.created_at AS tarih,
+       o.grand_total AS toplam_tutar
+FROM orders o
+LEFT JOIN order_items oi ON oi.order_id = o.id
+LEFT JOIN products p ON p.id = oi.product_id
+WHERE o.user_id = {user_id}
+  AND o.status = 'DELIVERED'
+GROUP BY o.id, o.created_at, o.grand_total
+ORDER BY o.created_at DESC
+LIMIT 5
+""".strip()
+
+    if user_role == "INDIVIDUAL" and any(phrase in q for phrase in ["iptal edilen siparis", "cancelled order", "canceled order"]):
+        if any(phrase in q for phrase in ["var mi", "varmi", "any"]):
+            return f"""
+SELECT COUNT(*) AS iptal_edilen_siparis_sayisi
+FROM orders o
+WHERE o.user_id = {user_id}
+  AND o.status = 'CANCELLED'
+""".strip()
+
+        return f"""
+SELECT o.id AS siparis_id,
+       COALESCE(SUBSTRING(GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ', '), 1, 70), 'Urun bulunamadi') AS urunler,
+       o.created_at AS tarih,
+       o.grand_total AS toplam_tutar
+FROM orders o
+LEFT JOIN order_items oi ON oi.order_id = o.id
+LEFT JOIN products p ON p.id = oi.product_id
+WHERE o.user_id = {user_id}
+  AND o.status = 'CANCELLED'
+GROUP BY o.id, o.created_at, o.grand_total
+ORDER BY o.created_at DESC
+LIMIT 5
+""".strip()
+
+    if user_role == "INDIVIDUAL" and any(phrase in q for phrase in ["yorumlarimi", "yazdigim yorum", "my reviews"]):
+        return f"""
+SELECT p.name AS urun, r.star_rating AS puan, r.content AS yorum, r.created_at AS tarih
+FROM reviews r
+JOIN products p ON p.id = r.product_id
+WHERE r.user_id = {user_id}
+ORDER BY r.created_at DESC
 LIMIT 5
 """.strip()
 

@@ -30,6 +30,24 @@ BLOCKED_PATTERNS = [
     "ignore instructions",
 ]
 
+DESTRUCTIVE_SQL_RE = re.compile(
+    r"\b(drop|delete|update|insert|truncate|alter)\b.*\b(table|database|users?|products?|orders?|records?|rows?|data)\b",
+    re.IGNORECASE,
+)
+
+SENSITIVE_ACCESS_PATTERNS = [
+    "password",
+    "password_hash",
+    "pwd",
+    "secret",
+    "token",
+    "api key",
+    "api_key",
+    "credit card",
+    "credit_card",
+    "ssn",
+]
+
 # ── Kapsam Dışı / Filtre Atlama Kalıpları ────────────────────────────────────
 OUT_OF_SCOPE_PATTERNS = [
     # Türkçe
@@ -92,7 +110,14 @@ def check_prompt_injection(question: str) -> bool:
     for pattern in BLOCKED_PATTERNS:
         if pattern.lower() in question_lower:
             return True
+    if DESTRUCTIVE_SQL_RE.search(question):
+        return True
     return False
+
+
+def check_sensitive_data_access(question: str) -> bool:
+    question_lower = question.lower()
+    return any(pattern in question_lower for pattern in SENSITIVE_ACCESS_PATTERNS)
 
 
 def check_scope_bypass(question: str) -> bool:

@@ -1,5 +1,6 @@
 from security.guardrails import (
     check_prompt_injection,
+    check_sensitive_data_access,
     check_scope_bypass,
     check_cross_store_access,
     check_other_user_access,
@@ -65,6 +66,18 @@ def run(question: str, user_role: str, store_id: int | None, user_id: int) -> di
         result["blocked_message"] = (
             "⚠️ Güvenlik uyarısı: Sistem komutlarını manipüle etmeye yönelik bir girişim tespit edildi. "
             "Bu istek reddedildi."
+        )
+        result["needs_sql"] = False
+        return result
+
+    # 2b. Sensitive data access
+    if check_sensitive_data_access(question):
+        result["should_block"] = True
+        result["is_in_scope"] = False
+        result["blocked_reason"] = "SENSITIVE_DATA_ACCESS"
+        result["blocked_message"] = (
+            "Security blocked: sensitive fields such as passwords, tokens, secrets, "
+            "API keys, credit cards, and SSNs cannot be queried."
         )
         result["needs_sql"] = False
         return result
