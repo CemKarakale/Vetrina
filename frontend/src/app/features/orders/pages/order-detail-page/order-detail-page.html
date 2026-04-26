@@ -1,0 +1,101 @@
+<div class="order-detail-page">
+  <button type="button" class="back-btn" (click)="goBack()">Back to Orders</button>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading order details...</p>
+    </div>
+  } @else {
+    @if (errorMessage()) {
+      <div class="error-banner">
+        <span class="warning-icon">!</span>
+        <p>{{ errorMessage() }}</p>
+      </div>
+    }
+
+    @if (order()) {
+      <section class="detail-card">
+        <div class="detail-header">
+          <div>
+            <div class="eyebrow">Order details</div>
+            <h1>Order #{{ order()?.id }}</h1>
+            <p>Placed on {{ order()?.createdAt | date:'longDate' }}</p>
+          </div>
+          <div class="header-actions">
+            <span class="status-badge" [ngClass]="normalizeStatus(order()?.status).toLowerCase()">
+              {{ getStatusLabel(order()?.status) }}
+            </span>
+            @if (canCancelOrder(order())) {
+              <button type="button" class="cancel-btn" [disabled]="isCancelling()" (click)="cancelOrder()">
+                {{ isCancelling() ? 'Cancelling...' : 'Cancel Order' }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <article>
+            <span>Customer</span>
+            <strong>{{ order()?.userName || 'Customer unavailable' }}</strong>
+          </article>
+          <article>
+            <span>Store</span>
+            <strong>{{ order()?.storeName || 'Store unavailable' }}</strong>
+          </article>
+          <article>
+            <span>Total</span>
+            <strong>{{ order()?.grandTotal | currency:'USD':'symbol':'1.2-2' }}</strong>
+          </article>
+        </div>
+
+        <section class="items-section">
+          <div class="panel-title">
+            <h2>Products</h2>
+            <span>{{ order()?.items?.length || 0 }} item{{ (order()?.items?.length || 0) === 1 ? '' : 's' }}</span>
+          </div>
+
+          <div class="items-table">
+            <div class="table-head">
+              <span>Product</span>
+              <span>Price</span>
+              <span>Qty</span>
+              <span>Subtotal</span>
+            </div>
+            @for (item of order()?.items; track item.id) {
+              <div class="table-row">
+                <strong>{{ getItemName(item) }}</strong>
+                <span>{{ getItemTotal(item) | currency:'USD':'symbol':'1.2-2' }}</span>
+                <span>{{ item.quantity || 1 }}</span>
+                <strong>{{ getItemTotal(item) | currency:'USD':'symbol':'1.2-2' }}</strong>
+              </div>
+            }
+          </div>
+        </section>
+
+        @if (shipment()) {
+          <section class="shipment-section">
+            <div class="panel-title">
+              <h2>Shipment</h2>
+              <span>{{ shipment()?.status || 'Pending' }}</span>
+            </div>
+            <div class="info-grid compact">
+              <article>
+                <span>Mode</span>
+                <strong>{{ shipment()?.modeOfShipment || 'Standard' }}</strong>
+              </article>
+              <article>
+                <span>Warehouse</span>
+                <strong>{{ shipment()?.warehouseBlock || 'Not assigned' }}</strong>
+              </article>
+              <article>
+                <span>Tracking</span>
+                <strong>{{ shipment()?.trackingNumber || shipment()?.id || 'Not assigned' }}</strong>
+              </article>
+            </div>
+          </section>
+        }
+      </section>
+    }
+  }
+</div>

@@ -1,0 +1,191 @@
+<div class="dashboard-page">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your dashboard...</p>
+    </div>
+  } @else {
+    @if (errorMessage()) {
+      <div class="error-banner">
+        <span class="warning-icon">!</span>
+        <p>{{ errorMessage() }}</p>
+        <span class="muted-text">Using frontend fallback data</span>
+      </div>
+    }
+
+    <section class="dashboard-header">
+      <div>
+        <div class="eyebrow">{{ rangeLabel() }}</div>
+        <h1>{{ getWelcomeMessage() }}</h1>
+        <p>{{ getRoleDescription() }}</p>
+      </div>
+
+      <div class="dashboard-actions">
+        <div class="range-control" aria-label="Dashboard date range">
+          <button type="button" [class.active]="selectedRange() === '7d'" (click)="changeRange('7d')">7D</button>
+          <button type="button" [class.active]="selectedRange() === '30d'" (click)="changeRange('30d')">30D</button>
+          <button type="button" [class.active]="selectedRange() === '90d'" (click)="changeRange('90d')">90D</button>
+        </div>
+        <button type="button" class="refresh-button" (click)="loadDashboard()">Refresh</button>
+        <span class="role-badge" [class]="userRole().toLowerCase()">{{ userRole() }}</span>
+      </div>
+    </section>
+
+    @if (getInsights().length) {
+      <section class="insight-strip">
+        @for (insight of getInsights(); track insight.label) {
+          <article class="insight-card" [class]="insight.status || 'neutral'">
+            <span>{{ insight.label }}</span>
+            <strong>{{ insight.value }}</strong>
+            <p>{{ insight.detail }}</p>
+          </article>
+        }
+      </section>
+    }
+
+    @if (getAlerts().length) {
+      <section class="alert-list">
+        @for (alert of getAlerts(); track alert.title) {
+          <article class="alert-item" [class]="alert.severity">
+            <strong>{{ alert.title }}</strong>
+            <span>{{ alert.detail }}</span>
+          </article>
+        }
+      </section>
+    }
+
+    @if (isUser()) {
+      <div class="dashboard-grid user-dashboard">
+        <div class="stats-row">
+          @for (stat of userDashboard()?.stats; track stat.title) {
+            <app-stat-card [data]="stat" class="stat-widget"></app-stat-card>
+          }
+        </div>
+
+        <div class="chart-section">
+          <app-chart-widget [data]="userDashboard()!.spendingTrend"></app-chart-widget>
+        </div>
+
+        <div class="spending-section">
+          <app-spending-widget [data]="userDashboard()!.spending"></app-spending-widget>
+        </div>
+
+        <div class="activity-section">
+          <app-recent-activity-widget [data]="{ title: 'Purchase History', orders: userDashboard()!.recentOrders }"></app-recent-activity-widget>
+        </div>
+      </div>
+    }
+
+    @if (isCorporate()) {
+      <div class="dashboard-grid corporate-dashboard">
+        <div class="stats-row four-cols">
+          <app-stat-card [data]="corporateDashboard()!.revenue" class="stat-widget"></app-stat-card>
+          <app-stat-card [data]="corporateDashboard()!.orders" class="stat-widget"></app-stat-card>
+          <app-stat-card [data]="corporateDashboard()!.products" class="stat-widget"></app-stat-card>
+          <app-stat-card [data]="corporateDashboard()!.conversionRate" class="stat-widget"></app-stat-card>
+        </div>
+
+        <div class="chart-main">
+          <app-chart-widget [data]="corporateDashboard()!.revenueChart"></app-chart-widget>
+        </div>
+
+        <div class="top-products-section">
+          <app-top-products-widget [data]="corporateDashboard()!.topProducts"></app-top-products-widget>
+        </div>
+
+        <div class="category-section">
+          <app-chart-widget [data]="corporateDashboard()!.categoryDistribution"></app-chart-widget>
+        </div>
+
+        <section class="table-panel customer-panel">
+          <div class="panel-header">
+            <h2>Customer Segments</h2>
+            <span>Members, spend, and satisfaction</span>
+          </div>
+          <div class="data-table">
+            @for (segment of corporateDashboard()?.customerSegments; track segment.name) {
+              <div class="table-row">
+                <strong>{{ segment.name }}</strong>
+                <span><b>{{ segment.customers | number }}</b> customers</span>
+                <span><b>{{ segment.averageSpend | currency:'USD':'symbol':'1.0-0' }}</b> avg spend</span>
+                <span><b>{{ segment.satisfaction }}%</b> satisfied</span>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="table-panel review-panel">
+          <div class="panel-header">
+            <h2>Review Management</h2>
+            <span>Signals from customer reviews</span>
+          </div>
+          <div class="mini-list">
+            @for (item of corporateDashboard()?.reviewInsights; track item.label) {
+              <div>
+                <strong>{{ item.value }}</strong>
+                <span>{{ item.label }}</span>
+                <p>{{ item.detail }}</p>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+    }
+
+    @if (isAdmin()) {
+      <div class="dashboard-grid admin-dashboard">
+        <div class="stats-row four-cols">
+          <app-stat-card [data]="adminDashboard()!.totalRevenue" class="stat-widget"></app-stat-card>
+          <app-stat-card [data]="adminDashboard()!.totalOrders" class="stat-widget"></app-stat-card>
+          <app-stat-card [data]="adminDashboard()!.totalUsers" class="stat-widget"></app-stat-card>
+          <app-stat-card [data]="adminDashboard()!.totalStores" class="stat-widget"></app-stat-card>
+        </div>
+
+        <div class="chart-main">
+          <app-chart-widget [data]="adminDashboard()!.platformRevenueChart"></app-chart-widget>
+        </div>
+
+        <div class="chart-secondary">
+          <app-chart-widget [data]="adminDashboard()!.userGrowthChart"></app-chart-widget>
+        </div>
+
+        <div class="category-section">
+          <app-chart-widget [data]="adminDashboard()!.categoryDistribution"></app-chart-widget>
+        </div>
+
+        <section class="table-panel store-panel">
+          <div class="panel-header">
+            <h2>Cross-Store Comparison</h2>
+            <span>Revenue, order volume, and rating</span>
+          </div>
+          <div class="data-table">
+            @for (store of adminDashboard()?.storeComparisons; track store.storeName) {
+              <div class="table-row">
+                <strong>{{ store.storeName }}</strong>
+                <span>{{ store.revenue | currency:'USD':'symbol':'1.0-0' }}</span>
+                <span>{{ store.orders | number }} orders</span>
+                <span>{{ store.rating }} rating</span>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="table-panel audit-panel">
+          <div class="panel-header">
+            <h2>Audit Activity</h2>
+            <span>Admin and system events</span>
+          </div>
+          <div class="audit-list">
+            @for (activity of adminDashboard()?.auditActivities; track activity.actor + activity.date) {
+              <div class="audit-item" [class]="activity.severity">
+                <span>{{ activity.date }}</span>
+                <strong>{{ activity.actor }}</strong>
+                <p>{{ activity.action }}</p>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+    }
+  }
+</div>

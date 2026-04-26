@@ -1,0 +1,99 @@
+<div class="product-detail-page">
+  <button type="button" class="back-btn" (click)="goBack()">Back to Products</button>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading product details...</p>
+    </div>
+  }
+
+  @if (!isLoading() && errorMessage()) {
+    <div class="error-banner">
+      <span class="warning-icon">!</span>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  }
+
+  @if (!isLoading() && product()) {
+    <section class="detail-card">
+      <div class="detail-header">
+        <div>
+          <div class="eyebrow">Product details</div>
+          <h1>{{ product()?.name }}</h1>
+          <p>SKU {{ product()?.sku || 'Unavailable' }}</p>
+        </div>
+        <div class="header-actions">
+          <span class="category-badge">{{ product()?.categoryName || 'General' }}</span>
+          @if (canEdit()) {
+            <button type="button" class="secondary-btn" (click)="toggleEdit()">
+              {{ isEditing() ? 'Cancel Edit' : 'Edit Product' }}
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (!isEditing()) {
+        <div class="summary-grid">
+          <article>
+            <span>Price</span>
+            <strong>{{ product()?.unitPrice | currency:'USD':'symbol':'1.2-2' }}</strong>
+          </article>
+          <article>
+            <span>Store</span>
+            <strong>{{ product()?.storeName || 'Store unavailable' }}</strong>
+          </article>
+          <article>
+            <span>Category</span>
+            <strong>{{ product()?.categoryName || 'General' }}</strong>
+          </article>
+        </div>
+
+        <section class="description-section">
+          <div class="panel-title">
+            <h2>Description</h2>
+          </div>
+          <p>{{ product()?.description || 'No description available for this product.' }}</p>
+        </section>
+
+        <div class="action-section">
+          <button type="button" class="primary-btn" [class.success-btn]="isAddedToCart()" (click)="addToCart()">
+            {{ isAddedToCart() ? 'Added to Cart' : 'Add to Cart' }}
+          </button>
+          @if (canEdit()) {
+            <button type="button" class="danger-btn" (click)="deleteProduct()">Delete Product</button>
+          }
+        </div>
+      }
+
+      @if (isEditing()) {
+        <section class="edit-panel">
+          <div class="panel-title">
+            <h2>Edit product</h2>
+            <span>Update catalog-facing product fields</span>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="edit-price">Price</label>
+              <input id="edit-price" #editPrice type="number" min="0" step="0.01" [value]="product()?.unitPrice">
+            </div>
+            <div class="form-group">
+              <label>SKU</label>
+              <div class="readonly-field">{{ product()?.sku || 'Unavailable' }}</div>
+            </div>
+            <div class="form-group full-width">
+              <label for="edit-description">Description</label>
+              <textarea id="edit-description" #editDesc rows="5">{{ product()?.description }}</textarea>
+            </div>
+          </div>
+
+          <div class="action-section">
+            <button type="button" class="secondary-btn" (click)="toggleEdit()">Cancel</button>
+            <button type="button" class="primary-btn" (click)="saveProduct(editDesc.value, editPrice.value)">Save Changes</button>
+          </div>
+        </section>
+      }
+    </section>
+  }
+</div>

@@ -1,0 +1,125 @@
+package com.cse214.project.service;
+
+import com.cse214.project.dto.shipment.ShipmentDto;
+import com.cse214.project.dto.shipment.UpdateShipmentRequest;
+import com.cse214.project.entity.Order;
+import com.cse214.project.entity.Shipment;
+import com.cse214.project.entity.Store;
+import com.cse214.project.entity.User;
+import com.cse214.project.repository.OrderRepository;
+import com.cse214.project.repository.ShipmentRepository;
+import com.cse214.project.repository.StoreRepository;
+import com.cse214.project.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class ShipmentService {
+
+    private final ShipmentRepository shipmentRepository;
+    private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
+    private final StoreRepository storeRepository;
+
+    public List<ShipmentDto> getAllShipments(String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElseThrow();
+
+        List<Shipment> shipments;
+        switch (user.getRoleType()) {
+            case "ADMIN":
+                shipments = shipmentRepository.findAllWithOrder();
+                break;
+            case "CORPORATE":
+                Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
+                shipments = shipmentRepository.findByOrderStoreIdWithOrder(store.getId());
+                break;
+            case "INDIVIDUAL":
+                shipments = shipmentRepository.findByOrderUserIdWithOrder(user.getId());
+                break;
+            default:
+                shipments = List.of();
+        }
+
+        return shipments.stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    public ShipmentDto getShipmentByOrderId(Integer orderId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElseThrow();
+        Order order = orderRepository.findByIdWithUserAndStore(orderId)
+                .orElseThrow(() -> new RuntimeException("Sipariş bulunamadı: " + orderId));
+
+        switch (user.getRoleType()) {
+            case "CORPORATE":
+                Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
+                if (!order.getStore().getId().equals(store.getId())) {
+                    throw new RuntimeException("Bu kargo bilgisine erişim yetkiniz yok.");
+                }
+                break;
+            case "INDIVIDUAL":
+                if (!order.getUser().getId().equals(user.getId())) {
+                    throw new RuntimeException("Bu kargo bilgisine erişim yetkiniz yok.");
+                }
+                break;
+        }
+
+        Shipment shipment = shipmentRepository.findByOrderIdWithOrder(orderId)
+                .orElseThrow(() -> new RuntimeException("Bu sipariş için kargo bilgisi bulunamadı."));
+
+        return toDto(shipment);
+    }
+
+    private ShipmentDto toDto(Shipment s) {
+        return ShipmentDto.builder()
+                .id(s.getId())
+                .orderId(s.getOrder().getId())
+                .warehouse(s.getWarehouse())
+                .mode(s.getMode())
+                .status(s.getStatus())
+                .trackingNumber(s.getTrackingNumber())
+                .estimatedDeliveryDate(s.getEstimatedDeliveryDate())
+                .build();
+    }
+
+    @Transactional
+    public ShipmentDto updateShipment(Integer orderId, UpdateShipmentRequest request, String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElseThrow();
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Sipariş bulunamadı: " + orderId));
+
+        // Ownership check
+        switch (user.getRoleType()) {
+            case "CORPORATE":
+                Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
+                if (!order.getStore().getId().equals(store.getId())) {
+                    throw new RuntimeException("Bu kargoyu güncelleme yetkiniz yok.");
+                }
+                break;
+            case "INDIVIDUAL":
+                throw new RuntimeException("Bireysel kullanıcılar kargo bilgisi güncelleyemez.");
+        }
+
+        Shipment shipment = shipmentRepository.findByOrderIdWithOrder(orderId)
+                .orElseThrow(() -> new RuntimeException("Bu sipariş için kargo bilgisi bulunamadı."));
+
+        if (request.getTrackingNumber() != null) {
+            shipment.setTrackingNumber(request.getTrackingNumber());
+        }
+        if (request.getMode() != null) {
+            shipment.setMode(request.getMode());
+        }
+        if (request.getStatus() != null) {
+            shipment.setStatus(request.getStatus());
+        }
+        if (request.getEstimatedDeliveryDate() != null) {
+            shipment.setEstimatedDeliveryDate(request.getEstimatedDeliveryDate());
+        }
+
+        Shipment saved = shipmentRepository.save(shipment);
+        return toDto(saved);
+    }
+}

@@ -1,0 +1,183 @@
+<div class="reviews-page">
+  <header class="page-header">
+    <p class="eyebrow">Customer Feedback</p>
+    <h1>Reviews</h1>
+    <p>Monitor and respond to customer feedback to improve your store's reputation.</p>
+  </header>
+    @if (canReply()) {
+      <div class="filters-bar">
+        <div class="filter-group">
+          <label>Rating</label>
+          <select [ngModel]="selectedStars()" (ngModelChange)="selectedStars.set($event ? +$event : null)" class="filter-control">
+            <option [value]="null">All Stars</option>
+            @for (s of [5,4,3,2,1]; track s) {
+              <option [value]="s">{{ s }} Stars</option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Product</label>
+          <input 
+            type="text" 
+            [ngModel]="selectedProduct()" 
+            (ngModelChange)="selectedProduct.set($event || null)" 
+            list="productSuggestions" 
+            placeholder="Search Product..."
+            class="filter-control"
+          >
+          <datalist id="productSuggestions">
+            @for (p of availableProducts(); track p) {
+              <option [value]="p"></option>
+            }
+          </datalist>
+        </div>
+
+        <div class="filter-group">
+          <label>Customer</label>
+          <input 
+            type="text" 
+            [ngModel]="selectedUser()" 
+            (ngModelChange)="selectedUser.set($event || null)" 
+            list="userSuggestions" 
+            placeholder="Search User..."
+            class="filter-control"
+          >
+          <datalist id="userSuggestions">
+            @for (u of availableUsers(); track u) {
+              <option [value]="u"></option>
+            }
+          </datalist>
+        </div>
+
+        <button class="clear-filters" (click)="clearFilters()" *ngIf="selectedStars() || selectedProduct() || selectedUser()">
+          Clear
+        </button>
+      </div>
+    }
+
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading recent reviews...</p>
+    </div>
+  }
+
+  @if (!isLoading() && errorMessage()) {
+    <div class="error-banner">
+      <span>⚠️</span>
+      <p>{{ errorMessage() }}</p>
+      <span class="muted-text">Showing local demonstration data</span>
+    </div>
+  }
+
+  @if (!isLoading() && filteredReviews().length > 0) {
+    <div class="reviews-list">
+      
+      @if (!canReply()) {
+        <div class="review-form-container" style="background: #f6fbfa; padding: 24px; border: 1px solid #c8dcda; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 8px 20px rgba(35, 79, 79, 0.05);">
+          <h3 style="margin-top: 0; color: #17312c; font-weight: 800;">Write a Review</h3>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; color: #59756f; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">Select Product</label>
+            <select [(ngModel)]="newReviewProduct" style="width: 100%; padding: 10px 12px; background: #ffffff; color: #22312f; border: 1px solid #c8dcda; border-radius: 8px; font-size: 14px; outline: none;">
+              <option value="Select Product" disabled>Select Product</option>
+              <option value="Wayona Nylon Braided USB to Lightning Fast Charging Cable">Wayona Nylon Braided USB Cable</option>
+              <option value="Ambrane Unbreakable 60W Fast Charging Cable">Ambrane Unbreakable 60W Fast Charging Cable</option>
+              <option value="Sounce Fast Phone Charging Cable">Sounce Fast Phone Charging Cable</option>
+              <option value="boAt Deuce USB 300 Cable">boAt Deuce USB 300 Cable</option>
+              <option value="Portronics Konnect L Cable">Portronics Konnect L Cable</option>
+              <option value="pTron Solero TB301 Cable">pTron Solero TB301 Cable</option>
+              <option value="boAt Micro USB 55 Cable">boAt Micro USB 55 Cable</option>
+              <option value="MI Usb Type-C Cable">MI Usb Type-C Cable</option>
+              <option value="TP-Link USB WiFi Adapter">TP-Link USB WiFi Adapter</option>
+              <option value="AmazonBasics HDMI Cable">AmazonBasics HDMI Cable</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; color: #59756f; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">Rating</label>
+            <select [(ngModel)]="newReviewRating" style="width: 100%; padding: 10px 12px; background: #ffffff; color: #22312f; border: 1px solid #c8dcda; border-radius: 8px; font-size: 14px; outline: none;">
+              <option [value]="5">5 Stars - Excellent</option>
+              <option [value]="4">4 Stars - Very Good</option>
+              <option [value]="3">3 Stars - Good</option>
+              <option [value]="2">2 Stars - Fair</option>
+              <option [value]="1">1 Star - Poor</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; color: #59756f; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">Your Testimony</label>
+            <textarea rows="3" [(ngModel)]="newReviewContent" placeholder="This product changed my life..." style="width: 100%; padding: 10px 12px; background: #ffffff; color: #22312f; border: 1px solid #c8dcda; border-radius: 8px; font-size: 14px; outline: none; resize: vertical;"></textarea>
+          </div>
+          <button (click)="postReview()" style="background: #234f4f; color: white; padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700; transition: all 0.2s ease;">Submit Review</button>
+        </div>
+      }
+
+      @for (review of filteredReviews(); track review.id) {
+        <div class="review-card">
+          <div class="review-header">
+            <div class="reviewer-info">
+              <div class="avatar">{{ review.userName.charAt(0) }}</div>
+              <div>
+                <h4>{{ review.userName }}</h4>
+                <div class="stars">
+                  @for (star of getStarsArray(); track star) {
+                    <span class="star" [class.filled]="star <= review.starRating">★</span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="review-product">
+            <span class="badge">Purchased Item</span>
+            <span class="product-name">{{ review.productName }}</span>
+          </div>
+
+          <div class="review-body">
+            <p>"{{ review.content }}"</p>
+            @if (review.adminReply) {
+              <div class="admin-reply">
+                <strong>Response from Store</strong>
+                <p>{{ review.adminReply }}</p>
+              </div>
+            }
+          </div>
+
+          <div class="review-footer">
+            @if (canReply() && !review.adminReply) {
+              <button class="reply-btn" (click)="replyToReview(review.id)">Reply to Customer</button>
+            }
+            @if (canDelete(review)) {
+              <button class="delete-btn" [disabled]="deletingReviewId() === review.id" (click)="deleteReview(review.id)">
+                {{ deletingReviewId() === review.id ? 'Deleting...' : 'Delete Review' }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (replyModalId()) {
+    <div class="modal-overlay" (click)="replyModalId.set(null)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Reply to Reviewer</h3>
+          <button class="close-btn" (click)="replyModalId.set(null)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Public Response</label>
+            <textarea #replyInput rows="4" placeholder="Write your professional response..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="secondary-btn" (click)="replyModalId.set(null)">Cancel</button>
+          <button class="primary-btn" [disabled]="isReplying()" (click)="submitReply(replyInput.value)">
+            {{ isReplying() ? 'Posting...' : 'Post Reply' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

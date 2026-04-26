@@ -1,0 +1,58 @@
+<div class="admin-page">
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Categories</h1>
+      <p>Maintain category names, descriptions, hierarchy, and taxonomy status.</p>
+    </div>
+    <button class="primary-btn" type="button" (click)="openCreate()">Add Category</button>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="admin-alert">{{ errorMessage() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="admin-empty">Loading categories...</div>
+  } @else {
+    <section class="admin-table">
+      <div class="admin-row admin-head">
+        <span>ID</span><span>Name</span><span>Parent</span><span>Status</span><span>Products</span><span>Actions</span>
+      </div>
+      @for (category of categories(); track category.id) {
+        <div class="admin-row">
+          <span>{{ category.id }}</span>
+          <strong>{{ category.name }}</strong>
+          <span>{{ category.parentCategoryName || '-' }}</span>
+          <span class="pill">{{ category.status || 'ACTIVE' }}</span>
+          <span>{{ category.productCount || 0 }}</span>
+          <div class="row-actions">
+            <button type="button" (click)="editCategory(category)">Edit</button>
+            <button type="button" class="danger" (click)="deleteCategory(category)">Delete</button>
+          </div>
+        </div>
+      }
+    </section>
+  }
+</div>
+
+@if (formOpen()) {
+  <div class="modal-overlay" (click)="formOpen.set(false)">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingCategory() ? 'Edit Category' : 'Add Category' }}</h3>
+        <button class="close-btn" type="button" (click)="formOpen.set(false)">x</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group"><label>Name</label><input [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)"></div>
+        <div class="form-group"><label>Description</label><textarea rows="3" [ngModel]="form().description" (ngModelChange)="updateForm('description', $event)"></textarea></div>
+        <div class="form-group"><label>Parent</label><select [ngModel]="form().parentId" (ngModelChange)="updateForm('parentId', $event)"><option value="">None</option>@for (category of categories(); track category.id) {<option [value]="category.id">{{ category.name }}</option>}</select></div>
+        <div class="form-group"><label>Status</label><select [ngModel]="form().status" (ngModelChange)="updateForm('status', $event)"><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option></select></div>
+      </div>
+      <div class="modal-footer">
+        <button class="secondary-btn" type="button" (click)="formOpen.set(false)">Cancel</button>
+        <button class="primary-btn" type="button" (click)="saveCategory()">Save</button>
+      </div>
+    </div>
+  </div>
+}
