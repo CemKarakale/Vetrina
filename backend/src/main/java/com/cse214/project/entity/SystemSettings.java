@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "SystemSettings")
+@Table(name = "systemsettings")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -1,0 +1,32 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 26px 40px 22px;
+  background: #edf6f4;
+  color: #22312f;
+}
+
+.welcome-section {
+  h1 {
+    margin: 0 0 5px;
+    color: #1f3430;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    color: #5d6d69;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 760px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 22px 20px;
+  }
+}

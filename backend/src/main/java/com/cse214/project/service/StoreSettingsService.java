@@ -3,13 +3,13 @@ package com.cse214.project.service;
 import com.cse214.project.dto.store.StoreSettingsDto;
 import com.cse214.project.entity.Store;
 import com.cse214.project.entity.StoreSettings;
+import com.cse214.project.entity.User;
 import com.cse214.project.repository.StoreRepository;
 import com.cse214.project.repository.StoreSettingsRepository;
+import com.cse214.project.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,24 +17,28 @@ public class StoreSettingsService {
 
     private final StoreSettingsRepository storeSettingsRepository;
     private final StoreRepository storeRepository;
+    private final UserRepository userRepository;
 
-    public StoreSettingsDto getSettings() {
-        List<StoreSettings> allSettings = storeSettingsRepository.findAll();
-        if (allSettings.isEmpty()) {
-            return createDefaultSettings();
-        }
-        return toDto(allSettings.get(0));
+    public StoreSettingsDto getSettings(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
+
+        Store store = getStoreForUser(user);
+        StoreSettings settings = storeSettingsRepository.findByStoreId(store.getId())
+                .orElseGet(() -> createDefaultSettings(store));
+
+        return toDto(settings);
     }
 
-    public StoreSettingsDto updateSettings(StoreSettingsDto dto) {
-        StoreSettings settings = storeSettingsRepository.findAll().stream()
-                .findFirst()
-                .orElseGet(() -> {
-                    Store store = storeRepository.findAll().stream()
-                            .findFirst()
-                            .orElseThrow(() -> new RuntimeException("No store found"));
-                    return StoreSettings.builder().store(store).build();
-                });
+    @Transactional
+    public StoreSettingsDto updateSettings(String userEmail, StoreSettingsDto dto) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
+
+        Store store = getStoreForUser(user);
+
+        StoreSettings settings = storeSettingsRepository.findByStoreId(store.getId())
+                .orElseGet(() -> StoreSettings.builder().store(store).build());
 
         if (dto.getEmail() != null) settings.setEmail(dto.getEmail());
         if (dto.getCategory() != null) settings.setCategory(dto.getCategory());
@@ -43,6 +47,16 @@ public class StoreSettingsService {
         if (dto.getTimezone() != null) settings.setTimezone(dto.getTimezone());
 
         return toDto(storeSettingsRepository.save(settings));
+    }
+
+    private Store getStoreForUser(User user) {
+        if ("CORPORATE".equals(user.getRoleType())) {
+            return storeRepository.findFirstByOwnerId(user.getId())
+                    .orElseThrow(() -> new RuntimeException("Kullanıcının mağazası bulunamadı."));
+        }
+        return storeRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Sistemde mağaza bulunamadı."));
     }
 
     private StoreSettingsDto toDto(StoreSettings settings) {
@@ -60,19 +74,14 @@ public class StoreSettingsService {
                 .build();
     }
 
-    private StoreSettingsDto createDefaultSettings() {
-        Store defaultStore = storeRepository.findAll().stream()
-                .findFirst()
-                .orElse(null);
-
-        return StoreSettingsDto.builder()
-                .storeName(defaultStore != null ? defaultStore.getName() : "My Store")
-                .status(defaultStore != null ? defaultStore.getStatus() : "Open")
+    private StoreSettings createDefaultSettings(Store store) {
+        return StoreSettings.builder()
+                .store(store)
                 .email("admin@store.com")
                 .category("General")
                 .description("Welcome to our store")
-                .currency("USD ($)")
-                .timezone("America/New_York")
+                .currency("USD")
+                .timezone("UTC")
                 .build();
     }
 }

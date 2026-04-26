@@ -67,7 +67,7 @@ public class AnalyticsService {
         long totalReviews = allReviews.size();
 
         long completedOrders = allOrders.stream()
-                .filter(o -> "COMPLETED".equals(o.getStatus()))
+                .filter(o -> "DELIVERED".equals(o.getStatus()))
                 .count();
 
         double returnRate = totalOrders > 0 ? ((double) (totalOrders - completedOrders) / totalOrders) * 100 : 0;
@@ -82,6 +82,7 @@ public class AnalyticsService {
 
         List<CategoryDistribution> categoryDistribution = calculateCategoryDistribution(allOrderItems);
         List<RevenueTrend> revenueTrend = calculateRevenueTrend(allOrders);
+        List<AnalyticsOverviewDto.TopProduct> topProducts = calculateTopProducts(allOrderItems);
 
         return AnalyticsOverviewDto.builder()
                 .totalOrders(totalOrders)
@@ -94,6 +95,7 @@ public class AnalyticsService {
                 .pendingOrders(totalOrders - completedOrders)
                 .categoryDistribution(categoryDistribution)
                 .revenueTrend(revenueTrend)
+                .topProducts(topProducts)
                 .build();
     }
 
@@ -139,6 +141,34 @@ public class AnalyticsService {
                         .month(entry.getKey())
                         .revenue(entry.getValue())
                         .build())
+                .collect(Collectors.toList());
+    }
+
+    private List<AnalyticsOverviewDto.TopProduct> calculateTopProducts(List<OrderItem> orderItems) {
+        Map<Integer, AnalyticsOverviewDto.TopProduct> productMap = new HashMap<>();
+
+        for (OrderItem item : orderItems) {
+            Integer productId = item.getProduct().getId();
+            String productName = item.getProduct().getName();
+            BigDecimal itemTotal = item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+
+            if (productMap.containsKey(productId)) {
+                AnalyticsOverviewDto.TopProduct existing = productMap.get(productId);
+                existing.setRevenue(existing.getRevenue().add(itemTotal));
+                existing.setSales(existing.getSales() + item.getQuantity());
+            } else {
+                productMap.put(productId, AnalyticsOverviewDto.TopProduct.builder()
+                        .id(productId)
+                        .name(productName)
+                        .revenue(itemTotal)
+                        .sales(item.getQuantity())
+                        .build());
+            }
+        }
+
+        return productMap.values().stream()
+                .sorted((a, b) -> b.getRevenue().compareTo(a.getRevenue()))
+                .limit(10)
                 .collect(Collectors.toList());
     }
 }

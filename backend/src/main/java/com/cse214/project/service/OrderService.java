@@ -38,14 +38,14 @@ public class OrderService {
 
         switch (user.getRoleType()) {
             case "ADMIN":
-                orders = orderRepository.findAll();
+                orders = orderRepository.findAllWithUserAndStore();
                 break;
             case "CORPORATE":
                 Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
-                orders = orderRepository.findByStoreId(store.getId());
+                orders = orderRepository.findByStoreIdWithUserAndStore(store.getId());
                 break;
             default: // INDIVIDUAL
-                orders = orderRepository.findByUserId(user.getId());
+                orders = orderRepository.findByUserIdWithUserAndStore(user.getId());
                 break;
         }
 
@@ -54,10 +54,9 @@ public class OrderService {
 
     public OrderDetailDto getOrderById(Integer id, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
-        Order order = orderRepository.findById(id)
+        Order order = orderRepository.findByIdWithUserAndStore(id)
                 .orElseThrow(() -> new RuntimeException("Sipariş bulunamadı: " + id));
 
-        // Ownership check
         switch (user.getRoleType()) {
             case "CORPORATE":
                 Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
@@ -72,7 +71,7 @@ public class OrderService {
                 break;
         }
 
-        List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+        List<OrderItem> items = orderItemRepository.findByOrderIdWithProduct(order.getId());
         List<OrderItemDto> itemDtos = items.stream().map(this::toItemDto).collect(Collectors.toList());
 
         return OrderDetailDto.builder()
@@ -151,6 +150,7 @@ public class OrderService {
 
     // ==================== UPDATE STATUS ====================
 
+    @Transactional
     public OrderListDto updateOrderStatus(Integer id, String newStatus, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
         Order order = orderRepository.findById(id)

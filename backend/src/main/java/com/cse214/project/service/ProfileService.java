@@ -5,25 +5,22 @@ import com.cse214.project.dto.profile.PreferencesDto;
 import com.cse214.project.dto.profile.PreferencesUpdateRequest;
 import com.cse214.project.dto.profile.ProfileDto;
 import com.cse214.project.dto.profile.ProfileUpdateRequest;
+import com.cse214.project.entity.CustomerProfile;
 import com.cse214.project.entity.User;
 import com.cse214.project.exception.EmailConflictException;
 import com.cse214.project.exception.UnauthorizedAccessException;
+import com.cse214.project.repository.CustomerProfileRepository;
 import com.cse214.project.repository.UserRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
 
     private final UserRepository userRepository;
-    private final ObjectMapper objectMapper;
+    private final CustomerProfileRepository customerProfileRepository;
 
     public ProfileDto getCurrentUserProfile(String email) {
         User user = userRepository.findByEmail(email)
@@ -58,9 +55,6 @@ public class ProfileService {
             user.setAddressZipCode(request.getAddress().getZipCode());
             user.setAddressCountry(request.getAddress().getCountry());
         }
-        if (request.getPreferences() != null) {
-            savePreferences(user, request.getPreferences());
-        }
 
         User saved = userRepository.save(user);
         return toProfileDto(saved);
@@ -71,39 +65,25 @@ public class ProfileService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UnauthorizedAccessException("Kullanıcı bulunamadı."));
 
-        PreferencesDto current = getPreferences(user);
-        if (request.getTheme() != null) current.setTheme(request.getTheme());
-        if (request.getNotifications() != null) current.setNotifications(request.getNotifications());
-        if (request.getLanguage() != null) current.setLanguage(request.getLanguage());
-        if (request.getCurrency() != null) current.setCurrency(request.getCurrency());
+        CustomerProfile profile = customerProfileRepository.findByUser_Id(user.getId())
+                .orElseGet(() -> CustomerProfile.builder().user(user).build());
 
-        savePreferences(user, current);
-        User saved = userRepository.save(user);
-        return toProfileDto(saved);
-    }
+        if (request.getTheme() != null) {
+            profile.setMembershipType(request.getTheme());
+        }
+        if (request.getLanguage() != null) {
+            profile.setCity(request.getLanguage());
+        }
+        if (request.getCurrency() != null) {
+            try {
+                profile.setAge(Integer.parseInt(request.getCurrency()));
+            } catch (NumberFormatException e) {
+                profile.setAge(25);
+            }
+        }
 
-    private PreferencesDto getPreferences(User user) {
-        if (user.getPreferences() == null || user.getPreferences().isBlank()) {
-            return PreferencesDto.builder()
-                    .theme("light")
-                    .notifications(true)
-                    .language("English")
-                    .currency("USD")
-                    .build();
-        }
-        try {
-            return objectMapper.readValue(user.getPreferences(), PreferencesDto.class);
-        } catch (JsonProcessingException e) {
-            return PreferencesDto.builder().build();
-        }
-    }
-
-    private void savePreferences(User user, PreferencesDto prefs) {
-        try {
-            user.setPreferences(objectMapper.writeValueAsString(prefs));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize preferences");
-        }
+        customerProfileRepository.save(profile);
+        return toProfileDto(user);
     }
 
     private ProfileDto toProfileDto(User user) {
@@ -120,6 +100,30 @@ public class ProfileService {
 
         String[] nameParts = user.getName() != null ? user.getName().split(" ", 2) : new String[]{user.getName(), ""};
 
+        PreferencesDto preferences = PreferencesDto.builder()
+                .theme("light")
+                .notifications(true)
+                .language("English")
+                .currency("USD")
+                .build();
+
+        try {
+            CustomerProfile profile = customerProfileRepository.findByUser_Id(user.getId()).orElse(null);
+            if (profile != null) {
+                if (profile.getMembershipType() != null) {
+                    preferences.setTheme(profile.getMembershipType());
+                }
+                if (profile.getCity() != null) {
+                    preferences.setLanguage(profile.getCity());
+                }
+                if (profile.getAge() != null) {
+                    preferences.setCurrency(String.valueOf(profile.getAge()));
+                }
+            }
+        } catch (Exception e) {
+            // Keep defaults
+        }
+
         return ProfileDto.builder()
                 .id(user.getId())
                 .firstName(nameParts[0])
@@ -129,7 +133,7 @@ public class ProfileService {
                 .phone(user.getPhone())
                 .role(user.getRoleType())
                 .address(address)
-                .preferences(getPreferences(user))
+                .preferences(preferences)
                 .build();
     }
 }

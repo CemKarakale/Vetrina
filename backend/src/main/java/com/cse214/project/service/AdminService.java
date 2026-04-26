@@ -1,5 +1,6 @@
 package com.cse214.project.service;
 
+import com.cse214.project.dto.admin.CreateStoreRequest;
 import com.cse214.project.dto.admin.CreateUserRequest;
 import com.cse214.project.dto.admin.StoreDto;
 import com.cse214.project.dto.admin.UpdateUserStatusRequest;
@@ -13,6 +14,7 @@ import com.cse214.project.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -105,6 +107,29 @@ public class AdminService {
         return storeRepository.findAll().stream()
                 .map(this::toStoreDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public StoreDto createStore(CreateStoreRequest request) {
+        User owner;
+        if (request.getOwnerId() != null) {
+            owner = userRepository.findById(request.getOwnerId())
+                    .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + request.getOwnerId()));
+        } else if (request.getOwnerEmail() != null) {
+            owner = userRepository.findByEmail(request.getOwnerEmail())
+                    .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + request.getOwnerEmail()));
+        } else {
+            throw new RuntimeException("Owner ID veya Owner Email gerekli.");
+        }
+
+        Store store = Store.builder()
+                .name(request.getName())
+                .owner(owner)
+                .status(request.getStatus() != null ? request.getStatus() : "ACTIVE")
+                .build();
+
+        Store saved = storeRepository.save(store);
+        return toStoreDto(saved);
     }
 
     public StoreDto updateStoreStatus(Integer id, String status) {

@@ -3,39 +3,54 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth';
 
-export interface ChatResponse {
+export interface AiChatResponse {
   answer: string;
-  sql_query?: string;
-  visualization_code?: string;
-  blocked_reason?: string;
+  sql_query?: string | null;
+  visualization_code?: string | null;
+  blocked_reason?: string | null;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
-  private apiUrl = 'http://localhost:8000/api/ai/chat';
+  private apiUrl = '/api/ai/chat';
 
   constructor(
     private http: HttpClient,
     private authService: AuthService
   ) {}
 
-  sendMessage(message: string, sessionId?: string): Observable<ChatResponse> {
+  sendMessage(message: string, sessionId?: string): Observable<AiChatResponse> {
     const user = this.authService.getCurrentUser();
-
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'X-User-Role': user?.role || 'USER',
-      'X-User-Id': String(user?.id || 1),
-      'X-Store-Id': user?.storeId ? String(user.storeId) : ''
+    const role = this.normalizeRole(user.role);
+    let headers = new HttpHeaders({
+      'X-User-Role': role,
+      'X-User-Id': user.userId || '1'
     });
 
-    const body = {
-      message: message,
-      session_id: sessionId || null
-    };
+    if (user.storeId) {
+      headers = headers.set('X-Store-Id', user.storeId);
+    }
 
-    return this.http.post<ChatResponse>(this.apiUrl, body, { headers });
+    return this.http.post<AiChatResponse>(
+      this.apiUrl,
+      {
+        message,
+        session_id: sessionId || user.userId || 'anonymous'
+      },
+      { headers }
+    );
+  }
+
+  private normalizeRole(role: string | null): string {
+    const normalized = (role || 'USER').toUpperCase().replace(/^ROLE_/, '');
+    if (normalized === 'INDIVIDUAL' || normalized === 'INDIVIDUAL_USER') {
+      return 'INDIVIDUAL';
+    }
+    if (normalized === 'ADMIN' || normalized === 'CORPORATE') {
+      return normalized;
+    }
+    return 'USER';
   }
 }

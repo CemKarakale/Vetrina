@@ -1,6 +1,7 @@
 package com.cse214.project.controller;
 
 import com.cse214.project.dto.admin.AuditLogDto;
+import com.cse214.project.dto.admin.CreateStoreRequest;
 import com.cse214.project.dto.admin.CreateUserRequest;
 import com.cse214.project.dto.admin.StoreDto;
 import com.cse214.project.dto.admin.StoreReportDto;
@@ -74,6 +75,11 @@ public class AdminController {
     @GetMapping("/stores")
     public ResponseEntity<List<StoreDto>> getAllStores() {
         return ResponseEntity.ok(adminService.getAllStores());
+    }
+
+    @PostMapping("/stores")
+    public ResponseEntity<StoreDto> createStore(@Valid @RequestBody CreateStoreRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(adminService.createStore(request));
     }
 
     @PutMapping("/stores/{id}/status")

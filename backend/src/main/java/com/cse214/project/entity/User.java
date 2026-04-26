@@ -45,9 +45,6 @@ public class User {
     @Column(name = "address_country")
     private String addressCountry;
 
-    @Column(name = "preferences", columnDefinition = "TEXT")
-    private String preferences;
-
     @Column(nullable = false)
     private String status = "ACTIVE";
 

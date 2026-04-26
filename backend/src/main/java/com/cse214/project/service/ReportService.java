@@ -57,7 +57,7 @@ public class ReportService {
             double avgOrderValue = orderCount > 0 ? revenue / orderCount : 0;
 
             long completedOrders = storeOrders.stream()
-                    .filter(o -> "COMPLETED".equals(o.getStatus()))
+                    .filter(o -> "DELIVERED".equals(o.getStatus()))
                     .count();
             double returnRate = orderCount > 0 ? ((double) (orderCount - completedOrders) / orderCount) * 100 : 0;
 

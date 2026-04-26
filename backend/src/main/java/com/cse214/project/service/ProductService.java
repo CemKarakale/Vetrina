@@ -14,6 +14,7 @@ import com.cse214.project.repository.StoreRepository;
 import com.cse214.project.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,14 +36,14 @@ public class ProductService {
 
         switch (user.getRoleType()) {
             case "ADMIN":
-                products = productRepository.findAll();
+                products = productRepository.findAllWithCategoryAndStore();
                 break;
             case "CORPORATE":
                 Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
-                products = productRepository.findByStoreId(store.getId());
+                products = productRepository.findByStoreIdWithCategoryAndStore(store.getId());
                 break;
             default: // INDIVIDUAL
-                products = productRepository.findAll();
+                products = productRepository.findAllWithCategoryAndStore();
                 break;
         }
 
@@ -66,6 +67,7 @@ public class ProductService {
 
     // ==================== CREATE ====================
 
+    @Transactional
     public ProductDetailDto createProduct(ProductCreateRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
 
@@ -103,6 +105,7 @@ public class ProductService {
 
     // ==================== UPDATE ====================
 
+    @Transactional
     public ProductDetailDto updateProduct(Integer id, ProductUpdateRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
         Product product = productRepository.findById(id)
@@ -137,6 +140,7 @@ public class ProductService {
 
     // ==================== DELETE ====================
 
+    @Transactional
     public void deleteProduct(Integer id, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
         Product product = productRepository.findById(id)
@@ -156,6 +160,7 @@ public class ProductService {
 
     // ==================== STOCK UPDATE ====================
 
+    @Transactional
     public ProductDetailDto updateStock(Integer id, Integer stockQuantity, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
         Product product = productRepository.findById(id)

@@ -17,14 +17,14 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Integer> {
            "(:to IS NULL OR a.createdAt <= :to) AND " +
            "(:actor IS NULL OR a.actor = :actor) AND " +
            "(:type IS NULL OR a.entityType = :type) AND " +
-           "(:severity IS NULL OR a.severity = :sever) " +
+           "(:severity IS NULL OR a.severity = :severity) " +
            "ORDER BY a.createdAt DESC")
     List<AuditLog> findByFilters(
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to,
             @Param("actor") String actor,
             @Param("type") String type,
-            @Param("sever") String severity);
+            @Param("severity") String severity);
 
     List<AuditLog> findTop50ByOrderByCreatedAtDesc();
 }

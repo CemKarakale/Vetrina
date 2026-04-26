@@ -19,6 +19,7 @@ public class AnalyticsOverviewDto {
     private Long pendingOrders;
     private List<CategoryDistribution> categoryDistribution;
     private List<RevenueTrend> revenueTrend;
+    private List<TopProduct> topProducts;
 
     @Data
     @Builder
@@ -32,5 +33,14 @@ public class AnalyticsOverviewDto {
     public static class RevenueTrend {
         private String month;
         private BigDecimal revenue;
+    }
+
+    @Data
+    @Builder
+    public static class TopProduct {
+        private Integer id;
+        private String name;
+        private BigDecimal revenue;
+        private Integer sales;
     }
 }

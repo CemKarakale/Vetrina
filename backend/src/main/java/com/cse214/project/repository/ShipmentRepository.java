@@ -11,11 +11,18 @@ import java.util.Optional;
 
 @Repository
 public interface ShipmentRepository extends JpaRepository<Shipment, Integer> {
+
     Optional<Shipment> findByOrderId(Integer orderId);
 
-    @Query("SELECT s FROM Shipment s WHERE s.order.store.id = :storeId")
-    List<Shipment> findByOrderStoreId(@Param("storeId") Integer storeId);
+    @Query("SELECT s FROM Shipment s JOIN FETCH s.order WHERE s.order.id = :orderId")
+    Optional<Shipment> findByOrderIdWithOrder(@Param("orderId") Integer orderId);
 
-    @Query("SELECT s FROM Shipment s WHERE s.order.user.id = :userId")
-    List<Shipment> findByOrderUserId(@Param("userId") Integer userId);
+    @Query("SELECT s FROM Shipment s JOIN FETCH s.order WHERE s.order.store.id = :storeId")
+    List<Shipment> findByOrderStoreIdWithOrder(@Param("storeId") Integer storeId);
+
+    @Query("SELECT s FROM Shipment s JOIN FETCH s.order WHERE s.order.user.id = :userId")
+    List<Shipment> findByOrderUserIdWithOrder(@Param("userId") Integer userId);
+
+    @Query("SELECT s FROM Shipment s JOIN FETCH s.order")
+    List<Shipment> findAllWithOrder();
 }

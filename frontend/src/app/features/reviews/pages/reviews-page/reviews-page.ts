@@ -17,18 +17,47 @@ export class ReviewsPage implements OnInit {
   isLoading = signal<boolean>(true);
   errorMessage = signal<string>('');
   replyModalId = signal<string | null>(null);
+  isReplying = signal<boolean>(false);
+  deletingReviewId = signal<number | null>(null);
 
-  // Filtered reviews based on search term
+  selectedStars = signal<number | null>(null);
+  selectedProduct = signal<string | null>(null);
+  selectedUser = signal<string | null>(null);
+
+  // Filtered reviews based on search term and dropdown filters
   filteredReviews = computed(() => {
-    const term = this.searchService.searchTerm();
-    const list = this.reviews();
-    if (!term) return list;
-    return list.filter(r =>
-      r.productName?.toLowerCase().includes(term) ||
-      r.userName?.toLowerCase().includes(term) ||
-      r.content?.toLowerCase().includes(term)
-    );
+    const term = this.searchService.searchTerm().toLowerCase();
+    const stars = this.selectedStars();
+    const product = this.selectedProduct();
+    const user = this.selectedUser();
+    let list = this.reviews();
+
+    if (term) {
+      list = list.filter(r =>
+        r.productName?.toLowerCase().includes(term) ||
+        r.userName?.toLowerCase().includes(term) ||
+        r.content?.toLowerCase().includes(term)
+      );
+    }
+
+    if (stars !== null) {
+      list = list.filter(r => r.starRating === stars);
+    }
+
+    if (product) {
+      list = list.filter(r => r.productName === product);
+    }
+
+    if (user) {
+      list = list.filter(r => r.userName === user);
+    }
+
+    return list;
   });
+
+  // Unique values for filters
+  availableProducts = computed(() => [...new Set(this.reviews().map(r => r.productName))].sort());
+  availableUsers = computed(() => [...new Set(this.reviews().map(r => r.userName))].sort());
 
   newReviewRating = signal<number>(5);
   newReviewContent = signal<string>('');
@@ -48,7 +77,9 @@ export class ReviewsPage implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    this.reviewService.getReviews().subscribe({
+    const isAdmin = this.canReply(); // Simple check for admin/corporate
+
+    this.reviewService.getReviews(isAdmin).subscribe({
       next: (data) => {
         this.reviews.set(data ?? []);
         this.isLoading.set(false);
@@ -81,8 +112,22 @@ export class ReviewsPage implements OnInit {
   submitReply(response: string) {
     if (!response) return;
     const targetId = this.replyModalId();
-    this.reviews.update(list => list.map(r => r.id.toString() === targetId ? { ...r, adminReply: response } : r));
-    this.replyModalId.set(null);
+    if (!targetId) return;
+
+    this.isReplying.set(true);
+    this.reviewService.replyToReview(Number(targetId), response).subscribe({
+      next: (updated: any) => {
+        this.reviews.update(list => list.map(r => r.id.toString() === targetId ? { ...r, ...updated, adminReply: updated.adminReply || response } : r));
+        this.isReplying.set(false);
+        this.replyModalId.set(null);
+      },
+      error: () => {
+        this.reviews.update(list => list.map(r => r.id.toString() === targetId ? { ...r, adminReply: response } : r));
+        this.errorMessage.set('Could not save reply to API. Reply is shown locally for this session.');
+        this.isReplying.set(false);
+        this.replyModalId.set(null);
+      }
+    });
   }
 
   canReply() {
@@ -99,7 +144,18 @@ export class ReviewsPage implements OnInit {
   }
 
   deleteReview(id: number) {
-    this.reviews.update(list => list.filter(r => r.id !== id));
+    this.deletingReviewId.set(id);
+    this.reviewService.deleteReview(id).subscribe({
+      next: () => {
+        this.reviews.update(list => list.filter(r => r.id !== id));
+        this.deletingReviewId.set(null);
+      },
+      error: () => {
+        this.reviews.update(list => list.filter(r => r.id !== id));
+        this.errorMessage.set('Could not delete review through API. Removed locally for this session.');
+        this.deletingReviewId.set(null);
+      }
+    });
   }
 
   postReview() {
@@ -121,5 +177,11 @@ export class ReviewsPage implements OnInit {
     this.reviews.update(list => [newRev, ...list]);
     this.newReviewContent.set('');
     this.newReviewRating.set(5);
+  }
+
+  clearFilters() {
+    this.selectedStars.set(null);
+    this.selectedProduct.set(null);
+    this.selectedUser.set(null);
   }
 }

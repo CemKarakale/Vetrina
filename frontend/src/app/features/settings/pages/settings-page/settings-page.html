@@ -1,0 +1,94 @@
+<div class="settings-page">
+  <header class="page-header">
+    <p class="eyebrow">Store Configuration</p>
+    <div class="title-row">
+      <h1>Store Settings</h1>
+      <button class="action-btn" [class.btn-loading]="isSaving()" (click)="saveSettings()">
+        {{ isSaving() ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </div>
+    <p>Configure your store's general information, contact details, and localization settings.</p>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading settings...</p>
+    </div>
+  }
+
+  @if (!isLoading() && errorMessage()) {
+    <div class="error-banner">
+      <span>!</span>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  }
+
+  @if (!isLoading() && successMessage()) {
+    <div class="success-banner">
+      <span>Saved</span>
+      <p>{{ successMessage() }}</p>
+    </div>
+  }
+
+  @if (!isLoading() && settings()) {
+    <div class="settings-container">
+      <div class="settings-card">
+        <h3>General Information</h3>
+        <p class="card-desc">Update your store's basic profile details.</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Store Name</label>
+            <input type="text" [ngModel]="settings()?.storeName" (ngModelChange)="updateSetting('storeName', $event)" placeholder="Enter store name">
+          </div>
+
+          <div class="form-group">
+            <label>Contact Email</label>
+            <input type="email" [ngModel]="settings()?.email" (ngModelChange)="updateSetting('email', $event)" placeholder="store@example.com">
+          </div>
+
+          <div class="form-group">
+            <label>Store Category</label>
+            <input type="text" [ngModel]="settings()?.category" (ngModelChange)="updateSetting('category', $event)" placeholder="E.g. Electronics, Apparel">
+          </div>
+
+          <div class="form-group">
+            <label>Store Status</label>
+            <select [ngModel]="settings()?.status" (ngModelChange)="updateSetting('status', $event)">
+              <option value="Open">Open (Accepting Orders)</option>
+              <option value="Closed">Closed (Maintenance)</option>
+              <option value="Vacation">Vacation Mode</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Store Description</label>
+            <textarea rows="3" [ngModel]="settings()?.description" (ngModelChange)="updateSetting('description', $event)" placeholder="Briefly describe your store..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>Localization</h3>
+        <p class="card-desc">Configure your store's locale formatting.</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Currency</label>
+            <select [ngModel]="settings()?.currency" (ngModelChange)="updateSetting('currency', $event)">
+              <option value="USD ($)">USD ($)</option>
+              <option value="EUR (€)">EUR (€)</option>
+              <option value="GBP (£)">GBP (£)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Timezone</label>
+            <input type="text" [ngModel]="settings()?.timezone" (ngModelChange)="updateSetting('timezone', $event)" placeholder="America/New_York">
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,25 +1,25 @@
 <div class="ai-page">
-  <div class="ai-header">
-    <div class="title-row">
-      <span class="status-dot"></span>
-      <h1>AI Veri Asistanı</h1>
-    </div>
-    <div class="subtitle">
-      Aktif oturum • store_id: #{{ storeId }} • Guardrail: Açık
-    </div>
-  </div>
+  <header class="page-header">
+    <p class="eyebrow">
+      <span class="status-dot"></span> AI Assistant
+    </p>
+    <h1>AI Veri Asistani</h1>
+    <p>
+      Aktif oturum - {{ userRole }} - store_id: #{{ storeId }} - Guardrail: Acik
+    </p>
+  </header>
 
   <div class="chat-container">
     <div class="messages-area" #chatScroll>
       @if (messages().length === 0) {
         <div class="empty-state">
           <div class="ai-avatar-large">AI</div>
-          <p class="welcome-text">Merhaba {{ username.split(' ')[0] }}! Mağazanızla ilgili her soruyu sorabilirsiniz.</p>
+          <p class="welcome-text">Merhaba {{ username.split(' ')[0] }}! Magazanizla ilgili sorulari sorabilirsiniz.</p>
           <div class="suggestions-container">
-            <p class="suggestions-title">Örnek sorular — tıklayarak dene:</p>
+            <p class="suggestions-title">Ornek sorular - tiklayarak dene:</p>
             <div class="suggestions-grid">
               @for (suggestion of suggestions; track $index) {
-                <button class="suggestion-btn" (click)="sendSuggestion(suggestion)">{{ suggestion }}</button>
+                <button class="suggestion-btn" (click)="sendSuggestion(suggestion)" [disabled]="isBusy">{{ suggestion }}</button>
               }
             </div>
           </div>
@@ -27,62 +27,34 @@
       }
 
       @for (msg of messages(); track $index) {
-        
-        <!-- User Message -->
         @if (msg.role === 'user') {
           <div class="message-row user-row">
             <div class="user-bubble">{{ msg.content }}</div>
-            <div class="avatar user-avatar">{{ username.charAt(0) }}Ş</div>
+            <div class="avatar user-avatar">{{ username.charAt(0) }}</div>
           </div>
         }
 
-        <!-- Alert / Guardrail Scenario -->
         @if (msg.role === 'guardrail') {
           <div class="message-row assistant-row">
             <div class="avatar guardrail-avatar">GR</div>
             <div class="guardrail-card">
               <h4 class="guardrail-title">{{ msg.metadata.title }}</h4>
               <div class="guardrail-tag">{{ msg.metadata.tagText }}</div>
-              
+
               <div class="guardrail-content-box">
                 <div class="alert-header">
-                  <span class="alert-icon">⚠️</span> {{ msg.metadata.alertTitle }}
+                  <span class="alert-icon">!</span> {{ msg.metadata.alertTitle }}
                 </div>
                 <table class="alert-table">
                   @for (field of msg.metadata.fields; track $index) {
                     <tr>
                       <td class="alert-label">{{ field.label }}</td>
-                      <td class="alert-value" [class.urgent]="field.urgent || msg.metadata.tagText.includes('PROMPT') || msg.metadata.tagText.includes('KAPSAM')">{{ field.value }}</td>
+                      <td class="alert-value" [class.urgent]="field.urgent">{{ field.value }}</td>
                     </tr>
                   }
                 </table>
               </div>
 
-              <!-- Extra block for Prompt Injection blocked SQL -->
-              @if (msg.metadata.sqlCrossout) {
-                <div class="crossout-box">
-                  <span class="strikethrough">{{ msg.metadata.sqlCrossout }}</span>
-                </div>
-              }
-
-              <!-- Extra block for Bypass Alternative -->
-              @if (msg.metadata.alternativeTitle) {
-                <div class="alternative-box">
-                  <div class="alt-title">{{ msg.metadata.alternativeTitle }}</div>
-                  <div class="alt-desc">{{ msg.metadata.alternativeContent }}</div>
-                </div>
-              }
-
-              @if (msg.metadata.footerText) {
-                <p class="footer-text">{{ msg.metadata.footerText }}</p>
-              }
-
-              @if (msg.metadata.footerBadge) {
-                <span class="footer-badge normal-badge">{{ msg.metadata.footerBadge }}</span>
-              }
-              @if (msg.metadata.footerBadgeAlternative) {
-                <span class="footer-badge alternative-badge">{{ msg.metadata.footerBadgeAlternative }}</span>
-              }
               @if (msg.metadata.footerBadgeFail) {
                 <span class="footer-badge fail-badge">{{ msg.metadata.footerBadgeFail }}</span>
               }
@@ -90,21 +62,31 @@
           </div>
         }
 
-        <!-- Success Default Message -->
         @if (msg.role === 'assistant') {
           <div class="message-row assistant-row">
             <div class="avatar ai-avatar">AI</div>
-            <div class="assistant-bubble">{{ msg.content }}</div>
+            <div class="assistant-bubble">
+              <div>{{ msg.content }}</div>
+              @if (sqlQueryFor(msg); as sqlQuery) {
+                <div class="sql-box compact">
+                  <pre>{{ sqlQuery }}</pre>
+                </div>
+              }
+              @if (visualizationCodeFor(msg); as visualizationCode) {
+                <div class="sql-box compact">
+                  <pre>{{ visualizationCode }}</pre>
+                </div>
+              }
+            </div>
           </div>
         }
 
-        <!-- Success Chart Data (Scenario 5) -->
         @if (msg.role === 'chart') {
           <div class="message-row assistant-row">
             <div class="avatar ai-avatar">AI</div>
             <div class="chart-card">
               <h4 class="chart-title">{{ msg.metadata.title }}</h4>
-              
+
               <div class="chart-bars-container">
                 @for (bar of msg.metadata.bars; track $index) {
                   <div class="bar-row">
@@ -117,9 +99,11 @@
                 }
               </div>
 
-              <div class="sql-box">
-                <pre>{{ msg.metadata.sql }}</pre>
-              </div>
+              @if (msg.metadata.sql) {
+                <div class="sql-box">
+                  <pre>{{ msg.metadata.sql }}</pre>
+                </div>
+              }
 
               <div class="chart-footer">
                 {{ msg.metadata.stats }}
@@ -127,18 +111,20 @@
             </div>
           </div>
         }
-
       }
     </div>
 
     <div class="input-area">
-      <input 
-        type="text" 
-        [(ngModel)]="userInput" 
-        (keyup.enter)="sendMessage()" 
-        placeholder="Sorunuzu yazın..." 
+      <input
+        type="text"
+        [(ngModel)]="userInput"
+        (keyup.enter)="sendMessage()"
+        [disabled]="isBusy"
+        placeholder="Sorunuzu yazin..."
       />
-      <button (click)="sendMessage()">Gönder</button>
+      <button (click)="sendMessage()" [disabled]="isBusy || !userInput.trim()">
+        {{ isBusy ? 'Bekleyin' : 'Gonder' }}
+      </button>
     </div>
   </div>
 </div>

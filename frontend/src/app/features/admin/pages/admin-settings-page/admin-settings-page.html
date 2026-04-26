@@ -1,0 +1,31 @@
+<div class="admin-page">
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>System Settings</h1>
+      <p>Configure platform-level options and operational switches.</p>
+    </div>
+    <div class="header-actions">
+      <button class="secondary-btn" type="button" (click)="addSetting()">Add Setting</button>
+      <button class="primary-btn" type="button" [disabled]="isSaving()" (click)="saveSettings()">{{ isSaving() ? 'Saving...' : 'Save Settings' }}</button>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="admin-alert">{{ errorMessage() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="admin-empty">Loading settings...</div>
+  } @else {
+    <section class="settings-list">
+      @for (row of rows(); track row.key) {
+        <article class="setting-row">
+          <label>{{ row.key }}</label>
+          <input [ngModel]="row.value" (ngModelChange)="updateSetting(row.key, $event)">
+          <button type="button" class="danger-text" (click)="removeSetting(row.key)">Remove</button>
+        </article>
+      }
+    </section>
+  }
+</div>

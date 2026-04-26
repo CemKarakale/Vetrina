@@ -1,0 +1,145 @@
+<div class="customers-page">
+  <header class="page-header">
+    <p class="eyebrow">Relationship Management</p>
+    <div class="title-row">
+      <h1>Customers</h1>
+      @if (!isLoading()) {
+        <span class="count-badge">Total: {{ totalCustomers() | number }}</span>
+      }
+    </div>
+    <p>Review customers by membership tier, spend, and order behavior.</p>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading customers...</p>
+    </div>
+  }
+
+  @if (!isLoading() && errorMessage()) {
+    <div class="error-banner">
+      <span>!</span>
+      <p>{{ errorMessage() }}</p>
+      <span class="muted-text">Showing local demonstration data</span>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <section class="segment-strip">
+      @for (segment of segmentSummaries(); track segment.key) {
+        <button type="button" [class.active]="selectedSegment() === segment.key" (click)="selectedSegment.set(segment.key)">
+          <span>{{ segment.label }}</span>
+          <strong>{{ segment.customers | number }}</strong>
+          <small>{{ segment.averageSpend | currency:'USD':'symbol':'1.0-0' }} avg spend</small>
+        </button>
+      }
+      <button type="button" [class.active]="selectedSegment() === 'all'" (click)="selectedSegment.set('all')">
+        <span>All</span>
+        <strong>{{ totalCustomers() | number }}</strong>
+        <small>Clear segment</small>
+      </button>
+    </section>
+
+    <section class="behavior-strip">
+      <article>
+        <span>Average spend</span>
+        <strong>{{ behaviorSummary().averageSpend | currency:'USD':'symbol':'1.0-0' }}</strong>
+      </article>
+      <article>
+        <span>Average orders</span>
+        <strong>{{ behaviorSummary().averageOrders | number:'1.1-1' }}</strong>
+      </article>
+      <article>
+        <span>Active customers</span>
+        <strong>{{ behaviorSummary().activeCustomers | number }}</strong>
+      </article>
+    </section>
+  }
+
+  @if (!isLoading() && filteredCustomers().length > 0) {
+    <div class="table-container card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Membership</th>
+            <th>Orders</th>
+            <th>Total Spend</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (customer of filteredCustomers(); track customer.id) {
+            <tr>
+              <td class="muted-text">{{ customer.id }}</td>
+              <td class="font-bold">{{ customer.name }}</td>
+              <td>
+                <span class="membership-badge" [ngClass]="customer.membership.toLowerCase()">{{ customer.membership }}</span>
+              </td>
+              <td>{{ customer.orderCount }}</td>
+              <td class="font-bold text-success">{{ customer.totalSpend | currency:'USD':'symbol':'1.2-2' }}</td>
+              <td>
+                <button class="action-btn" (click)="viewProfile(customer)">View Profile</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (!isLoading() && filteredCustomers().length === 0) {
+    <div class="empty-state">
+      <h2>No customers found</h2>
+      <p>Try a different segment or search term.</p>
+    </div>
+  }
+
+  @if (selectedCustomer()) {
+    <div class="modal-overlay" (click)="selectedCustomer.set(null)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Customer Profile</h3>
+          <button class="close-btn" (click)="selectedCustomer.set(null)">x</button>
+        </div>
+        <div class="modal-body">
+          <div class="profile-grid">
+            <div>
+              <label>Name</label>
+              <strong>{{ selectedCustomer().name }}</strong>
+            </div>
+            <div>
+              <label>Email</label>
+              <strong>{{ selectedCustomer().email || 'Not provided' }}</strong>
+            </div>
+            <div>
+              <label>Lifetime spend</label>
+              <strong>{{ selectedCustomer().totalSpend | currency:'USD':'symbol':'1.2-2' }}</strong>
+            </div>
+            <div>
+              <label>Total orders</label>
+              <strong>{{ selectedCustomer().orderCount }} orders</strong>
+            </div>
+            <div>
+              <label>Membership</label>
+              <span class="membership-badge" [ngClass]="selectedCustomer().membership.toLowerCase()">{{ selectedCustomer().membership }}</span>
+            </div>
+            <div>
+              <label>Favorite category</label>
+              <strong>{{ selectedCustomer().favoriteCategory || 'Not enough data' }}</strong>
+            </div>
+            <div>
+              <label>City</label>
+              <strong>{{ selectedCustomer().city || 'Unknown' }}</strong>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="secondary-btn" (click)="selectedCustomer.set(null)">Close Profile</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -3,6 +3,7 @@ package com.cse214.project.service;
 import org.springframework.stereotype.Service;
 
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +22,7 @@ public class DynamicQueryService {
         this.dataSource = dataSource;
     }
 
-    public List<Map<String, Object>> execute(String sql) {
+    public List<Map<String, Object>> execute(String sql) throws SQLException {
         List<Map<String, Object>> results = new ArrayList<>();
 
         try (Connection conn = dataSource.getConnection();
@@ -41,10 +42,6 @@ public class DynamicQueryService {
                 results.add(row);
             }
 
-        } catch (Exception e) {
-            Map<String, Object> errorRow = new HashMap<>();
-            errorRow.put("error", e.getMessage());
-            results.add(errorRow);
         }
 
         return results;

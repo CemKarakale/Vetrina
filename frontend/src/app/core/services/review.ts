@@ -5,11 +5,20 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class ReviewService {
-  apiUrl: string = 'http://localhost:8080/api/reviews/my';
+  private baseUrl: string = '/api/reviews';
 
   constructor(private http: HttpClient) {}
 
-  getReviews() {
-    return this.http.get<any[]>(this.apiUrl);
+  getReviews(all: boolean = false) {
+    const url = all ? this.baseUrl : `${this.baseUrl}/my`;
+    return this.http.get<any[]>(url);
+  }
+
+  replyToReview(id: number, reply: string) {
+    return this.http.put<any>(`${this.baseUrl}/${id}/reply`, { reply });
+  }
+
+  deleteReview(id: number) {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

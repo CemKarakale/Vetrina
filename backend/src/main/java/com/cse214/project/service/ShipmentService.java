@@ -12,6 +12,7 @@ import com.cse214.project.repository.StoreRepository;
 import com.cse214.project.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,14 +32,14 @@ public class ShipmentService {
         List<Shipment> shipments;
         switch (user.getRoleType()) {
             case "ADMIN":
-                shipments = shipmentRepository.findAll();
+                shipments = shipmentRepository.findAllWithOrder();
                 break;
             case "CORPORATE":
                 Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
-                shipments = shipmentRepository.findByOrderStoreId(store.getId());
+                shipments = shipmentRepository.findByOrderStoreIdWithOrder(store.getId());
                 break;
             case "INDIVIDUAL":
-                shipments = shipmentRepository.findByOrderUserId(user.getId());
+                shipments = shipmentRepository.findByOrderUserIdWithOrder(user.getId());
                 break;
             default:
                 shipments = List.of();
@@ -49,10 +50,9 @@ public class ShipmentService {
 
     public ShipmentDto getShipmentByOrderId(Integer orderId, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithUserAndStore(orderId)
                 .orElseThrow(() -> new RuntimeException("Sipariş bulunamadı: " + orderId));
 
-        // Ownership check
         switch (user.getRoleType()) {
             case "CORPORATE":
                 Store store = storeRepository.findByOwnerId(user.getId()).orElseThrow();
@@ -67,7 +67,7 @@ public class ShipmentService {
                 break;
         }
 
-        Shipment shipment = shipmentRepository.findByOrderId(orderId)
+        Shipment shipment = shipmentRepository.findByOrderIdWithOrder(orderId)
                 .orElseThrow(() -> new RuntimeException("Bu sipariş için kargo bilgisi bulunamadı."));
 
         return toDto(shipment);
@@ -85,6 +85,7 @@ public class ShipmentService {
                 .build();
     }
 
+    @Transactional
     public ShipmentDto updateShipment(Integer orderId, UpdateShipmentRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
         Order order = orderRepository.findById(orderId)
@@ -102,7 +103,7 @@ public class ShipmentService {
                 throw new RuntimeException("Bireysel kullanıcılar kargo bilgisi güncelleyemez.");
         }
 
-        Shipment shipment = shipmentRepository.findByOrderId(orderId)
+        Shipment shipment = shipmentRepository.findByOrderIdWithOrder(orderId)
                 .orElseThrow(() -> new RuntimeException("Bu sipariş için kargo bilgisi bulunamadı."));
 
         if (request.getTrackingNumber() != null) {

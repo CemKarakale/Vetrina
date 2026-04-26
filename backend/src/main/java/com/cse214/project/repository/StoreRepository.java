@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface StoreRepository extends JpaRepository<Store, Integer> {
     Optional<Store> findByOwnerId(Integer ownerId);
+    Optional<Store> findFirstByOwnerId(Integer ownerId);
 }

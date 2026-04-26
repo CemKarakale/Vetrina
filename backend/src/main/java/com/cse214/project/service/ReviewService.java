@@ -12,6 +12,7 @@ import com.cse214.project.repository.StoreRepository;
 import com.cse214.project.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,24 +28,25 @@ public class ReviewService {
     private final StoreRepository storeRepository;
 
     public List<ReviewDto> getAllReviews() {
-        return reviewRepository.findAll().stream()
+        return reviewRepository.findAllWithUserAndProduct().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
     public List<ReviewDto> getReviewsByProduct(Integer productId) {
-        return reviewRepository.findByProductId(productId).stream()
+        return reviewRepository.findByProductIdWithUserAndProduct(productId).stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
     public List<ReviewDto> getMyReviews(String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
-        return reviewRepository.findByUserId(user.getId()).stream()
+        return reviewRepository.findByUserIdWithUserAndProduct(user.getId()).stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public ReviewDto createReview(ReviewCreateRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
 
@@ -62,6 +64,7 @@ public class ReviewService {
         return toDto(saved);
     }
 
+    @Transactional
     public void deleteReview(Integer id, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
         Review review = reviewRepository.findById(id)
@@ -75,6 +78,7 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
+    @Transactional
     public ReviewDto replyToReview(Integer id, String reply, String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow();
         Review review = reviewRepository.findById(id)

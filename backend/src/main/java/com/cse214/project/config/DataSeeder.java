@@ -21,6 +21,7 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+
         syncUserPasswords();
         syncStorePasswords();
         System.out.println("✅ DataSeeder tamamlandı - Sadece password senkronizasyonu yapıldı.");
@@ -28,11 +29,10 @@ public class DataSeeder implements CommandLineRunner {
 
     private void syncUserPasswords() {
         List<String> seedEmails = List.of(
-            "admin@test.com",
-            "corp@test.com",
-            "user1@test.com",
-            "user2@test.com"
-        );
+                "admin@test.com",
+                "corp@test.com",
+                "user1@test.com",
+                "user2@test.com");
 
         for (String email : seedEmails) {
             userRepository.findByEmail(email).ifPresent(user -> {

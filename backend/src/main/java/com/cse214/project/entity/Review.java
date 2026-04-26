@@ -35,4 +35,7 @@ public class Review {
 
     @Column(name = "reply_created_at")
     private LocalDateTime replyCreatedAt;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
 }

@@ -1,0 +1,48 @@
+<div class="admin-page">
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Audit Logs</h1>
+      <p>Read-only system event history from the backend audit pipeline.</p>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="admin-alert">{{ errorMessage() }}</div>
+  }
+
+  <section class="admin-toolbar">
+    <input type="date" [ngModel]="filters().from" (ngModelChange)="updateFilter('from', $event)">
+    <input type="date" [ngModel]="filters().to" (ngModelChange)="updateFilter('to', $event)">
+    <input placeholder="Actor" [ngModel]="filters().actor" (ngModelChange)="updateFilter('actor', $event)">
+    <input placeholder="Type" [ngModel]="filters().type" (ngModelChange)="updateFilter('type', $event)">
+    <select [ngModel]="filters().severity" (ngModelChange)="updateFilter('severity', $event)">
+      <option value="">All severities</option>
+      <option value="info">Info</option>
+      <option value="warning">Warning</option>
+      <option value="danger">Danger</option>
+    </select>
+    <button class="primary-btn" type="button" (click)="loadLogs()">Apply</button>
+    <button class="secondary-btn" type="button" (click)="clearFilters()">Clear</button>
+  </section>
+
+  @if (isLoading()) {
+    <div class="admin-empty">Loading audit logs...</div>
+  } @else {
+    <section class="admin-table audit-table">
+      <div class="admin-row admin-head">
+        <span>Date</span><span>Actor</span><span>Action</span><span>Entity</span><span>Severity</span><span>Metadata</span>
+      </div>
+      @for (log of logs(); track log.id) {
+        <div class="admin-row">
+          <span>{{ log.createdAt | date:'medium' }}</span>
+          <strong>{{ log.actor }}</strong>
+          <span>{{ log.action }}</span>
+          <span>{{ log.entityType }} #{{ log.entityId || '-' }}</span>
+          <span class="pill" [class.warning]="log.severity === 'warning'" [class.danger-pill]="log.severity === 'danger'">{{ log.severity }}</span>
+          <span>{{ log.metadata || '-' }}</span>
+        </div>
+      }
+    </section>
+  }
+</div>
