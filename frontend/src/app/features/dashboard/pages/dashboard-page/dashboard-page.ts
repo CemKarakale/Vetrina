@@ -93,29 +93,63 @@ export class DashboardPage implements OnInit {
   }
 
   private setDashboardData(role: DashboardRole, data: any) {
+    const range = this.selectedRange();
+
     switch (role) {
       case 'USER':
-        this.userDashboard.set(data as UserDashboardDto);
+        this.userDashboard.set(this.dashboardService.applyRangeToDashboard(role, data as UserDashboardDto, range));
         break;
       case 'CORPORATE':
-        this.corporateDashboard.set(this.completeCorporateDashboard(data as CorporateDashboardDto));
+        this.corporateDashboard.set(
+          this.dashboardService.applyRangeToDashboard(
+            role,
+            this.completeCorporateDashboard(data as CorporateDashboardDto),
+            range
+          )
+        );
         break;
       case 'ADMIN':
-        this.adminDashboard.set(this.completeAdminDashboard(data as AdminDashboardDto));
+        this.adminDashboard.set(
+          this.dashboardService.applyRangeToDashboard(
+            role,
+            this.completeAdminDashboard(data as AdminDashboardDto),
+            range
+          )
+        );
         break;
     }
   }
 
   private loadFallbackData(role: DashboardRole) {
+    const range = this.selectedRange();
+
     switch (role) {
       case 'USER':
-        this.userDashboard.set(this.dashboardService.getUserDashboardFallback());
+        this.userDashboard.set(
+          this.dashboardService.applyRangeToDashboard(
+            role,
+            this.dashboardService.getUserDashboardFallback(),
+            range
+          )
+        );
         break;
       case 'CORPORATE':
-        this.corporateDashboard.set(this.dashboardService.getCorporateDashboardFallback());
+        this.corporateDashboard.set(
+          this.dashboardService.applyRangeToDashboard(
+            role,
+            this.dashboardService.getCorporateDashboardFallback(),
+            range
+          )
+        );
         break;
       case 'ADMIN':
-        this.adminDashboard.set(this.dashboardService.getAdminDashboardFallback());
+        this.adminDashboard.set(
+          this.dashboardService.applyRangeToDashboard(
+            role,
+            this.dashboardService.getAdminDashboardFallback(),
+            range
+          )
+        );
         break;
     }
   }

@@ -13,9 +13,21 @@
   }
   
   .content-area {
-    padding: 0 40px 40px;
+    padding: 56px 40px 40px;
     flex: 1;
     overflow-y: auto;
     color: #22312f;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-layout {
+    .main-container {
+      margin-left: 250px;
+    }
+
+    .content-area {
+      padding: 34px 24px 32px;
+    }
   }
 }

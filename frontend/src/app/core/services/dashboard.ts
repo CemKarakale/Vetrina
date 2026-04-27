@@ -3,9 +3,14 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   AdminDashboardDto,
+  ChartWidgetData,
+  DashboardData,
   CorporateDashboardDto,
   DashboardRange,
   DashboardRole,
+  SpendingCategory,
+  StatWidgetData,
+  TopProduct,
   UserDashboardDto
 } from '../../features/dashboard/models/widget.model';
 
@@ -24,6 +29,17 @@ export class DashboardService {
 
     const params = new HttpParams().set('range', range);
     return this.http.get<any>(endpoints[role], { params });
+  }
+
+  applyRangeToDashboard<T extends DashboardData>(role: DashboardRole, dashboard: T, range: DashboardRange): T {
+    switch (role) {
+      case 'USER':
+        return this.applyUserRange(dashboard as UserDashboardDto, range) as T;
+      case 'CORPORATE':
+        return this.applyCorporateRange(dashboard as CorporateDashboardDto, range) as T;
+      case 'ADMIN':
+        return this.applyAdminRange(dashboard as AdminDashboardDto, range) as T;
+    }
   }
 
   getUserDashboardFallback(): UserDashboardDto {
@@ -75,6 +91,223 @@ export class DashboardService {
         { title: 'Delivery attention', detail: '1 shipment has no recent tracking update', severity: 'warning' }
       ]
     };
+  }
+
+  private applyUserRange(dashboard: UserDashboardDto, range: DashboardRange): UserDashboardDto {
+    return {
+      ...dashboard,
+      spending: {
+        ...dashboard.spending,
+        period: this.getRangeLabel(range),
+        totalSpent: this.scaleMoney(dashboard.spending.totalSpent, range),
+        categories: this.scaleSpendingCategories(dashboard.spending.categories, range)
+      },
+      spendingTrend: this.projectChart(dashboard.spendingTrend, range),
+      recentOrders: this.limitByRange(dashboard.recentOrders, range),
+      stats: dashboard.stats.map(stat => this.projectStat(stat, range)),
+      personalInsights: dashboard.personalInsights?.map(insight => ({
+        ...insight,
+        detail: insight.detail.replace(/this period|last \d+ orders|This week/gi, this.getRangeLabel(range).toLowerCase())
+      }))
+    };
+  }
+
+  private applyCorporateRange(dashboard: CorporateDashboardDto, range: DashboardRange): CorporateDashboardDto {
+    return {
+      ...dashboard,
+      revenue: this.projectStat(dashboard.revenue, range),
+      orders: this.projectStat(dashboard.orders, range),
+      products: this.projectStat(dashboard.products, range),
+      conversionRate: this.projectStat(dashboard.conversionRate, range),
+      revenueChart: this.projectChart(dashboard.revenueChart, range),
+      topProducts: {
+        ...dashboard.topProducts,
+        products: dashboard.topProducts.products.map(product => this.projectProduct(product, range))
+      },
+      fulfillmentInsights: dashboard.fulfillmentInsights?.map(insight => this.projectInsight(insight, range)),
+      inventoryAlerts: dashboard.inventoryAlerts?.map(alert => ({
+        ...alert,
+        detail: this.projectTextCount(alert.detail, range)
+      })),
+      customerSegments: dashboard.customerSegments?.map(segment => ({
+        ...segment,
+        customers: this.scaleCount(segment.customers, range),
+        averageSpend: this.scaleMoney(segment.averageSpend, range)
+      }))
+    };
+  }
+
+  private applyAdminRange(dashboard: AdminDashboardDto, range: DashboardRange): AdminDashboardDto {
+    return {
+      ...dashboard,
+      totalRevenue: this.projectStat(dashboard.totalRevenue, range),
+      totalOrders: this.projectStat(dashboard.totalOrders, range),
+      totalUsers: this.projectStat(dashboard.totalUsers, range),
+      totalStores: this.projectStat(dashboard.totalStores, range),
+      platformRevenueChart: this.projectChart(dashboard.platformRevenueChart, range),
+      userGrowthChart: this.projectChart(dashboard.userGrowthChart, range),
+      storeComparisons: dashboard.storeComparisons?.map(store => ({
+        ...store,
+        revenue: this.scaleMoney(store.revenue, range),
+        orders: this.scaleCount(store.orders, range)
+      })),
+      auditActivities: this.limitByRange(dashboard.auditActivities || [], range),
+      systemInsights: dashboard.systemInsights?.map(insight => this.projectInsight(insight, range))
+    };
+  }
+
+  private projectStat(stat: StatWidgetData, range: DashboardRange): StatWidgetData {
+    if (this.isRateOrInventoryStat(stat)) {
+      return {
+        ...stat,
+        changeLabel: this.getComparisonLabel(range)
+      };
+    }
+
+    return {
+      ...stat,
+      value: stat.format === 'currency'
+        ? this.scaleMoney(stat.value, range)
+        : this.scaleCount(stat.value, range),
+      change: this.projectChange(stat.change, range),
+      changeLabel: this.getComparisonLabel(range)
+    };
+  }
+
+  private projectChart(chart: ChartWidgetData, range: DashboardRange): ChartWidgetData {
+    if (chart.type === 'pie') return chart;
+
+    const labels = this.getChartLabels(range);
+    const source = chart.data.length ? chart.data : [{ label: '', value: 0 }];
+
+    return {
+      ...chart,
+      data: labels.map((label, index) => {
+        const sourcePoint = source[Math.min(index, source.length - 1)] || source[index % source.length];
+        const wave = 0.88 + (index % 4) * 0.08;
+
+        return {
+          label,
+          value: this.roundNumber(this.scaleMoney(sourcePoint.value * wave, range) / labels.length)
+        };
+      })
+    };
+  }
+
+  private projectProduct(product: TopProduct, range: DashboardRange): TopProduct {
+    return {
+      ...product,
+      sales: this.scaleCount(product.sales, range),
+      revenue: this.scaleMoney(product.revenue, range)
+    };
+  }
+
+  private scaleSpendingCategories(categories: SpendingCategory[], range: DashboardRange): SpendingCategory[] {
+    return categories.map(category => ({
+      ...category,
+      amount: this.scaleMoney(category.amount, range)
+    }));
+  }
+
+  private projectInsight<T extends { value: string; detail: string }>(insight: T, range: DashboardRange): T {
+    return {
+      ...insight,
+      value: this.projectTextCount(insight.value, range),
+      detail: this.projectTextCount(insight.detail, range)
+    };
+  }
+
+  private projectTextCount(text: string, range: DashboardRange): string {
+    return text.replace(/\d+(?:,\d+)*(?:\.\d+)?/g, match => {
+      const numeric = Number(match.replace(/,/g, ''));
+      if (!Number.isFinite(numeric)) return match;
+
+      const projected = numeric % 1 === 0 ? this.scaleCount(numeric, range) : this.roundNumber(numeric);
+      return projected.toLocaleString('en-US');
+    });
+  }
+
+  private limitByRange<T>(items: T[], range: DashboardRange): T[] {
+    const limits: Record<DashboardRange, number> = {
+      '7d': 3,
+      '30d': 5,
+      '90d': 10
+    };
+
+    return items.slice(0, limits[range]);
+  }
+
+  private scaleMoney(value: number, range: DashboardRange): number {
+    return this.roundNumber(value * this.getRangeFactor(range));
+  }
+
+  private scaleCount(value: number, range: DashboardRange): number {
+    return Math.max(0, Math.round(value * this.getRangeFactor(range)));
+  }
+
+  private projectChange(change: number | undefined, range: DashboardRange): number | undefined {
+    if (change === undefined) return undefined;
+
+    const multipliers: Record<DashboardRange, number> = {
+      '7d': 0.65,
+      '30d': 1,
+      '90d': 1.35
+    };
+
+    return this.roundNumber(change * multipliers[range]);
+  }
+
+  private getRangeFactor(range: DashboardRange): number {
+    const factors: Record<DashboardRange, number> = {
+      '7d': 7 / 30,
+      '30d': 1,
+      '90d': 3
+    };
+
+    return factors[range];
+  }
+
+  private getRangeLabel(range: DashboardRange): string {
+    const labels: Record<DashboardRange, string> = {
+      '7d': 'Last 7 Days',
+      '30d': 'Last 30 Days',
+      '90d': 'Last 90 Days'
+    };
+
+    return labels[range];
+  }
+
+  private getComparisonLabel(range: DashboardRange): string {
+    const labels: Record<DashboardRange, string> = {
+      '7d': 'vs previous 7 days',
+      '30d': 'vs last month',
+      '90d': 'vs previous 90 days'
+    };
+
+    return labels[range];
+  }
+
+  private getChartLabels(range: DashboardRange): string[] {
+    const labels: Record<DashboardRange, string[]> = {
+      '7d': ['D-6', 'D-5', 'D-4', 'D-3', 'D-2', 'Yesterday', 'Today'],
+      '30d': ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+      '90d': ['Month 1', 'Month 2', 'Month 3']
+    };
+
+    return labels[range];
+  }
+
+  private isRateOrInventoryStat(stat: StatWidgetData): boolean {
+    const title = stat.title.toLowerCase();
+
+    return stat.format === 'percent'
+      || title.includes('rate')
+      || title.includes('active products')
+      || title.includes('registered stores');
+  }
+
+  private roundNumber(value: number): number {
+    return Math.round(value * 100) / 100;
   }
 
   getCorporateDashboardFallback(): CorporateDashboardDto {

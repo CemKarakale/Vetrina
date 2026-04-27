@@ -2,12 +2,11 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm",
-    "analytics": "974c32da-d8d3-40e2-80a3-4c3f118ed33e"
+    "packageManager": "npm"
   },
   "newProjectRoot": "projects",
   "projects": {
-    "EcommerceProject": {
+    "Vetrina": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -62,10 +61,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "EcommerceProject:build:production"
+              "buildTarget": "Vetrina:build:production"
             },
             "development": {
-              "buildTarget": "EcommerceProject:build:development"
+              "buildTarget": "Vetrina:build:development"
             }
           },
           "defaultConfiguration": "development"

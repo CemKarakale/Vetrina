@@ -40,21 +40,8 @@ export class LoginPage {
         this.router.navigate(['/dashboard']);
       },
       error: () => {
-        this.errorMessage.set('Login failed. Check your credentials or try Demo Login.');
+        this.errorMessage.set('Login failed. Check your email and password, then try again.');
       }
     });
-  }
-
-  // Demo login for presentations without a running backend
-  demoLogin() {
-    localStorage.setItem('token', 'demo-token');
-    localStorage.setItem('refreshToken', 'demo-refresh');
-    localStorage.setItem('role', 'CORPORATE');
-    localStorage.setItem('username', 'Demo User');
-    localStorage.setItem('email', 'demo@example.com');
-    localStorage.setItem('userId', '1');
-    localStorage.setItem('storeId', '1042');
-
-    this.router.navigate(['/dashboard']);
   }
 }

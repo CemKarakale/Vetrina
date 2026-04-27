@@ -18,11 +18,11 @@
 
         <div class="filter-group">
           <label>Product</label>
-          <input 
-            type="text" 
-            [ngModel]="selectedProduct()" 
-            (ngModelChange)="selectedProduct.set($event || null)" 
-            list="productSuggestions" 
+          <input
+            type="text"
+            [ngModel]="selectedProduct()"
+            (ngModelChange)="selectedProduct.set($event || null)"
+            list="productSuggestions"
             placeholder="Search Product..."
             class="filter-control"
           >
@@ -35,11 +35,11 @@
 
         <div class="filter-group">
           <label>Customer</label>
-          <input 
-            type="text" 
-            [ngModel]="selectedUser()" 
-            (ngModelChange)="selectedUser.set($event || null)" 
-            list="userSuggestions" 
+          <input
+            type="text"
+            [ngModel]="selectedUser()"
+            (ngModelChange)="selectedUser.set($event || null)"
+            list="userSuggestions"
             placeholder="Search User..."
             class="filter-control"
           >
@@ -74,7 +74,7 @@
 
   @if (!isLoading() && filteredReviews().length > 0) {
     <div class="reviews-list">
-      
+
       @if (!canReply()) {
         <div class="review-form-container" style="background: #f6fbfa; padding: 24px; border: 1px solid #c8dcda; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 8px 20px rgba(35, 79, 79, 0.05);">
           <h3 style="margin-top: 0; color: #17312c; font-weight: 800;">Write a Review</h3>
@@ -127,7 +127,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="review-product">
             <span class="badge">Purchased Item</span>
             <span class="product-name">{{ review.productName }}</span>

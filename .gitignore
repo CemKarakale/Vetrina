@@ -25,3 +25,9 @@ desktop.ini
 
 # === Antigravity / Gemini ===
 .gemini/
+
+# === Frontend generated files ===
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/ng-serve*.log
